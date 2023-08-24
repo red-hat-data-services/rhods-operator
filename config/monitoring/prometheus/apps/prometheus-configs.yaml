@@ -754,6 +754,7 @@ data:
           labels:
             instance: rhods-dashboard
           record: probe_success:burnrate6h
+
   rhods-dashboard-alerting.rules: |
     groups:
       - name: SLOs-haproxy_backend_http_responses_dashboard
@@ -1614,6 +1615,7 @@ data:
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate6h
+
   trustyai-alerting.rules: |
     groups:
       - name: SLOs-probe_success_trustyai
@@ -1844,6 +1846,7 @@ data:
             labels:
               severity: warning
               instance: feast-operator-controller-manager
+
   llama-stack-k8s-operator-recording.rules: |
     groups:
       - name: SLOs - Llama Stack K8s Operator
