@@ -258,7 +258,6 @@ func DeployManifestsFromPathWithLabels(
 	if err := labelsPlugin.Transform(resMap); err != nil {
 		return fmt.Errorf("failed applying labels plugin when preparing Kustomize resources. %w", err)
 	}
-
 	// Create / apply / delete resources in the cluster
 	for _, res := range resMap.Resources() {
 		err = manageResource(ctx, cli, res, owner, namespace, componentName, componentEnabled)
