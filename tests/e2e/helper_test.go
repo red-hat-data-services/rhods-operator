@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-
+	"github.com/opendatahub-io/opendatahub-operator/v2/components/trustyai"
 	gTypes "github.com/onsi/gomega/types"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -250,6 +250,11 @@ func CreateDSC(name string) *dscv1.DataScienceCluster {
 				LlamaStackOperator: componentApi.DSCLlamaStackOperator{
 					ManagementSpec: common.ManagementSpec{
 						ManagementState: operatorv1.Removed,
+					},
+				},
+				TrustyAI: trustyai.TrustyAI{
+					Component: components.Component{
+						ManagementState: operatorv1.Managed,
 					},
 				},
 			},
