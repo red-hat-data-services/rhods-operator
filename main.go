@@ -49,9 +49,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	dscv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
-	dsciv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
-	dscontr "github.com/opendatahub-io/opendatahub-operator/v2/controllers/datasciencecluster"
+	datascienceclusterv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
+	dsci "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
+	datascienceclustercontrollers "github.com/opendatahub-io/opendatahub-operator/v2/controllers/datasciencecluster"
 	dscicontr "github.com/opendatahub-io/opendatahub-operator/v2/controllers/dscinitialization"
 	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/secretgenerator"
 	//+kubebuilder:scaffold:imports
@@ -65,8 +65,8 @@ var (
 func init() {
 	//+kubebuilder:scaffold:scheme
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(dsciv1.AddToScheme(scheme))
-	utilruntime.Must(dscv1.AddToScheme(scheme))
+	utilruntime.Must(dsci.AddToScheme(scheme))
+	utilruntime.Must(datascienceclusterv1.AddToScheme(scheme))
 	utilruntime.Must(netv1.AddToScheme(scheme))
 	utilruntime.Must(addonv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(authv1.AddToScheme(scheme))
@@ -139,12 +139,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&dscontr.DataScienceClusterReconciler{
+	if err = (&datascienceclustercontrollers.DataScienceClusterReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 		Log:    ctrl.Log.WithName("controllers").WithName("DataScienceCluster"),
-		DataScienceCluster: &dscontr.DataScienceClusterConfig{
-			DSCISpec: &dsciv1.DSCInitializationSpec{
+		DataScienceCluster: &datascienceclustercontrollers.DataScienceClusterConfig{
+			DSCISpec: &dsci.DSCInitializationSpec{
 				ApplicationsNamespace: dscApplicationsNamespace,
 			},
 		},
@@ -168,7 +168,7 @@ func main() {
 	if !disableDSCConfig {
 		// Create DSCInitialization CR if it's not present
 		client := mgr.GetClient()
-		releaseDscInitialization := &dsciv1.DSCInitialization{
+		releaseDscInitialization := &dsci.DSCInitialization{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "DSCInitialization",
 				APIVersion: "dscinitialization.opendatahub.io/v1",
@@ -176,9 +176,9 @@ func main() {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "default",
 			},
-			Spec: dsciv1.DSCInitializationSpec{
+			Spec: dsci.DSCInitializationSpec{
 				ApplicationsNamespace: dscApplicationsNamespace,
-				Monitoring: dsciv1.Monitoring{
+				Monitoring: dsci.Monitoring{
 					ManagementState: operatorv1.Managed,
 					Namespace:       dscMonitoringNamespace,
 				},

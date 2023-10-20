@@ -18,7 +18,6 @@ package dscinitialization_test
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/runtime"
 	"path/filepath"
 	"testing"
 	"time"
@@ -31,7 +30,6 @@ import (
 	dscinitializationv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	dsci "github.com/opendatahub-io/opendatahub-operator/v2/controllers/dscinitialization"
 	routev1 "github.com/openshift/api/route/v1"
-	userv1 "github.com/openshift/api/user/v1"
 	ofapi "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -39,6 +37,7 @@ import (
 	authv1 "k8s.io/api/rbac/v1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -65,13 +64,11 @@ const (
 	interval = 250 * time.Millisecond
 )
 
-func TestDataScienceClusterInitialization(t *testing.T) {
+func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecs(t, "Data Science Cluster Initialization Controller Suite")
+	RunSpecs(t, "Controller Suite")
 }
-
-var testScheme = runtime.NewScheme()
 
 var _ = BeforeSuite(func() {
 	ctx, cancel = context.WithCancel(context.TODO())
@@ -79,17 +76,12 @@ var _ = BeforeSuite(func() {
 	By("bootstrapping test environment")
 	rootPath, pathErr := util.FindProjectRoot()
 	Expect(pathErr).ToNot(HaveOccurred(), pathErr)
-
 	testEnv = &envtest.Environment{
-		CRDInstallOptions: envtest.CRDInstallOptions{
-			Scheme: testScheme,
-			Paths: []string{
-				filepath.Join(rootPath, "config", "crd", "bases"),
-				filepath.Join(rootPath, "config", "crd", "external"),
-			},
-			ErrorIfPathMissing: true,
-			CleanUpAfterUse:    false,
+		CRDDirectoryPaths: []string{
+			filepath.Join(rootPath, "config", "crd", "bases"),
+			filepath.Join(rootPath, "config", "crd", "external"),
 		},
+		ErrorIfCRDPathMissing: true,
 	}
 
 	var err error
@@ -97,24 +89,23 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	utilruntime.Must(clientgoscheme.AddToScheme(testScheme))
-	utilruntime.Must(dscinitializationv1.AddToScheme(testScheme))
-	utilruntime.Must(netv1.AddToScheme(testScheme))
-	utilruntime.Must(authv1.AddToScheme(testScheme))
-	utilruntime.Must(corev1.AddToScheme(testScheme))
-	utilruntime.Must(apiextv1.AddToScheme(testScheme))
-	utilruntime.Must(appsv1.AddToScheme(testScheme))
-	utilruntime.Must(ofapi.AddToScheme(testScheme))
-	utilruntime.Must(routev1.Install(testScheme))
-	utilruntime.Must(userv1.Install(testScheme))
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme.Scheme))
+	utilruntime.Must(dscinitializationv1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(netv1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(authv1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(corev1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(apiextv1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(routev1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(appsv1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(ofapi.AddToScheme(scheme.Scheme))
 	//+kubebuilder:scaffold:scheme
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: testScheme})
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             testScheme,
+		Scheme:             scheme.Scheme,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
@@ -123,7 +114,7 @@ var _ = BeforeSuite(func() {
 
 	err = (&dsci.DSCInitializationReconciler{
 		Client:   k8sClient,
-		Scheme:   testScheme,
+		Scheme:   scheme.Scheme,
 		Log:      ctrl.Log.WithName("controllers").WithName("DSCInitialization"),
 		Recorder: mgr.GetEventRecorderFor("dscinitialization-controller"),
 	}).SetupWithManager(mgr)

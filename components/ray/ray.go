@@ -2,7 +2,7 @@
 package ray
 
 import (
-	dsciv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
+	dsci "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/components"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -15,6 +15,10 @@ var (
 	ComponentName = "ray"
 	RayPath       = deploy.DefaultManifestPath + "/" + "ray/operator/base"
 )
+
+var imageParamMap = map[string]string{
+	"odh-kuberay-operator-controller-image": "RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE",
+}
 
 type Ray struct {
 	components.Component `json:""`
@@ -37,6 +41,15 @@ func (r *Ray) OverrideManifests(_ string) error {
 	return nil
 }
 
+func (r *Ray) GetComponentDevFlags() components.DevFlags {
+	return r.DevFlags
+}
+
+func (r *Ray) SetImageParamsMap(imageMap map[string]string) map[string]string {
+	imageParamMap = imageMap
+	return imageParamMap
+}
+
 func (r *Ray) GetComponentName() string {
 	return ComponentName
 }
@@ -44,14 +57,9 @@ func (r *Ray) GetComponentName() string {
 // Verifies that Ray implements ComponentInterface
 var _ components.ComponentInterface = (*Ray)(nil)
 
-func (r *Ray) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsciv1.DSCInitializationSpec) error {
-	var imageParamMap = map[string]string{
-		"odh-kuberay-operator-controller-image": "RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE",
-		"namespace":                             dscispec.ApplicationsNamespace,
-	}
-
+func (r *Ray) ReconcileComponent(cli client.Client, owner metav1.Object, dscispec *dsci.DSCInitializationSpec) error {
 	enabled := r.GetManagementState() == operatorv1.Managed
-	monitoringEnabled := dscispec.Monitoring.ManagementState == operatorv1.Managed
+
 	platform, err := deploy.GetPlatform(cli)
 	if err != nil {
 		return err
@@ -63,29 +71,15 @@ func (r *Ray) ReconcileComponent(cli client.Client, owner metav1.Object, dscispe
 			return err
 		}
 
-		if dscispec.DevFlags.ManifestsUri == "" || len(r.DevFlags.Manifests) == 0 {
-			if err := deploy.ApplyParams(RayPath, r.SetImageParamsMap(imageParamMap), true); err != nil {
+		if dscispec.DevFlags.ManifestsUri == "" {
+			if err := deploy.ApplyImageParams(RayPath, imageParamMap); err != nil {
 				return err
 			}
 		}
 	}
 	// Deploy Ray Operator
-	if err := deploy.DeployManifestsFromPath(cli, owner, RayPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
-		return err
-	}
-	// CloudService Monitoring handling
-	if platform == deploy.ManagedRhods {
-		if err := r.UpdatePrometheusConfig(cli, enabled && monitoringEnabled, ComponentName); err != nil {
-			return err
-		}
-		if err = deploy.DeployManifestsFromPath(cli, owner,
-			filepath.Join(deploy.DefaultManifestPath, "monitoring", "prometheus", "apps"),
-			dscispec.Monitoring.Namespace,
-			ComponentName+"prometheus", true); err != nil {
-			return err
-		}
-	}
-	return nil
+	err = deploy.DeployManifestsFromPath(cli, owner, RayPath, dscispec.ApplicationsNamespace, r.GetComponentName(), enabled)
+	return err
 
 }
 
