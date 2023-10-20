@@ -600,10 +600,12 @@ rules:
   resources:
   - rhmis
   verbs:
+  - create
   - delete
   - get
   - list
   - patch
+  - update
   - watch
 - apiGroups:
   - keda.sh
@@ -947,8 +949,10 @@ rules:
   - catalogsources
   - operatorconditions
   verbs:
+  - delete
   - get
   - list
+  - update
   - watch
 - apiGroups:
   - operators.coreos.com
