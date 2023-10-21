@@ -1,5 +1,5 @@
 # Build the manager binary
-ARG GOLANG_VERSION=1.18.9
+ARG GOLANG_VERSION=1.19
 
 FROM registry.access.redhat.com/ubi8/go-toolset:$GOLANG_VERSION as builder
 
