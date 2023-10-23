@@ -78,7 +78,7 @@ require (
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.9.3 // indirect
+	golang.org/x/tools v0.10.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
@@ -95,7 +95,10 @@ require (
 )
 
 replace (
-	//github.com/go-openapi/spec => github.com/go-openapi/spec v0.19.3
+	github.com/tektoncd/pipeline => github.com/tektoncd/pipeline v0.12.0
+	go.uber.org/multierr => go.uber.org/multierr v1.6.0
+	golang.org/x/image => golang.org/x/image v0.10.0
+	google.golang.org/grpc => google.golang.org/grpc v1.58.3
 	k8s.io/api => k8s.io/api v0.26.0
 	//k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.24.9
 	//k8s.io/apimachinery => k8s.io/apimachinery v0.24.15
