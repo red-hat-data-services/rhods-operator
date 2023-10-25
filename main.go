@@ -16,44 +16,7 @@ limitations under the License.
 
 package main
 
-import (
-	"flag"
-	"os"
-
-	addonv1alpha1 "github.com/openshift/addon-operator/apis/addons/v1alpha1"
-	ocappsv1 "github.com/openshift/api/apps/v1"
-	ocbuildv1 "github.com/openshift/api/build/v1"
-	ocimgv1 "github.com/openshift/api/image/v1"
-	ocv1 "github.com/openshift/api/oauth/v1"
-	routev1 "github.com/openshift/api/route/v1"
-	ocuserv1 "github.com/openshift/api/user/v1"
-	ofapiv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
-	ofapiv2 "github.com/operator-framework/api/pkg/operators/v2"
-	admv1 "k8s.io/api/admissionregistration/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	netv1 "k8s.io/api/networking/v1"
-	authv1 "k8s.io/api/rbac/v1"
-	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	kfdefv1 "github.com/opendatahub-io/opendatahub-operator/apis/kfdef.apps.kubeflow.org/v1"
-	dsc "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
-	dsci "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
-	datascienceclustercontrollers "github.com/opendatahub-io/opendatahub-operator/v2/controllers/datasciencecluster"
-	dscicontr "github.com/opendatahub-io/opendatahub-operator/v2/controllers/dscinitialization"
-	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/secretgenerator"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/upgrade"
-)
+import ()
 
 var (
 	scheme   = runtime.NewScheme()
