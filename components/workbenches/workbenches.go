@@ -155,8 +155,10 @@ func (w *Workbenches) ReconcileComponent(cli client.Client, owner metav1.Object,
 		ComponentName, enabled); err != nil {
 		return err
 	}
+
 	manifestsPath := ""
 	if platform == deploy.OpenDataHub || platform == "" {
+		// only for ODH after transit to kubeflow repo
 		manifestsPath = notebookImagesPath
 	} else {
 		manifestsPath = notebookImagesPathSupported
