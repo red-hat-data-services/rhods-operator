@@ -74,12 +74,6 @@ func (r *DSCInitializationReconciler) configureManagedMonitoring(ctx context.Con
 		if err != nil {
 			return fmt.Errorf("error to update monitoring security rolebinding: %w", err)
 		}
-
-		err = deploy.DeployManifestsFromPath(r.Client, dscInit, alertManagerPath, dscInit.Spec.Monitoring.Namespace, "networkpolicy", true)
-		if err != nil {
-			r.Log.Error(err, "error to set networkpolicy", "path", networkpolicyPath)
-			return err
-		}
 	}
 
 	r.Log.Info("Success: finish config managed monitoring stack!")
