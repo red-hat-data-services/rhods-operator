@@ -190,8 +190,7 @@ func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(ctx context.
 		Spec: netv1.NetworkPolicySpec{
 			// open ingress for all port for now, TODO: add explicit port per component
 			// Ingress: []netv1.NetworkPolicyIngressRule{{}},
-			// open ingress for only ODH created namespaces
-			// this is tested on ROSA but not enough for PSI
+			// open ingress for only operator created namespaces
 			Ingress: []netv1.NetworkPolicyIngressRule{
 				{
 					From: []netv1.NetworkPolicyPeer{

@@ -25,11 +25,16 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 )
 
+// +kubebuilder:rbac:groups="route.openshift.io",resources=routers/metrics,verbs=get
+// +kubebuilder:rbac:groups="route.openshift.io",resources=routers/federate,verbs=get
+// +kubebuilder:rbac:groups="image.openshift.io",resources=registry/metrics,verbs=get
+
 var (
 	ComponentName           = "monitoring"
 	alertManagerPath        = filepath.Join(deploy.DefaultManifestPath, ComponentName, "alertmanager")
 	prometheusManifestsPath = filepath.Join(deploy.DefaultManifestPath, ComponentName, "prometheus", "base")
 	prometheusConfigPath    = filepath.Join(deploy.DefaultManifestPath, ComponentName, "prometheus", "apps")
+	networkpolicyPath       = filepath.Join(deploy.DefaultManifestPath, ComponentName, "networkpolicy")
 	NameConsoleLink         = "console"
 	NamespaceConsoleLink    = "openshift-console"
 )
@@ -68,6 +73,12 @@ func (r *DSCInitializationReconciler) configureManagedMonitoring(ctx context.Con
 		err := common.UpdatePodSecurityRolebinding(r.Client, []string{"redhat-ods-monitoring"}, dscInit.Spec.Monitoring.Namespace)
 		if err != nil {
 			return fmt.Errorf("error to update monitoring security rolebinding: %w", err)
+		}
+
+		err = deploy.DeployManifestsFromPath(r.Client, dscInit, alertManagerPath, dscInit.Spec.Monitoring.Namespace, "networkpolicy", true)
+		if err != nil {
+			r.Log.Error(err, "error to set networkpolicy", "path", networkpolicyPath)
+			return err
 		}
 	}
 

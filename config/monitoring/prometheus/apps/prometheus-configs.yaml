@@ -24,7 +24,6 @@ data:
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
       honor_labels: true
       metrics_path: '/federate'
-
       params:
         'match[]':
           - '{__name__= "haproxy_backend_http_responses_total"}'
@@ -38,8 +37,6 @@ data:
           - '{__name__= "kube_pod_container_status_terminated_reason"}'
           - '{__name__= "openshift_build_status_phase_total"}'
           - '{__name__= "kube_statefulset_replicas"}'
-
-
       static_configs:
         - targets:
           - "prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
@@ -77,7 +74,7 @@ data:
       authorization:
         credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
       static_configs:
-      - targets: [https://rhods-dashboard-<odh_application_namespace>.<console_domain>]
+      - targets: [rhods-dashboard-<odh_application_namespace>.<console_domain>]
         labels:
           name: rhods-dashboard
       relabel_configs:
@@ -297,7 +294,7 @@ data:
               - redhat-ods-operator
       relabel_configs:
         - source_labels: [__meta_kubernetes_service_name]
-          regex: ^(rhods-ods-operator-controller-manager-metrics)$ 
+          regex: ^(redhat-ods-operator-controller-manager-metrics)$ 
           target_label: kubernetes_name
           action: keep
         - source_labels: [__address__]
