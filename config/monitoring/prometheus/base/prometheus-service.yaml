@@ -12,7 +12,7 @@ metadata:
   namespace: redhat-ods-monitoring
 spec:
   ports:
-  - name: https
+  - name: metrics
     port: 9091
     targetPort: https
   selector:
