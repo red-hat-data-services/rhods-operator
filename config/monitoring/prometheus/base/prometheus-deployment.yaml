@@ -43,7 +43,7 @@ spec:
         image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:ab112105ac37352a2a4916a39d6736f5db6ab4c29bad4467de8d613e80e9bb33
         ports:
         - containerPort: 9091
-          name: metrics
+          name: https
         livenessProbe:
           httpGet:
             path: /oauth/healthz
@@ -93,7 +93,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 9090
-          name: metrics
+          name: http
         livenessProbe:
           httpGet:
             path: /-/healthy
