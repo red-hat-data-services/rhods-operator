@@ -232,6 +232,9 @@ data:
       scheme: http
       kubernetes_sd_configs:
         - role: endpoints
+          namespaces:
+            names:
+              - <odh_application_namespace>
       relabel_configs:
         - source_labels: [__meta_kubernetes_service_name]
           regex: ^(ds-pipeline-.*)$
@@ -334,10 +337,22 @@ data:
             expr: vector(1)
             labels:
               severity: critical
+              namespace: redhat-ods-monitoring
             annotations:
               description: This is a DeadManSnitch to ensure RHODS monitoring and alerting pipeline is online.
               summary: Alerting DeadManSnitch
 
+  operator-alerting.rules: |
+    groups:
+      - name: RHODS operator
+        interval: 1m
+        rules:
+          - alert: RHODS Operator Aggreate Availability
+            expr: rhods_aggregate_availability <= 0
+            for: 2m
+            labels:
+              severity: info
+              namespace: redhat-ods-applicataions
 
   codeflare-recording.rules: |
     groups:
@@ -433,6 +448,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: CodeFlare Operator Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -445,6 +461,7 @@ data:
           for: 15m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: CodeFlare Operator Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -457,6 +474,7 @@ data:
           for: 1h
           labels:
             severity: info
+            namespace: redhat-ods-applications
 
       - name: Distributed Workloads CodeFlare
         interval: 1m
@@ -464,7 +482,8 @@ data:
           - alert: CodeFlare Operator is not running
             expr: absent(up{job=~'CodeFlare Operator'}) or up{job=~'CodeFlare Operator'} != 1
             labels:
-              severity: info 
+              severity: info
+              namespace: redhat-ods-applications
             annotations:
               description: This alert fires when the CodeFlare Operator is not running.
               triage: 'https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Distributed-Workloads/codeflare-operator-availability.md'
@@ -472,7 +491,8 @@ data:
           - alert: CodeFlare Operator taking too long to be up
             expr: absent_over_time(up{job="CodeFlare Operator"}[2m]) == 1
             labels:
-              severity: info 
+              severity: info
+              namespace: redhat-ods-applications
             annotations:
               description: This alert fires when the CodeFlare Operator takes over 2 min. to come back online. Either CodeFlare Operator is not running and failing to become ready, is misconfigured, or the metrics endpoint is not responding.
               triage: 'https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Distributed-Workloads/codeflare-operator-absent-over-time.md'
@@ -583,6 +603,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -595,6 +616,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -607,6 +629,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -619,6 +642,7 @@ data:
           for: 3h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
       - name: SLOs-probe_success
         rules:
         - alert: RHODS Dashboard Probe Success Burn Rate
@@ -633,6 +657,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -645,6 +670,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -657,6 +683,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
         - alert: RHODS Dashboard Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -669,6 +696,7 @@ data:
           for: 3h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
 
   data-science-pipelines-operator-recording.rules: |
     groups:
@@ -778,6 +806,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipelines Application Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -790,6 +819,7 @@ data:
           for: 15m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipelines Application Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -802,6 +832,7 @@ data:
           for: 1h
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipelines Application Route Error Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.route }} (current value: {{ $value }}).'
@@ -814,6 +845,7 @@ data:
           for: 3h
           labels:
             severity: info
+            namespace: redhat-ods-applications
       - name: SLOs-probe_success
         rules:
         - alert: Data Science Pipelines Operator Probe Success Burn Rate
@@ -828,6 +860,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: Data Science Pipelines Operator Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -840,6 +873,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: Data Science Pipelines Operator Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -852,6 +886,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
       - name: RHODS Data Science Pipelines
         rules:
         - alert: Data Science Pipeline Application Unavailable
@@ -863,6 +898,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipeline APIServer Unavailable
           annotations:
             message: 'Data Science Pipelines APIServer component is down!'
@@ -872,6 +908,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipeline PersistenceAgent Unavailable
           annotations:
             message: 'Data Science Pipelines PersistenceAgent component is down!'
@@ -881,6 +918,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
         - alert: Data Science Pipeline ScheduledWorkflows Unavailable
           annotations:
             message: 'Data Science Pipelines ScheduledWorkflows component is down!'
@@ -890,6 +928,7 @@ data:
           for: 2m
           labels:
             severity: info
+            namespace: redhat-ods-applications
 
   model-mesh-recording.rules: |
     groups:
@@ -952,6 +991,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: Modelmesh Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -964,6 +1004,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: Modelmesh Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -976,6 +1017,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
 
   odh-model-controller-recording.rules: |
     groups:
@@ -1038,6 +1080,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: ODH Model Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1050,6 +1093,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
         - alert: ODH Model Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1062,6 +1106,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            namespace: redhat-ods-applications
 
   ray-alerting.rules: |
     groups:
@@ -1172,6 +1217,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            instance: notebook-spawner
         - alert: RHODS Jupyter Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1184,6 +1230,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            instance: notebook-spawner
         - alert: RHODS Jupyter Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1196,6 +1243,7 @@ data:
           for: 1h
           labels:
             severity: warning
+            instance: notebook-spawner
         - alert: RHODS Jupyter Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1208,6 +1256,7 @@ data:
           for: 3h
           labels:
             severity: warning
+            instance: notebook-spawner
         - alert: RHODS Dashboard Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1220,6 +1269,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            namespace: redhat-ods-applications
 
       - name: RHODS Notebook controllers
         rules:
@@ -1232,6 +1282,7 @@ data:
           for: 5m
           labels:
             severity: warning
+            namespace: redhat-ods-applications
         - alert: ODH notebook controller pod is not running
           annotations:
             message: 'ODH notebook controller is down!'
@@ -1241,3 +1292,4 @@ data:
           for: 5m
           labels:
             severity: warning
+            namespace: redhat-ods-applications
