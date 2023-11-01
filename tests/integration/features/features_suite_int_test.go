@@ -3,7 +3,6 @@ package features_test
 import (
 	"path/filepath"
 	"testing"
-
 	ofapiv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -14,11 +13,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
 	dsciv1 "github.com/opendatahub-io/opendatahub-operator/v2/api/dscinitialization/v1"
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/tests/envtestutil"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

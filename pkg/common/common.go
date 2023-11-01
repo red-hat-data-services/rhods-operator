@@ -23,11 +23,12 @@ import (
 	"embed"
 	b64 "encoding/base64"
 	"fmt"
-	"io/fs"
 	"os"
 	"regexp"
-	"slices"
 	"strings"
+
+	"io/fs"
+	"slices"
 )
 
 // ReplaceStringsInFile replaces variable with value in manifests during runtime.

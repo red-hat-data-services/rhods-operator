@@ -3,11 +3,9 @@ package feature
 import (
 	"context"
 	"fmt"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/feature/resource"
 )

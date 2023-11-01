@@ -5,15 +5,23 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+
 	"github.com/hashicorp/go-multierror"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/utils/ptr"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
+
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
+
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
+
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/feature/resource"
+
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/annotations"
 )
 
