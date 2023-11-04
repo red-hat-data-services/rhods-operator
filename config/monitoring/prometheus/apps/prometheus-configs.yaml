@@ -276,7 +276,7 @@ data:
         - role: endpoints
           namespaces:
             names:
-              - <odh_application_namepsace>
+              - <odh_application_namespace>
       relabel_configs:
         - source_labels: [__meta_kubernetes_service_name]
           regex: ^(codeflare-operator-manager-metrics)$
