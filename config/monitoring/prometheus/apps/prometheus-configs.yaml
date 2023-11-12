@@ -342,18 +342,6 @@ data:
               description: This is a DeadManSnitch to ensure RHODS monitoring and alerting pipeline is online.
               summary: Alerting DeadManSnitch
 
-  operator-alerting.rules: |
-    groups:
-      - name: RHODS operator
-        interval: 1m
-        rules:
-          - alert: RHODS Operator Aggreate Availability
-            expr: rhods_aggregate_availability <= 0
-            for: 2m
-            labels:
-              severity: info
-              namespace: redhat-ods-applicataions
-
   codeflare-recording.rules: |
     groups:
       - name: SLOs - MCAD Controller
@@ -434,7 +422,7 @@ data:
 
   codeflare-alerting.rules: |
     groups:
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_codeflare
         rules:
         - alert: CodeFlare Operator Probe Success Burn Rate
           annotations:
@@ -643,7 +631,7 @@ data:
           labels:
             severity: warning
             namespace: redhat-ods-applications
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_dashboard
         rules:
         - alert: RHODS Dashboard Probe Success Burn Rate
           annotations:
@@ -846,7 +834,7 @@ data:
           labels:
             severity: info
             namespace: redhat-ods-applications
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_dsp
         rules:
         - alert: Data Science Pipelines Operator Probe Success Burn Rate
           annotations:
@@ -977,7 +965,7 @@ data:
 
   model-mesh-alerting.rules: |
     groups:
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_modelmesh
         rules:
         - alert: Modelmesh Controller Probe Success Burn Rate
           annotations:
@@ -1066,7 +1054,7 @@ data:
 
   odh-model-controller-alerting.rules: |
     groups:
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_model_controller
         rules:
         - alert: ODH Model Controller Probe Success Burn Rate
           annotations:
@@ -1162,6 +1150,44 @@ data:
             instance: notebook-spawner
           record: probe_success:burnrate6h
 
+      - name: Usage Metrics
+        rules:
+        - expr: count(kube_statefulset_replicas{namespace=~"rhods-notebooks", statefulset=~"jupyter-nb-.*"})
+          record: rhods_total_users
+          labels:
+            instance: jupyter-notebooks
+        - expr: count(kube_statefulset_replicas{namespace=~"rhods-notebooks", statefulset=~"jupyter-nb-.*"} ==1)
+          record: rhods_active_users
+          labels:
+            instance: jupyter-notebooks
+        - record: cluster:usage:consumption:rhods:cpu:seconds:rate1h
+          expr: sum(rate(container_cpu_usage_seconds_total{container="",pod=~"jupyter-nb.*",namespace="rhods-notebooks"}[1h]))
+          labels:
+            instance: jupyter-notebooks
+        - record: cluster:usage:consumption:rhods:pod:up
+          expr: count(kube_pod_container_status_ready{namespace="rhods-notebooks", pod=~"jupyter-nb.*",container=~"jupyter-nb-.*"}==1)
+          labels:
+            instance: jupyter-notebooks
+        - record: cluster:usage:consumption:rhods:active_users
+          expr: count(kube_statefulset_replicas{namespace=~"rhods-notebooks", statefulset=~"jupyter-nb-.*"} ==1)
+          labels:
+            instance: jupyter-notebooks
+        - record: cluster:usage:consumption:rhods:cpu_requests_runtime
+          expr: sum(kube_pod_container_resource_requests{namespace="rhods-notebooks",resource="cpu", container=~"jupyter-nb-.*"} * on(pod) kube_pod_status_phase{phase="Running", namespace="rhods-notebooks"})
+          labels:
+            instance: jupyter-notebooks
+        - record: cluster:usage:consumption:rhods:cpu_limits_runtime
+          expr: sum(kube_pod_container_resource_limits{namespace="rhods-notebooks",resource="cpu", container=~"jupyter-nb-.*"} * on(pod) kube_pod_status_phase{phase="Running", namespace="rhods-notebooks"})
+          labels:
+            instance: jupyter-notebooks
+        
+      - name: Availability Metrics
+        rules:
+        - expr: ((min(probe_success{name=~"rhods-dashboard|notebook-spawner"}) by (name) or on() vector(0)) or label_replace(min(probe_success{name=~"rhods-dashboard|notebook-spawner"}), "name", "combined", "name", ".*"))
+          record: rhods_aggregate_availability
+          labels:
+            instance: jupyter-notebooks
+
   workbenches-alerting.rules: |
     groups:
       - name: RHODS-PVC-Usage
@@ -1186,24 +1212,31 @@ data:
           labels:
             severity: warning
             route: user-notifications
-      
-      - name: Usage Metrics
-        rules:
-        - expr: count(kube_statefulset_replicas{namespace=~"rhods-notebooks", statefulset=~"jupyter-nb-.*"})
-          record: rhods_total_users
-          labels:
-            instance: jupyter-notebooks
-        - expr: count(kube_statefulset_replicas{namespace=~"rhods-notebooks", statefulset=~"jupyter-nb-.*"} ==1)
-          record: rhods_active_users
-          labels:
-            instance: jupyter-notebooks
 
-      - name: Availability Metrics
+      - name: RHODS Notebook controllers
         rules:
-        - expr: ((min(probe_success{name=~"rhods-dashboard|notebook-spawner"}) by (name) or on() vector(0)) or label_replace(min(probe_success{name=~"rhods-dashboard|notebook-spawner"}), "name", "combined", "name", ".*"))
-          record: rhods_aggregate_availability
+        - alert: Kubeflow notebook controller pod is not running
+          annotations:
+            message: 'Kubeflow Notebook controller is down!'
+            triage: "https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Jupyter/rhods-kfnbc-notebook-controller-alert.md"
+            summary: Kubeflow notebook controller pod is not running
+          expr: absent(up{job=~'Kubeflow Notebook Controller Service Metrics'})
+          for: 5m
+          labels:
+            severity: warning
+            namespace: redhat-ods-applications
+        - alert: ODH notebook controller pod is not running
+          annotations:
+            message: 'ODH notebook controller is down!'
+            triage: "https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Jupyter/rhods-odh-notebook-controller-alert.md"
+            summary: ODH notebook controller pod is not running
+          expr: absent(up{job=~'ODH Notebook Controller Service Metrics'})
+          for: 5m
+          labels:
+            severity: warning
+            namespace: redhat-ods-applications
 
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_workbench
         rules:
         - alert: RHODS Jupyter Probe Success Burn Rate
           annotations:
@@ -1257,39 +1290,4 @@ data:
           labels:
             severity: warning
             instance: notebook-spawner
-        - alert: RHODS Dashboard Probe Success Burn Rate
-          annotations:
-            message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
-            triage: "https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/RHODS-Dashboard/rhods-dashboard-probe-success-burn-rate.md"
-            summary: RHODS Dashboard Probe Success Burn Rate
-          expr: |
-            sum(probe_success:burnrate5m{name=~"rhods-dashboard"}) by (name) > (14.40 * (1-0.99950))
-            and
-            sum(probe_success:burnrate1h{name=~"rhods-dashboard"}) by (name) > (14.40 * (1-0.99950))
-          for: 2m
-          labels:
-            severity: critical
-            namespace: redhat-ods-applications
-
-      - name: RHODS Notebook controllers
-        rules:
-        - alert: Kubeflow notebook controller pod is not running
-          annotations:
-            message: 'Kubeflow Notebook controller is down!'
-            triage: "https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Jupyter/rhods-kfnbc-notebook-controller-alert.md"
-            summary: Kubeflow notebook controller pod is not running
-          expr: absent(up{job=~'Kubeflow Notebook Controller Service Metrics'})
-          for: 5m
-          labels:
-            severity: warning
-            namespace: redhat-ods-applications
-        - alert: ODH notebook controller pod is not running
-          annotations:
-            message: 'ODH notebook controller is down!'
-            triage: "https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Jupyter/rhods-odh-notebook-controller-alert.md"
-            summary: ODH notebook controller pod is not running
-          expr: absent(up{job=~'ODH Notebook Controller Service Metrics'})
-          for: 5m
-          labels:
-            severity: warning
-            namespace: redhat-ods-applications
+        

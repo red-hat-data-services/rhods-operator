@@ -18,6 +18,9 @@ spec:
               kubernetes.io/metadata.name: openshift-monitoring
         - namespaceSelector:
             matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+        - namespaceSelector:
+            matchLabels:
               opendatahub.io/generated-namespace: "true"
   policyTypes:
     - Ingress
