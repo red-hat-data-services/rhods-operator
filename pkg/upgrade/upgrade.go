@@ -206,6 +206,10 @@ func CreateDefaultDSCI(cli client.Client, platform deploy.Platform, appNamespace
 	}
 
 	defaultDsci := &dsci.DSCInitialization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "DSCInitialization",
+			APIVersion: "dscinitialization.opendatahub.io/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default-dsci",
 		},

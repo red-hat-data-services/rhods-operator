@@ -2,7 +2,6 @@
 package modelmeshserving
 
 import (
-	"context"
 	"path/filepath"
 	"strings"
 
@@ -128,22 +127,6 @@ func (m *ModelMeshServing) ReconcileComponent(cli client.Client, owner metav1.Ob
 				return err
 			}
 		}
-	}
-	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, m.GetComponentName(), enabled); err != nil {
-		if strings.Contains(err.Error(), "spec.selector") && strings.Contains(err.Error(), "field is immutable") {
-			// ignore this error
-		} else {
-			return err
-		}
-	}
-
-	// Get monitoring namespace
-	dscInit := &dsciv1.DSCInitialization{}
-	err = cli.Get(context.TODO(), client.ObjectKey{
-		Name: "rhods-setup",
-	}, dscInit)
-	if err != nil {
-		return err
 	}
 	if err := deploy.DeployManifestsFromPath(cli, owner, DependentPath, dscispec.ApplicationsNamespace, m.GetComponentName(), enabled); err != nil {
 		if strings.Contains(err.Error(), "spec.selector") && strings.Contains(err.Error(), "field is immutable") {
