@@ -2,6 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: rhods-monitor-federation
+  namespace: redhat-ods-monitoring
   labels:
     monitor-component: rhods-resources
     team: rhods
@@ -68,6 +69,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: rhods-monitor-federation2
+  namespace: redhat-ods-monitoring
   labels:
     monitor-component: rhods-resources
     team: rhods
