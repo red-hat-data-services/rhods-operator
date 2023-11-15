@@ -49,6 +49,7 @@ COPY api/ api/
 COPY internal/ internal/
 COPY cmd/main.go cmd/main.go
 COPY pkg/ pkg/
+COPY infrastructure/ infrastructure/
 
 # Build stripe out debug info to minimize binary size
 RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o manager cmd/main.go
