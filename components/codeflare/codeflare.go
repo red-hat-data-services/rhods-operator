@@ -71,8 +71,8 @@ func (c *CodeFlare) ReconcileComponent(ctx context.Context, cli client.Client, r
 		if err = c.OverrideManifests(string(platform)); err != nil {
 			return err
 		}
-		// check if the CodeFlare operator is installed
-		// codeflare operator not installed
+
+		// check if the CodeFlare operator is installed: it should not be installed
 		dependentOperator := CodeflareOperator
 		// overwrite dependent operator if downstream not match upstream
 		if platform == deploy.SelfManagedRhods || platform == deploy.ManagedRhods {
@@ -82,7 +82,7 @@ func (c *CodeFlare) ReconcileComponent(ctx context.Context, cli client.Client, r
 		if found, err := deploy.OperatorExists(cli, dependentOperator); err != nil {
 			return fmt.Errorf("operator exists throws error %v", err)
 		} else if found {
-			return fmt.Errorf("operator %s  found. Please uninstall the operator before enabling %s component",
+			return fmt.Errorf("operator %s is found. Please uninstall the operator before enabling %s component",
 				dependentOperator, ComponentName)
 		}
 
