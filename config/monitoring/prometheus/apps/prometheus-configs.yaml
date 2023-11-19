@@ -7,8 +7,8 @@ metadata:
 data:
   prometheus.yml: |
     rule_files:
-      - 'operator-recording.rules'
-      - 'deadmanssnitch-alerting.rules'
+      - operator-recording.rules
+      - deadmanssnitch-alerting.rules
 
     global:
       scrape_interval:     10s
@@ -333,14 +333,14 @@ data:
       - name: DeadManSnitch
         interval: 1m
         rules:
-          - alert: DeadManSnitch
-            expr: vector(1)
-            labels:
-              severity: critical
-              namespace: redhat-ods-monitoring
-            annotations:
-              description: This is a DeadManSnitch to ensure RHODS monitoring and alerting pipeline is online.
-              summary: Alerting DeadManSnitch
+        - alert: DeadManSnitch
+          expr: vector(1)
+          labels:
+            severity: critical
+            namespace: redhat-ods-monitoring
+          annotations:
+            description: This is a DeadManSnitch to ensure RHODS monitoring and alerting pipeline is online.
+            summary: Alerting DeadManSnitch
 
   codeflare-recording.rules: |
     groups:
