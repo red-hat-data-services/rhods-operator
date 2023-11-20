@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	// "reflect"
 	"strings"
 	"time"
 
@@ -264,11 +265,14 @@ func UpdateFromLegacyVersion(cli client.Client, platform deploy.Platform, appNS 
 	// If platform is Managed, remove Kfdefs and create default dsc
 	if platform == deploy.ManagedRhods {
 		fmt.Println("starting deletion of Deloyments in managed cluster")
-		if err := deleteDeployments(cli, appNS); err != nil {
+		if err := deleteResource(cli, appNS, "deployment"); err != nil {
 			return err
 		}
 		// this is for the modelmesh monitoring part from v1 to v2
-		if err := deleteDeployments(cli, montNamespace); err != nil {
+		if err := deleteResource(cli, montNamespace, "deployment"); err != nil {
+			return err
+		}
+		if err := deleteResource(cli, montNamespace, "statefulset"); err != nil {
 			return err
 		}
 		if err := CreateDefaultDSC(cli, platform); err != nil {
@@ -309,11 +313,14 @@ func UpdateFromLegacyVersion(cli client.Client, platform deploy.Platform, appNS 
 			}
 		}
 		if len(kfDefList.Items) > 0 {
-			if err = deleteDeployments(cli, appNS); err != nil {
+			if err = deleteResource(cli, appNS, "deployment"); err != nil {
 				return fmt.Errorf("error deleting deployment: %w", err)
 			}
 			// this is for the modelmesh monitoring part from v1 to v2
-			if err := deleteDeployments(cli, montNamespace); err != nil {
+			if err := deleteResource(cli, montNamespace, "deployment"); err != nil {
+				return err
+			}
+			if err := deleteResource(cli, montNamespace, "statefulset"); err != nil {
 				return err
 			}
 			if err = CreateDefaultDSC(cli, platform); err != nil {
@@ -427,28 +434,43 @@ func getClusterServiceVersion(cfg *rest.Config, watchNameSpace string) (*ofapi.C
 	return nil, nil
 }
 
-func deleteDeployments(cli client.Client, namespace string) error {
+func deleteResource(cli client.Client, namespace string, resourceType string) error {
 	// In v2, Deployment selectors use a label "app.opendatahub.io/<componentName>" which is
 	// not present in v1. Since label selectors are immutable, we need to delete the existing
 	// deployments and recreated them.
 	// because we can't proceed if a deployment is not deleted, we use exponential backoff
 	// to retry the deletion until it succeeds
-	err := wait.ExponentialBackoffWithContext(context.TODO(), wait.Backoff{
-		// 10, 20, 40 then timeout
-		Duration: 5 * time.Second,
-		Factor:   2.0,
-		Jitter:   0.1,
-		Steps:    4,
-		Cap:      1 * time.Minute,
-	}, func(ctx context.Context) (bool, error) {
-		done, err := deleteDeploymentsAndCheck(ctx, cli, namespace)
-		return done, err
-	})
-
+	var err error
+	switch resourceType {
+	case "deployment":
+		err = wait.ExponentialBackoffWithContext(context.TODO(), wait.Backoff{
+			// 5, 10, ,20, 40 then timeout
+			Duration: 5 * time.Second,
+			Factor:   2.0,
+			Jitter:   0.1,
+			Steps:    4,
+			Cap:      1 * time.Minute,
+		}, func(ctx context.Context) (bool, error) {
+			done, err := deleteDeploymentsAndCheck(ctx, cli, namespace)
+			return done, err
+		})
+	case "statefulset":
+		err = wait.ExponentialBackoffWithContext(context.TODO(), wait.Backoff{
+			// 10, 20 then timeout
+			Duration: 10 * time.Second,
+			Factor:   2.0,
+			Jitter:   0.1,
+			Steps:    2,
+			Cap:      1 * time.Minute,
+		}, func(ctx context.Context) (bool, error) {
+			done, err := deleteStatefulsetsAndCheck(ctx, cli, namespace)
+			return done, err
+		})
+	}
 	return err
 }
 
-func deleteDeploymentsAndCheck(ctx context.Context, cli client.Client, namespace string) (bool, error) {
+func deleteDeploymentsAndCheck(ctx context.Context, cli client.Client, namespace string) (bool, error) { //nolint
 	// Delete Deployment objects
 	var multiErr *multierror.Error
 	deployments := &appsv1.DeploymentList{}
@@ -481,9 +503,59 @@ func deleteDeploymentsAndCheck(ctx context.Context, cli client.Client, namespace
 
 	for _, deployment := range markedForDeletion {
 		if e := cli.Get(ctx, client.ObjectKey{
-			Namespace: deployment.Namespace,
+			Namespace: namespace,
 			Name:      deployment.Name,
 		}, &deployment); e != nil {
+			if apierrs.IsNotFound(e) {
+				// resource has been successfully deleted
+				continue
+			} else {
+				// unexpected error, report it
+				multiErr = multierror.Append(multiErr, e)
+			}
+		} else {
+			// resource still exists, wait for it to be deleted
+			return false, nil
+		}
+	}
+
+	return true, multiErr.ErrorOrNil()
+}
+
+func deleteStatefulsetsAndCheck(ctx context.Context, cli client.Client, namespace string) (bool, error) { //nolint
+	// Delete statefulset objects
+	var multiErr *multierror.Error
+	statefulsets := &appsv1.StatefulSetList{}
+	listOpts := &client.ListOptions{
+		Namespace: namespace,
+	}
+
+	if err := cli.List(ctx, statefulsets, listOpts); err != nil {
+		return false, nil
+	}
+
+	// even only we have one item to delete to avoid nil point still use range
+	markedForDeletion := []appsv1.StatefulSet{}
+	for _, statefulset := range statefulsets.Items {
+		v2 := false
+		selectorLabels := statefulset.Spec.Selector.MatchLabels
+		for label := range selectorLabels {
+			if strings.Contains(label, "app.opendatahub.io/") {
+				v2 = true
+				continue
+			}
+		}
+		if !v2 {
+			markedForDeletion = append(markedForDeletion, statefulset)
+			multiErr = multierror.Append(multiErr, cli.Delete(ctx, &statefulset))
+		}
+	}
+
+	for _, statefulset := range markedForDeletion {
+		if e := cli.Get(ctx, client.ObjectKey{
+			Namespace: namespace,
+			Name:      statefulset.Name,
+		}, &statefulset); e != nil {
 			if apierrs.IsNotFound(e) {
 				// resource has been successfully deleted
 				continue
