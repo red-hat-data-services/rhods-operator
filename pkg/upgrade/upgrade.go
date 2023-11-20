@@ -260,11 +260,15 @@ func CreateDefaultDSCI(cli client.Client, platform deploy.Platform, appNamespace
 	return nil
 }
 
-func UpdateFromLegacyVersion(cli client.Client, platform deploy.Platform, appNS string) error {
+func UpdateFromLegacyVersion(cli client.Client, platform deploy.Platform, appNS string, montNamespace string) error {
 	// If platform is Managed, remove Kfdefs and create default dsc
 	if platform == deploy.ManagedRhods {
 		fmt.Println("starting deletion of Deloyments in managed cluster")
 		if err := deleteDeployments(cli, appNS); err != nil {
+			return err
+		}
+		// this is for the modelmesh monitoring part from v1 to v2
+		if err := deleteDeployments(cli, montNamespace); err != nil {
 			return err
 		}
 		if err := CreateDefaultDSC(cli, platform); err != nil {
@@ -307,6 +311,10 @@ func UpdateFromLegacyVersion(cli client.Client, platform deploy.Platform, appNS 
 		if len(kfDefList.Items) > 0 {
 			if err = deleteDeployments(cli, appNS); err != nil {
 				return fmt.Errorf("error deleting deployment: %w", err)
+			}
+			// this is for the modelmesh monitoring part from v1 to v2
+			if err := deleteDeployments(cli, montNamespace); err != nil {
+				return err
 			}
 			if err = CreateDefaultDSC(cli, platform); err != nil {
 				return err
@@ -419,7 +427,7 @@ func getClusterServiceVersion(cfg *rest.Config, watchNameSpace string) (*ofapi.C
 	return nil, nil
 }
 
-func deleteDeployments(cli client.Client, applicationNamespace string) error {
+func deleteDeployments(cli client.Client, namespace string) error {
 	// In v2, Deployment selectors use a label "app.opendatahub.io/<componentName>" which is
 	// not present in v1. Since label selectors are immutable, we need to delete the existing
 	// deployments and recreated them.
@@ -427,25 +435,25 @@ func deleteDeployments(cli client.Client, applicationNamespace string) error {
 	// to retry the deletion until it succeeds
 	err := wait.ExponentialBackoffWithContext(context.TODO(), wait.Backoff{
 		// 10, 20, 40 then timeout
-		Duration: 10 * time.Second,
+		Duration: 5 * time.Second,
 		Factor:   2.0,
 		Jitter:   0.1,
 		Steps:    4,
 		Cap:      1 * time.Minute,
 	}, func(ctx context.Context) (bool, error) {
-		done, err := deleteDeploymentsAndCheck(ctx, cli, applicationNamespace)
+		done, err := deleteDeploymentsAndCheck(ctx, cli, namespace)
 		return done, err
 	})
 
 	return err
 }
 
-func deleteDeploymentsAndCheck(ctx context.Context, cli client.Client, applicationNamespace string) (bool, error) {
+func deleteDeploymentsAndCheck(ctx context.Context, cli client.Client, namespace string) (bool, error) {
 	// Delete Deployment objects
 	var multiErr *multierror.Error
 	deployments := &appsv1.DeploymentList{}
 	listOpts := &client.ListOptions{
-		Namespace: applicationNamespace,
+		Namespace: namespace,
 	}
 
 	if err := cli.List(ctx, deployments, listOpts); err != nil {
