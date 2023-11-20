@@ -92,9 +92,11 @@ func (r *DataScienceClusterReconciler) Reconcile(ctx context.Context, req ctrl.R
 		// Owned objects are automatically garbage collected. For additional cleanup logic use operatorUninstall function.
 		// Return and don't requeue
 		if upgrade.HasDeleteConfigMap(r.Client) {
-			return reconcile.Result{}, fmt.Errorf("error while operator uninstall: %v",
-				upgrade.OperatorUninstall(r.Client, r.RestConfig))
+			if uninstallErr := upgrade.OperatorUninstall(r.Client, r.RestConfig); uninstallErr != nil {
+				return ctrl.Result{}, fmt.Errorf("error while operator uninstall: %v", uninstallErr)
+			}
 		}
+
 		return ctrl.Result{}, nil
 	}
 
