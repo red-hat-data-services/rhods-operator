@@ -182,7 +182,7 @@ func main() {
 	// Get operator platform
 	platform, err := deploy.GetPlatform(setupClient)
 	if err != nil {
-		setupLog.Error(err, "error getting client for setup")
+		setupLog.Error(err, "error getting platform")
 		os.Exit(1)
 	}
 
