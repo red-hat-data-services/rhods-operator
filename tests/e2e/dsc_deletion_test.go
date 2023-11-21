@@ -64,11 +64,8 @@ func (tc *testContext) testApplicationDeletion(component components.ComponentInt
 			log.Printf("error listing component deployments :%v. Trying again...", err)
 			return false, err
 		}
-		if len(appList.Items) != 0 {
-			return false, nil
-		} else {
-			return true, nil
-		}
+
+		return len(appList.Items) == 0, nil
 	}); err != nil {
 		return fmt.Errorf("error deleting component: %v", component.GetComponentName())
 	}

@@ -52,71 +52,63 @@ func OperatorUninstall(cli client.Client, cfg *rest.Config) error {
 	if err != nil {
 		return err
 	}
-	// Delete kfdefs if found
-	err = RemoveKfDefInstances(cli, platform)
-	if err != nil {
+
+	if err := RemoveKfDefInstances(cli, platform); err != nil {
 		return err
 	}
 
-	// Delete DSCInitialization instance
-	err = removeDSCInitialization(cli)
-	if err != nil {
+	if err := removeDSCInitialization(cli); err != nil {
 		return err
 	}
+
 	// Delete generated namespaces by the operator
 	generatedNamespaces := &corev1.NamespaceList{}
 	nsOptions := []client.ListOption{
 		client.MatchingLabels{cluster.ODHGeneratedNamespaceLabel: "true"},
 	}
 	if err := cli.List(context.TODO(), generatedNamespaces, nsOptions...); err != nil {
-		if !apierrs.IsNotFound(err) {
-			return fmt.Errorf("error getting generated namespaces : %v", err)
-		}
+		return fmt.Errorf("error getting generated namespaces : %v", err)
 	}
 
 	// Return if any one of the namespaces is Terminating due to resources that are in process of deletion. (e.g CRDs)
-	if len(generatedNamespaces.Items) != 0 {
-		for _, namespace := range generatedNamespaces.Items {
-			if namespace.Status.Phase == corev1.NamespaceTerminating {
-				return fmt.Errorf("waiting for namespace %v to be deleted", namespace.Name)
-			}
+	for _, namespace := range generatedNamespaces.Items {
+		if namespace.Status.Phase == corev1.NamespaceTerminating {
+			return fmt.Errorf("waiting for namespace %v to be deleted", namespace.Name)
 		}
 	}
 
-	// Delete all the active namespaces
 	for _, namespace := range generatedNamespaces.Items {
 		if namespace.Status.Phase == corev1.NamespaceActive {
 			if err := cli.Delete(context.TODO(), &namespace, []client.DeleteOption{}...); err != nil {
 				return fmt.Errorf("error deleting namespace %v: %v", namespace.Name, err)
 			}
-			fmt.Printf("Namespace %s deleted as a part of uninstall.", namespace.Name)
+			fmt.Printf("Namespace %s deleted as a part of uninstall.\n", namespace.Name)
 		}
 	}
 
 	// Wait for all resources to get cleaned up
 	time.Sleep(10 * time.Second)
-	fmt.Printf("All resources deleted as part of uninstall. Removing the operator csv")
+
+	fmt.Printf("All resources deleted as part of uninstall. Removing the operator csv\n")
+
 	return removeCsv(cli, cfg)
 }
 
 func removeDSCInitialization(cli client.Client) error {
-	// Last check if multiple instances of DSCInitialization exist
 	instanceList := &dsci.DSCInitializationList{}
-	var err error
-	err = cli.List(context.TODO(), instanceList)
-	if err != nil {
+
+	if err := cli.List(context.TODO(), instanceList); err != nil {
 		return err
 	}
 
-	if len(instanceList.Items) != 0 {
-		for _, dsciInstance := range instanceList.Items {
-			err = cli.Delete(context.TODO(), &dsciInstance)
-			if apierrs.IsNotFound(err) {
-				err = nil
-			}
+	var multiErr *multierror.Error
+	for _, dsciInstance := range instanceList.Items {
+		if err := cli.Delete(context.TODO(), &dsciInstance); !apierrs.IsNotFound(err) {
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
-	return err
+
+	return multiErr.ErrorOrNil()
 }
 
 // HasDeleteConfigMap returns true if delete configMap is added to the operator namespace by managed-tenants repo.
@@ -185,10 +177,10 @@ func CreateDefaultDSC(cli client.Client, platform deploy.Platform) error {
 	err := cli.Create(context.TODO(), releaseDataScienceCluster)
 	switch {
 	case err == nil:
-		fmt.Printf("created DataScienceCluster resource")
+		fmt.Printf("created DataScienceCluster resource\n")
 	case apierrs.IsAlreadyExists(err):
 		// Do not update the DSC if it already exists
-		fmt.Printf("DataScienceCluster resource already exists. It will not be updated with default DSC.")
+		fmt.Printf("DataScienceCluster resource already exists. It will not be updated with default DSC.\n")
 		return nil
 	default:
 		return fmt.Errorf("failed to create DataScienceCluster custom resource: %v", err)
@@ -234,7 +226,7 @@ func CreateDefaultDSCI(cli client.Client, platform deploy.Platform, appNamespace
 
 	switch {
 	case len(instances.Items) > 1:
-		fmt.Printf("only one instance of DSCInitialization object is allowed. Please delete other instances ")
+		fmt.Printf("only one instance of DSCInitialization object is allowed. Please delete other instances.\n")
 		return nil
 	case len(instances.Items) == 1:
 		// Do not patch/update if DSCI already exists.
@@ -387,7 +379,7 @@ func removeCsv(c client.Client, r *rest.Config) error {
 	}
 
 	if operatorCsv != nil {
-		fmt.Printf("Deleting csv %s", operatorCsv.Name)
+		fmt.Printf("Deleting csv %s\n", operatorCsv.Name)
 		err = c.Delete(context.TODO(), operatorCsv, []client.DeleteOption{}...)
 		if err != nil {
 			if apierrs.IsNotFound(err) {
@@ -395,9 +387,10 @@ func removeCsv(c client.Client, r *rest.Config) error {
 			}
 			return fmt.Errorf("error deleting clusterserviceversion: %v", err)
 		}
-		fmt.Printf("Clusterserviceversion %s deleted as a part of uninstall.", operatorCsv.Name)
+		fmt.Printf("Clusterserviceversion %s deleted as a part of uninstall.\n", operatorCsv.Name)
 	}
-	fmt.Printf("No clusterserviceversion for the operator found.")
+	fmt.Printf("No clusterserviceversion for the operator found.\n")
+
 	return nil
 }
 
