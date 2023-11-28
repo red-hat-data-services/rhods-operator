@@ -55,7 +55,7 @@ import (
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
-
+	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/infrastructure/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
@@ -205,7 +205,18 @@ func CreateDefaultDSC(ctx context.Context, cli client.Client) error {
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
 				},
 				Kserve: componentApi.DSCKserve{
-					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
+					ManagementSpec: common.ManagementSpec{
+						ManagementState: operatorv1.Managed,
+					},
+					Serving: infrav1.ServingSpec{
+						ManagementState: operatorv1.Managed,
+						Name:            "knative-serving",
+						IngressGateway: infrav1.IngressGatewaySpec{
+							Certificate: infrav1.CertificateSpec{
+								Type: "SelfSigned",
+							},
+						},
+					},
 				},
 				CodeFlare: componentApi.DSCCodeFlare{
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
