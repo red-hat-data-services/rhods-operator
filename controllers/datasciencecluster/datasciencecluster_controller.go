@@ -337,7 +337,13 @@ var saPredicates = predicate.Funcs{
 // a workaround for 2.5 due to modelmesh-servingruntime.serving.kserve.io keeps updates
 var modelMeshwebhookPredicates = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
-		return e.ObjectNew.GetName() != "modelmesh-servingruntime.serving.kserve.io"
+		if e.ObjectNew.GetName() == "modelmesh-servingruntime.serving.kserve.io" {
+			return false
+		}
+		if e.ObjectNew.GetName() == "inferenceservice.serving.kserve.io" {
+			return false
+		}
+		return true
 	},
 }
 
@@ -400,7 +406,7 @@ func (r *DataScienceClusterReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		Owns(&ocbuildv1.BuildConfig{}).
 		Owns(&apiregistrationv1.APIService{}).
 		Owns(&netv1.Ingress{}).
-		Owns(&admv1.MutatingWebhookConfiguration{}).
+		Owns(&admv1.MutatingWebhookConfiguration{}, builder.WithPredicates(modelMeshwebhookPredicates)).
 		Owns(&admv1.ValidatingWebhookConfiguration{}, builder.WithPredicates(modelMeshwebhookPredicates)).
 		Owns(&corev1.ServiceAccount{}, builder.WithPredicates(saPredicates)).
 		Watches(&source.Kind{Type: &dsci.DSCInitialization{}}, handler.EnqueueRequestsFromMapFunc(r.watchDataScienceClusterResources)).
