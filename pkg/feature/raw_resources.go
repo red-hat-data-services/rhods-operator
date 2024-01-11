@@ -129,7 +129,7 @@ func (f *Feature) patchResourceFromFile(filename string) error {
 }
 
 // For any other than Namespace kind we set namespace to AppNamespace if it is not defined
-// yet for the object
+// yet for the object.
 func ensureNamespaceIsSet(f *Feature, u *unstructured.Unstructured) {
 	namespace := u.GetNamespace()
 	if u.GetKind() != "Namespace" && namespace == "" {

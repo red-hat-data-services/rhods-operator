@@ -22,9 +22,9 @@ import (
 var (
 	ComponentName          = "workbenches"
 	DependentComponentName = "notebooks"
-	// manifests for nbc in ODH and downstream + downstream use it for imageparams
+	// manifests for nbc in ODH and downstream + downstream use it for imageparams.
 	notebookControllerPath = deploy.DefaultManifestPath + "/odh-notebook-controller/odh-notebook-controller/base"
-	// manifests for ODH nbc + downstream use it for imageparams
+	// manifests for ODH nbc + downstream use it for imageparams.
 	kfnotebookControllerPath    = deploy.DefaultManifestPath + "/odh-notebook-controller/kf-notebook-controller/overlays/openshift"
 	notebookImagesPath          = deploy.DefaultManifestPath + "/notebooks/overlays/additional"
 	notebookImagesPathSupported = deploy.DefaultManifestPath + "/jupyterhub/notebooks/base"
@@ -158,7 +158,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 		ComponentName, enabled); err != nil {
 		return err
 	}
-	manifestsPath := ""
+	var manifestsPath string
 	if platform == deploy.OpenDataHub || platform == "" {
 		manifestsPath = notebookImagesPath
 	} else {

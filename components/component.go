@@ -90,8 +90,8 @@ type ComponentInterface interface {
 }
 
 // UpdatePrometheusConfig update prometheus-configs.yaml to include/exclude <component>.rules
-// parameter enable when set to true to add new rules, when set to false to remove existing rules
-func (c *Component) UpdatePrometheusConfig(cli client.Client, enable bool, component string) error {
+// parameter enable when set to true to add new rules, when set to false to remove existing rules.
+func (c *Component) UpdatePrometheusConfig(_ client.Client, enable bool, component string) error {
 	prometheusconfigPath := filepath.Join("/opt/manifests", "monitoring", "prometheus", "apps", "prometheus-configs.yaml")
 
 	// create a struct to mock poremtheus.yml
@@ -182,8 +182,6 @@ func (c *Component) UpdatePrometheusConfig(cli client.Client, enable bool, compo
 	}
 
 	// Write the modified content back to the file
-	if err = os.WriteFile(prometheusconfigPath, newyamlData, 0); err != nil {
-		return err
-	}
-	return nil
+	err = os.WriteFile(prometheusconfigPath, newyamlData, 0)
+	return err
 }
