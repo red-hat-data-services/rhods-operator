@@ -33,7 +33,7 @@ func (f *Feature) CreateSelfSignedCertificate(secretName string, certificateType
 		Name:      secretName,
 		Namespace: namespace,
 		OwnerReferences: []metav1.OwnerReference{
-			f.OwnerReference(),
+			f.AsOwnerReference(),
 		},
 	}
 
