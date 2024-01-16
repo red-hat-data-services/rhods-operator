@@ -75,6 +75,10 @@ func WaitForPodsToBeReady(namespace string) Action {
 				return false, nil
 			}
 
+			if totalPods == 0 { // We want to wait for "something", so make sure we have "something" before we claim success.
+				return false, nil
+			}
+
 			for _, pod := range podList.Items {
 				podReady := true
 				// Consider a "PodSucceeded" as ready, since these will never will
