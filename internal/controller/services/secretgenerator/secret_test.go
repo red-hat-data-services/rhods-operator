@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/services/secretgenerator"
+	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/secretgenerator"
 )
 
 const (
@@ -92,6 +93,7 @@ func TestNewSecret(t *testing.T) {
 	}
 
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			secret, err := secretgenerator.NewSecretFrom(tc.annotations)
 			if err != nil {
