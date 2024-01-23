@@ -8,10 +8,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlLog "sigs.k8s.io/controller-runtime/pkg/log"
+
+	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/features/v1"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/common"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/gvr"
 )
 
 var log = ctrlLog.Log.WithName("features")
@@ -38,6 +44,8 @@ type Action func(feature *Feature) error
 
 func (f *Feature) Apply() error {
 	if !f.Enabled {
+		log.Info("feature is disabled, skipping.", "feature", f.Name)
+
 		return nil
 	}
 
@@ -96,12 +104,10 @@ func (f *Feature) Apply() error {
 
 func (f *Feature) Cleanup() error {
 	if !f.Enabled {
+		log.Info("feature is disabled, skipping.", "feature", f.Name)
+
 		return nil
 	}
-
-	// Ensure associated FeatureTracker instance has been removed as last one
-	// in the chain of cleanups.
-	f.addCleanup(removeFeatureTracker)
 
 	var cleanupErrors *multierror.Error
 	for _, cleanupFunc := range f.cleanups {
@@ -186,4 +192,55 @@ func (f *Feature) apply(m manifest) error {
 
 func (f *Feature) AsOwnerReference() metav1.OwnerReference {
 	return f.Spec.Tracker.ToOwnerReference()
+}
+
+// createResourceTracker instantiates FeatureTracker for a given Feature. All resources created when applying
+// it will have this object attached as an OwnerReference.
+// It's a cluster-scoped resource. Once created, there's a cleanup hook added which will be invoked on deletion, resulting
+// in removal of all owned resources which belong to this Feature.
+func (f *Feature) createResourceTracker() error {
+	tracker := &featurev1.FeatureTracker{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "features.opendatahub.io/v1",
+			Kind:       "FeatureTracker",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: f.Spec.AppNamespace + "-" + common.TrimToRFC1123Name(f.Name),
+		},
+	}
+
+	foundTracker, err := f.DynamicClient.Resource(gvr.ResourceTracker).Get(context.TODO(), tracker.Name, metav1.GetOptions{})
+	if k8serrors.IsNotFound(err) {
+		unstructuredTracker, err := runtime.DefaultUnstructuredConverter.ToUnstructured(tracker)
+		if err != nil {
+			return err
+		}
+
+		u := unstructured.Unstructured{Object: unstructuredTracker}
+
+		foundTracker, err = f.DynamicClient.Resource(gvr.ResourceTracker).Create(context.TODO(), &u, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	f.Spec.Tracker = &featurev1.FeatureTracker{}
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(foundTracker.Object, f.Spec.Tracker); err != nil {
+		return err
+	}
+
+	// Register its own cleanup
+	f.addCleanup(func(feature *Feature) error {
+		err := f.DynamicClient.Resource(gvr.ResourceTracker).Delete(context.TODO(), f.Spec.Tracker.Name, metav1.DeleteOptions{})
+
+		if !k8serrors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+
+	return nil
 }

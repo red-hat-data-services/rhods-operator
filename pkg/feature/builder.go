@@ -1,7 +1,6 @@
 package feature
 
 import (
-	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/dynamic"
@@ -12,7 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	v1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/dscinitialization/v1"
-	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/features/v1"
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/infrastructure/v1"
 )
 
@@ -68,11 +66,11 @@ func createClients(config *rest.Config) partialBuilder {
 			return errors.WithStack(err)
 		}
 
-		var multiErr *multierror.Error
-		s := f.Client.Scheme()
-		multiErr = multierror.Append(multiErr, featurev1.AddToScheme(s), apiextv1.AddToScheme(s))
+		if err := apiextv1.AddToScheme(f.Client.Scheme()); err != nil { //nolint:revive,nolintlint
+			return err
+		}
 
-		return multiErr.ErrorOrNil()
+		return nil
 	}
 }
 
