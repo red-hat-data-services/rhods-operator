@@ -129,6 +129,29 @@ data:
       - target_label: __address__
         replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
 
+
+    - job_name: 'user_facing_endpoints_status_trustyai'
+      scrape_interval: 10s
+      metrics_path: /probe
+      scheme: https
+      tls_config:
+        insecure_skip_verify: true
+      params:
+        module: [http_2xx]
+      authorization:
+        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
+      static_configs:
+      - targets: [trustyai-service-operator-controller-manager-metrics-service.<odh_application_namespace>.svc:8443/metrics]
+        labels:
+          name: trustyai-service-operator-controller-manager
+      relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
+
     - job_name: 'Kubeflow Notebook Controller Service Metrics'
       honor_labels: true
       metrics_path: /metrics
@@ -320,7 +343,7 @@ data:
               - <odh_application_namespace>
       relabel_configs:
         - source_labels: [__meta_kubernetes_service_name]
-          regex: ^(trustyai-service-operator-controller-manager)$
+          regex: ^(trustyai-service-operator-controller-manager-metrics-service)$
           target_label: kubernetes_name
           action: keep
         - source_labels: [__address__]
@@ -1428,37 +1451,37 @@ data:
             instance: trustyai-service-operator-controller-manager
           record: probe_success
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[1d]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[1d]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate1d
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[1h]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[1h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate1h
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[2h]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[2h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate2h
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[30m]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[30m]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate30m
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[3d]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[3d]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate3d
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[5m]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[5m]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate5m
         - expr: |
-            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[6h]))
+            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[6h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate6h
