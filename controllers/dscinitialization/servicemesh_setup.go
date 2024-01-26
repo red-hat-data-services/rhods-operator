@@ -32,7 +32,7 @@ func (r *DSCInitializationReconciler) configureServiceMesh(instance *dsciv1.DSCI
 	case operatorv1.Unmanaged:
 		r.Log.Info("ServiceMesh CR is not configured by the operator, we won't do anything")
 	case operatorv1.Removed:
-		r.Log.Info("existing ServiceMesh CR (owned by operator) will be removed")
+		r.Log.Info("existing ServiceMesh CR (owned by operator) will not be removed")
 		if err := r.removeServiceMesh(instance); err != nil {
 			return err
 		}
