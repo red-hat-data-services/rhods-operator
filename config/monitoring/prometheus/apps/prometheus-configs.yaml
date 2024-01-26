@@ -129,29 +129,6 @@ data:
       - target_label: __address__
         replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
 
-
-    - job_name: 'user_facing_endpoints_status_trustyai'
-      scrape_interval: 10s
-      metrics_path: /probe
-      scheme: https
-      tls_config:
-        insecure_skip_verify: true
-      params:
-        module: [http_2xx]
-      authorization:
-        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets: [trustyai-service-operator-controller-manager-metrics-service.<odh_application_namespace>.svc:8443/metrics]
-        labels:
-          name: trustyai-service-operator-controller-manager
-      relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
-
     - job_name: 'Kubeflow Notebook Controller Service Metrics'
       honor_labels: true
       metrics_path: /metrics
@@ -337,19 +314,22 @@ data:
       metrics_path: /metrics
       scheme: http
       kubernetes_sd_configs:
-        - role: endpoints
+        - role: pod
           namespaces:
             names:
               - <odh_application_namespace>
+          selectors:
+            - role: pod
+              label: 'app.opendatahub.io/trustyai=true'
       relabel_configs:
-        - source_labels: [__meta_kubernetes_service_name]
-          regex: ^(trustyai-service-operator-controller-manager-metrics-service)$
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_part_of]
+          regex: ^(trustyai)$
           target_label: kubernetes_name
           action: keep
         - source_labels: [__address__]
           regex: (.+):(\d+)
           target_label: __address__
-          replacement: ${1}:8080          
+          replacement: ${1}:8080
 
     - job_name: 'RHODS Metrics'
       honor_labels: true
@@ -1207,7 +1187,7 @@ data:
 
   kserve-alerting.rules: |
     groups:
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_kserve
         rules:
         - alert: Kserve Controller Probe Success Burn Rate
           annotations:
@@ -1451,43 +1431,43 @@ data:
             instance: trustyai-service-operator-controller-manager
           record: probe_success
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[1d]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[1d]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate1d
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[1h]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[1h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate1h
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[2h]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[2h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate2h
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[30m]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[30m]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate30m
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[3d]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[3d]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate3d
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[5m]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[5m]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate5m
         - expr: |
-            1 - min(avg_over_time(probe_success{instance=~"trustyai-service-operator-controller-manager", job="user_facing_endpoints_status_trustyai"}[6h]))
+            1 - min(avg_over_time(probe_success{instance="trustyai-service-operator-controller-manager"}[6h]))
           labels:
             instance: trustyai-service-operator-controller-manager
           record: probe_success:burnrate6h
   trustyai-alerting.rules: |
     groups:
-      - name: SLOs-probe_success
+      - name: SLOs-probe_success_trustyai
         rules:
         - alert: TrustyAI Controller Probe Success Burn Rate
           annotations:
@@ -1501,6 +1481,7 @@ data:
           for: 2m
           labels:
             severity: critical
+            instance: trustyai-service-operator-controller-manager
         - alert: TrustyAI Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1513,6 +1494,7 @@ data:
           for: 15m
           labels:
             severity: critical
+            instance: trustyai-service-operator-controller-manager
         - alert: TrustyAI Controller Probe Success Burn Rate
           annotations:
             message: 'High error budget burn for {{ $labels.instance }} (current value: {{ $value }}).'
@@ -1525,3 +1507,4 @@ data:
           for: 1h
           labels:
             severity: warning
+            instance: trustyai-service-operator-controller-manager
