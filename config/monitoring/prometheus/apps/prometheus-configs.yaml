@@ -340,10 +340,13 @@ data:
       authorization:
         credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
       kubernetes_sd_configs:
-        - role: endpoints
+        - role: pod
           namespaces:
             names:
               - <odh_application_namespace>
+          selectors:
+            - role: pod
+              label: 'app.opendatahub.io/trustyai=true'
       relabel_configs:
         - source_labels: [__meta_kubernetes_service_name]
           regex: ^(kueue-metrics-service)$
