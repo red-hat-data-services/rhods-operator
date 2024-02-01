@@ -5,7 +5,7 @@ GITHUB_URL="https://github.com/"
 # update to use different git repo for legacy manifests
 MANIFEST_ORG="red-hat-data-services"
 
-# component: notebook, dsp, kserve, dashbaord, cf/ray, trustyai, modelmesh.
+# component: notebook, dsp, kserve, dashbaord, cf/ray, trustyai, modelmesh, modelregistry.
 # in the format of "repo-org:repo-name:branch-name:source-folder:target-folder".
 declare -A COMPONENT_MANIFESTS=(
     ["codeflare"]="red-hat-data-services:codeflare-operator:rhoai-2.12:config:codeflare"
@@ -21,6 +21,7 @@ declare -A COMPONENT_MANIFESTS=(
     ["kserve"]="red-hat-data-services:kserve:rhoai-2.12:config:kserve"
     ["odh-dashboard"]="red-hat-data-services:odh-dashboard:rhoai-2.12:manifests:dashboard"
     ["trainingoperator"]="red-hat-data-services:training-operator:rhoai-2.12:manifests:trainingoperator"
+    ["modelregistry"]="opendatahub-io:model-registry-operator:main:config:model-registry-operator"
 )
 
 # Allow overwriting repo using flags component=repo

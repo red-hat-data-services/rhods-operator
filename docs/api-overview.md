@@ -49,6 +49,7 @@ _Appears in:_
 - [Kserve](#kserve)
 - [Kueue](#kueue)
 - [ModelMeshServing](#modelmeshserving)
+- [ModelRegistry](#modelregistry)
 - [Ray](#ray)
 - [TrainingOperator](#trainingoperator)
 - [TrustyAI](#trustyai)
@@ -230,6 +231,29 @@ _Appears in:_
 
 
 
+## datasciencecluster.opendatahub.io/modelregistry
+
+Package modelregistry provides utility functions to config ModelRegistry, an ML Model metadata repository service
+
+
+
+#### ModelRegistry
+
+
+
+ModelRegistry struct holds the configuration for the ModelRegistry component.
+
+
+
+_Appears in:_
+- [Components](#components)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `Component` _[Component](#component)_ |  |  |  |
+
+
+
 ## datasciencecluster.opendatahub.io/ray
 
 Package ray provides utility functions to config Ray as part of the stack
@@ -356,6 +380,7 @@ _Appears in:_
 | `ray` _[Ray](#ray)_ | Ray component configuration. |  |  |
 | `trustyai` _[TrustyAI](#trustyai)_ | TrustyAI component configuration. |  |  |
 | `trainingoperator` _[TrainingOperator](#trainingoperator)_ | Training Operator component configuration. |  |  |
+| `modelregistry` _[ModelRegistry](#modelregistry)_ | ModelRegistry component configuration. |  |  |
 
 
 #### ControlPlaneSpec
