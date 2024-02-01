@@ -49,6 +49,7 @@ _Appears in:_
 - [Kserve](#kserve)
 - [Kueue](#kueue)
 - [ModelMeshServing](#modelmeshserving)
+- [ModelRegistry](#modelregistry)
 - [Ray](#ray)
 - [TrainingOperator](#trainingoperator)
 - [TrustyAI](#trustyai)
@@ -359,6 +360,7 @@ _Appears in:_
 | `ray` _[Ray](#ray)_ | Ray component configuration. |  |  |
 | `trustyai` _[TrustyAI](#trustyai)_ | TrustyAI component configuration. |  |  |
 | `trainingoperator` _[TrainingOperator](#trainingoperator)_ | Training Operator component configuration. |  |  |
+| `modelregistry` _[ModelRegistry](#modelregistry)_ | ModelRegistry component configuration. |  |  |
 
 
 #### ControlPlaneSpec

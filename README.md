@@ -319,6 +319,8 @@ spec:
       managementState: Managed
     workbenches:
       managementState: Managed
+    modelregistry:
+      managementState: Managed
 ```
 
 2. Enable only Dashboard and Workbenches
