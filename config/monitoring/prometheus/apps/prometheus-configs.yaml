@@ -350,7 +350,7 @@ data:
           target_label: kubernetes_name
           action: keep
         - source_labels: [__address__]
-          regex: (.+):(\d+)
+          regex: (.*)
           target_label: __address__
           replacement: ${1}:8443
 
@@ -387,7 +387,7 @@ data:
       authorization:
         credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
       kubernetes_sd_configs:
-        - role: endpoints
+        - role: pod
           namespaces:
             names:
               - <odh_application_namespace>
@@ -397,7 +397,7 @@ data:
           target_label: kubernetes_name
           action: keep
         - source_labels: [__address__]
-          regex: (.+):(\d+)
+          regex: (.*)
           target_label: __address__
           replacement: ${1}:8443
           
