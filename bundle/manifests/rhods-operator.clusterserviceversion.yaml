@@ -1607,7 +1607,7 @@ spec:
                       fieldPath: metadata.namespace
                 - name: DEFAULT_MANIFESTS_PATH
                   value: /opt/manifests
-                image: REPLACE_IMAGE:latest
+                image: REPLACE_IMAGE:latest 
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
