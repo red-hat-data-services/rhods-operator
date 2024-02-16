@@ -155,6 +155,10 @@ func CreateDSCI(name, appNamespace, monitoringNamespace string) *dsciv1.DSCIniti
 					MetricsCollection: serviceMeshMetricsCollection,
 				},
 			},
+			TrustedCABundle: dsci.TrustedCABundleSpec{
+				ManagementState: "Managed",
+				CustomCABundle:  "",
+			},
 		},
 	}
 }
