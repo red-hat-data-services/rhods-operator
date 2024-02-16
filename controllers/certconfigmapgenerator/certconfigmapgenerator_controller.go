@@ -67,9 +67,6 @@ func (r *CertConfigmapGeneratorReconciler) Reconcile(ctx context.Context, req ct
 		return ctrl.Result{}, nil
 	case 1:
 		dsciInstance = &dsciInstances.Items[0]
-	default:
-		message := "only one instance of DSCInitialization object is allowed"
-		return ctrl.Result{}, errors.New(message)
 	}
 
 	if dsciInstance.Spec.TrustedCABundle.ManagementState != operatorv1.Managed {
