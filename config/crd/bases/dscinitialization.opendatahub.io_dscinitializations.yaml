@@ -326,7 +326,7 @@ spec:
                   Additionally, this fields allows admins to add custom CA bundles to the configmap using the .CustomCABundle field.
                 properties:
                   customCABundle:
-                    default: ""
+                    
                     description: |-
                       A custom CA bundle that will be available for  all  components in the
                       Data Science Cluster(DSC). This bundle will be stored in odh-trusted-ca-bundle
@@ -343,7 +343,6 @@ spec:
                     pattern: ^(Managed|Unmanaged|Force|Removed)$
                     type: string
                 required:
-                - customCABundle
                 - managementState
                 type: object
             type: object
