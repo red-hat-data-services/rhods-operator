@@ -261,7 +261,7 @@ func (r *DataScienceClusterReconciler) reconcileSubComponent(ctx context.Context
 	instance, err := r.updateStatus(ctx, instance, func(saved *dsc.DataScienceCluster) {
 		var message string
 		if componentName == trustyai.ComponentName {
-			message = "TrustyAI is deprecated. Component state is disabled."
+			message = "TrustyAI is deprecated. Setting this field to Managed will not result in the deployment of TrustyAI."
 		} else {
 			message = "Component is disabled"
 			if enabled {
