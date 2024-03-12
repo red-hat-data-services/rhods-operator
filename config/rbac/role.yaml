@@ -108,6 +108,12 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - authorino.kuadrant.io
+  resources:
+  - authconfigs
+  verbs:
+  - '*'
+- apiGroups:
   - authorization.k8s.io
   resources:
   - subjectaccessreviews
@@ -841,6 +847,12 @@ rules:
   - networking.istio.io
   resources:
   - envoyfilters
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - envoyfilters
   - gateways
   - virtualservices
   verbs:
@@ -903,6 +915,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - operator.authorino.kuadrant.io
+  resources:
+  - authorinos
+  verbs:
+  - '*'
 - apiGroups:
   - opentelemetry.io
   resources:
