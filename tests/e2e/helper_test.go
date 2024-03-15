@@ -10,7 +10,6 @@ import (
 	gTypes "github.com/onsi/gomega/types"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
 	dscv1 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v1"
@@ -19,8 +18,8 @@ import (
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
 	modelregistryctrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelregistry"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/test/matchers/jq"
-
 	. "github.com/onsi/gomega"
+	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/infrastructure/v1"
 )
 
 // Namespace and Operator Constants.

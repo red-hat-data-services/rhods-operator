@@ -55,6 +55,8 @@ import (
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
+
+	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/infrastructure/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
