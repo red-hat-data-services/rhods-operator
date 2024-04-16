@@ -6,6 +6,9 @@ metadata:
     experimental.istio.io/disable-gateway-port-translation: "true"
   name: knative-local-gateway
   namespace: {{ .ControlPlane.Namespace }}
+  labels:
+    test: "original-value"
+    experimental.istio.io/disable-gateway-port-translation: "true"
 spec:
   ports:
     - name: http2
