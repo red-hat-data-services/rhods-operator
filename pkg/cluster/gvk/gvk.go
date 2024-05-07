@@ -512,4 +512,10 @@ var (
 		Version: "v1",
 		Kind:    "PrometheusRule",
 	}
+
+	OdhDashboardConfig = schema.GroupVersionKind{
+		Group:   "opendatahub.io",
+		Version: "v1alpha",
+		Kind:    "OdhDashboardConfig",
+	}
 )
