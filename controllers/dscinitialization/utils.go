@@ -35,7 +35,7 @@ var (
 // - ConfigMap  'odh-common-config'
 // - Network Policies 'opendatahub' that allow traffic between the ODH namespaces
 // - RoleBinding 'opendatahub'.
-func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, dscInit *dsci.DSCInitialization, name string) error {
+func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, dscInit *dsci.DSCInitialization, name string, isManaged bool) error {
 	// Expected application namespace for the given name
 	desiredNamespace := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -70,7 +70,7 @@ func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, ds
 		}
 		// Patch Application Namespace if it exists
 	} else if dscInit.Spec.Monitoring.ManagementState == operatorv1.Managed {
-		r.Log.Info("Patching application namespace for Managed cluster", "name", name)
+		r.Log.Info("Patching application namespace", "name", name)
 		labelPatch := `{"metadata":{"labels":{"openshift.io/cluster-monitoring":"true","pod-security.kubernetes.io/enforce":"baseline","opendatahub.io/generated-namespace": "true"}}}`
 		err = r.Patch(ctx, foundNamespace, client.RawPatch(types.MergePatchType,
 			[]byte(labelPatch)))
@@ -79,7 +79,7 @@ func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, ds
 		}
 	}
 	// Create Monitoring Namespace if it is enabled and not exists
-	if dscInit.Spec.Monitoring.ManagementState == operatorv1.Managed {
+	if dscInit.Spec.Monitoring.ManagementState == operatorv1.Managed && isManaged {
 		foundMonitoringNamespace := &corev1.Namespace{}
 		monitoringName := dscInit.Spec.Monitoring.Namespace
 		err := r.Get(ctx, client.ObjectKey{Name: monitoringName}, foundMonitoringNamespace)
@@ -117,6 +117,7 @@ func (r *DSCInitializationReconciler) createOdhNamespace(ctx context.Context, ds
 	}
 
 	// Create default NetworkPolicy for the namespace
+	// TODO: remove this caller after the networkpolicy is removed from operator
 	err = r.reconcileDefaultNetworkPolicy(ctx, name, dscInit)
 	if err != nil {
 		r.Log.Error(err, "error reconciling network policy ", "name", name)
@@ -189,6 +190,7 @@ func (r *DSCInitializationReconciler) createDefaultRoleBinding(ctx context.Conte
 	return nil
 }
 
+// TODO: remove this function after the networkpolicy is removed from operator.
 func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(ctx context.Context, name string, dscInit *dsci.DSCInitialization) error {
 	platform, err := deploy.GetPlatform(r.Client)
 	if err != nil {
@@ -201,17 +203,19 @@ func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(ctx context.
 			r.Log.Error(err, "error to set networkpolicy in operator namespace", "path", networkpolicyPath)
 			return err
 		}
-		// Deploy networkpolicy for monitoring namespace
-		err = deploy.DeployManifestsFromPath(r.Client, dscInit, networkpolicyPath+"/monitoring", dscInit.Spec.Monitoring.Namespace, "networkpolicy", true)
-		if err != nil {
-			r.Log.Error(err, "error to set networkpolicy in monitroing namespace", "path", networkpolicyPath)
-			return err
-		}
 		// Deploy networkpolicy for applications namespace
 		err = deploy.DeployManifestsFromPath(r.Client, dscInit, networkpolicyPath+"/applications", dscInit.Spec.ApplicationsNamespace, "networkpolicy", true)
 		if err != nil {
 			r.Log.Error(err, "error to set networkpolicy in applications namespace", "path", networkpolicyPath)
 			return err
+		}
+		// Deploy networkpolicy for monitoring namespace
+		if platform == deploy.ManagedRhods {
+			err = deploy.DeployManifestsFromPath(r.Client, dscInit, networkpolicyPath+"/monitoring", dscInit.Spec.Monitoring.Namespace, "networkpolicy", true)
+			if err != nil {
+				r.Log.Error(err, "error to set networkpolicy in monitroing namespace", "path", networkpolicyPath)
+				return err
+			}
 		}
 	} else { // Expected namespace for the given name in ODH
 		desiredNetworkPolicy := &netv1.NetworkPolicy{

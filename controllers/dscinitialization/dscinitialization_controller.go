@@ -158,9 +158,16 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
+	// Get platform
+	platform, err := deploy.GetPlatform(r.Client)
+	if err != nil {
+		r.Log.Error(err, "Failed to determine platform (odh vs managed vs self-managed)")
+		return reconcile.Result{}, err
+	}
+
 	// Check namespace
 	namespace := instance.Spec.ApplicationsNamespace
-	err = r.createOdhNamespace(ctx, instance, namespace)
+	err = r.createOdhNamespace(ctx, instance, namespace, platform == deploy.ManagedRhods)
 	if err != nil {
 		// no need to log error as it was already logged in createOdhNamespace
 		return reconcile.Result{}, err
@@ -171,13 +178,6 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return reconcile.Result{}, err
 	}
 	managementStateChangeTrustedCA = false
-
-	// Get platform
-	platform, err := deploy.GetPlatform(r.Client)
-	if err != nil {
-		r.Log.Error(err, "Failed to determine platform (odh vs managed vs self-managed)")
-		return reconcile.Result{}, err
-	}
 
 	switch req.Name {
 	case "prometheus": // prometheus configmap
@@ -211,7 +211,7 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		// Check namespace is not exist, then create
 		namespace := instance.Spec.ApplicationsNamespace
 		r.Log.Info("Standard Reconciling workflow to create namespaces")
-		err = r.createOdhNamespace(ctx, instance, namespace)
+		err = r.createOdhNamespace(ctx, instance, namespace, platform == deploy.ManagedRhods)
 		if err != nil {
 			// no need to log error as it was already logged in createOdhNamespace
 			return reconcile.Result{}, err
@@ -241,7 +241,7 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 			if instance.Spec.Monitoring.ManagementState == operatorv1.Managed {
 				r.Log.Info("Monitoring enabled, won't apply changes", "cluster", "Self-Managed RHOAI Mode")
-				err = r.configureCommonMonitoring(instance)
+				err = r.configureSegment(instance)
 				if err != nil {
 					return reconcile.Result{}, err
 				}
@@ -256,12 +256,13 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 			if instance.Spec.Monitoring.ManagementState == operatorv1.Managed {
 				r.Log.Info("Monitoring enabled in initialization stage", "cluster", "Managed Service Mode")
-				err := r.configureManagedMonitoring(ctx, instance, "init")
-				if err != nil {
+				if err := r.configureManagedMonitoring(ctx, instance, "init"); err != nil {
 					return reconcile.Result{}, err
 				}
-				err = r.configureCommonMonitoring(instance)
-				if err != nil {
+				if err = r.configureSegment(instance); err != nil {
+					return reconcile.Result{}, err
+				}
+				if err := r.configureMonitoring(instance); err != nil {
 					return reconcile.Result{}, err
 				}
 			}

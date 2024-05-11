@@ -432,7 +432,7 @@ func createMonitoringProxySecret(cli client.Client, name string, dsciInit *dsci.
 	return nil
 }
 
-func (r *DSCInitializationReconciler) configureCommonMonitoring(dsciInit *dsci.DSCInitialization) error {
+func (r *DSCInitializationReconciler) configureSegment(dsciInit *dsci.DSCInitialization) error {
 	// configure segment.io
 	segmentPath := filepath.Join(deploy.DefaultManifestPath, "monitoring", "segment")
 	if err := deploy.DeployManifestsFromPath(
@@ -445,6 +445,10 @@ func (r *DSCInitializationReconciler) configureCommonMonitoring(dsciInit *dsci.D
 		r.Log.Error(err, "error to deploy manifests under "+segmentPath)
 		return err
 	}
+	return nil
+}
+
+func (r *DSCInitializationReconciler) configureMonitoring(dsciInit *dsci.DSCInitialization) error {
 	// configure monitoring base
 	monitoringBasePath := filepath.Join(deploy.DefaultManifestPath, "monitoring", "base")
 	err := common.ReplaceStringsInFile(filepath.Join(monitoringBasePath, "rhods-servicemonitor.yaml"),
