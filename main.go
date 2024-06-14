@@ -250,7 +250,6 @@ func main() {
 		}
 	}
 	// Cleanup resources from previous v2 releases
->>>>>>> ecda4775 (Dsc creation postpone (#1041))
 	var cleanExistingResourceFunc manager.RunnableFunc = func(ctx context.Context) error {
 		if err = upgrade.CleanupExistingResource(ctx, setupClient, platform, dscApplicationsNamespace, dscMonitoringNamespace); err != nil {
 			setupLog.Error(err, "unable to perform cleanup")
