@@ -505,6 +505,31 @@ func removOdhApplicationsCR(ctx context.Context, cli client.Client, gvk schema.G
 	return nil
 }
 
+func RemoveDeprecatedTrustyAI(cli client.Client, platform cluster.Platform) error {
+	existingDSCList := &dsc.DataScienceClusterList{}
+	err := cli.List(context.TODO(), existingDSCList)
+	if err != nil {
+		return fmt.Errorf("error getting existing DSC: %w", err)
+	}
+
+	switch len(existingDSCList.Items) {
+	case 0:
+		return nil
+	case 1:
+		existingDSC := existingDSCList.Items[0]
+		if platform == cluster.ManagedRhods || platform == cluster.SelfManagedRhods {
+			if existingDSC.Spec.Components.TrustyAI.ManagementState != operatorv1.Removed {
+				existingDSC.Spec.Components.TrustyAI.ManagementState = operatorv1.Removed
+				err := cli.Update(context.TODO(), &existingDSC)
+				if err != nil {
+					return fmt.Errorf("error updating TrustyAI component: %w", err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // upgradODCCR handles different cases:
 // 1. unset ownerreference for CR odh-dashboard-config
 // 2. flip TrustyAI BiasMetrics to false (.spec.dashboardConfig.disableBiasMetrics) if it is lower release version than input 'release'.
