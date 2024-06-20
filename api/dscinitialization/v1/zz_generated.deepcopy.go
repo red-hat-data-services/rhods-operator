@@ -22,6 +22,7 @@ package v1
 
 import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
+	infrastructurev1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/infrastructure/v1"
 	infrastructurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"

@@ -16,6 +16,7 @@ import (
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
+	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/infrastructure/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/feature"
 )
 
@@ -167,6 +168,14 @@ func NewDSCInitialization(ctx context.Context, cli client.Client, dsciName, ns s
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: dsciName,
+			ServiceMesh: &infrav1.ServiceMeshSpec{
+				ManagementState: "Managed",
+				ControlPlane: infrav1.ControlPlaneSpec{
+					Name:              "data-science-smcp",
+					Namespace:         "istio-system",
+					MetricsCollection: "Istio",
+				},
+			},
 		},
 	}
 
