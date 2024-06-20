@@ -3,10 +3,8 @@ package features_test
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"path/filepath"
 	"testing"
-	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,7 +38,6 @@ func TestFeaturesIntegration(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	rand.Seed(time.Now().UTC().UnixNano())
 
 	ctx, cancel = context.WithCancel(context.TODO())
 
