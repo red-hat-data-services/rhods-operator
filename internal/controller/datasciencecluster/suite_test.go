@@ -33,7 +33,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	datascienceclusterv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
+	dscv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
