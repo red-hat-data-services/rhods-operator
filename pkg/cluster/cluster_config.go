@@ -134,6 +134,11 @@ func getOperatorNamespace() (string, error) {
 }
 
 func IsNotReservedNamespace(ns *corev1.Namespace) bool {
+	return !strings.HasPrefix(ns.GetName(), "openshift-") && !strings.HasPrefix(ns.GetName(), "kube-") &&
+		ns.GetName() != "default" && ns.GetName() != "openshift"
+}
+
+func IsNotReservedNamespace(ns *corev1.Namespace) bool {
 	return !IsReservedNamespace(ns)
 }
 
