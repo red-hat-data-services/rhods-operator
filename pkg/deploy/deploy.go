@@ -281,7 +281,7 @@ func manageResource(ctx context.Context, cli client.Client, res *resource.Resour
 		if enabled {
 			// Exception to not update kserve with managed annotation
 			// do not reconcile kserve resource with annotation "opendatahub.io/managed: false"
-			if found.GetAnnotations()["opendatahub.io/managed"] == "false" && componentName == "kserve" {
+			if found.GetAnnotations()[annotations.ManagedByODHOperator] == "false" && componentName == "kserve" {
 				return nil
 			}
 			return updateResource(ctx, cli, res, found, owner)
