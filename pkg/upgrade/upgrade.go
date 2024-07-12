@@ -56,6 +56,7 @@ import (
 
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
 
+	featuresv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/features/v1"
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/infrastructure/v1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 
@@ -367,6 +368,10 @@ func CleanupExistingResource(ctx context.Context,
 	// Cleanup of deprecated default RoleBinding resources
 	deprecatedDefaultRoleBinding := []string{d.Spec.ApplicationsNamespace}
 	multiErr = multierror.Append(multiErr, deleteDeprecatedResources(ctx, cli, d.Spec.ApplicationsNamespace, deprecatedDefaultRoleBinding, &rbacv1.RoleBindingList{}))
+
+	// cleanup for github.com/opendatahub-io/pull/888
+	deprecatedFeatureTrackers := []string{dscApplicationsNamespace + "-kserve-temporary-fixes"}
+	multiErr = multierror.Append(multiErr, deleteDeprecatedResources(ctx, cli, dscApplicationsNamespace, deprecatedFeatureTrackers, &featuresv1.FeatureTrackerList{}))
 
 	// Handling for dashboard OdhDocument Jupyterhub CR, see jira #443 comments
 	odhDocJPH := getJPHOdhDocumentResources(
