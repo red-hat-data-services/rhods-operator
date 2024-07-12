@@ -37,7 +37,6 @@ spec:
       - command:
         - /manager
         args:
-        - --leader-elect
         - --operator-name=opendatahub
         image: controller:latest
         imagePullPolicy: Always
