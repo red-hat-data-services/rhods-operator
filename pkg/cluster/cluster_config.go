@@ -10,7 +10,6 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/operator-framework/api/pkg/lib/version"
 	ofapi "github.com/operator-framework/api/pkg/operators/v1alpha1"
-	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -93,26 +92,12 @@ func isSelfManaged(cli client.Client) (Platform, error) {
 
 // isManagedRHODS checks if CRD add-on exists and contains string ManagedRhods.
 func isManagedRHODS(cli client.Client) (Platform, error) {
-	catalogSourceCRD := &apiextv1.CustomResourceDefinition{}
-
-	err := cli.Get(context.TODO(), client.ObjectKey{Name: "catalogsources.operators.coreos.com"}, catalogSourceCRD)
+	catalogSource := &ofapi.CatalogSource{}
+	err := cli.Get(context.TODO(), client.ObjectKey{Name: "addon-managed-odh-catalog", Namespace: "openshift-marketplace"}, catalogSource)
 	if err != nil {
-		return "", client.IgnoreNotFound(err)
+		return Unknown, client.IgnoreNotFound(err)
 	}
-	expectedCatlogSource := &ofapi.CatalogSourceList{}
-	err = cli.List(context.TODO(), expectedCatlogSource)
-	if err != nil {
-		return Unknown, err
-	}
-	if len(expectedCatlogSource.Items) > 0 {
-		for _, cs := range expectedCatlogSource.Items {
-			if cs.Name == string(ManagedRhods) {
-				return ManagedRhods, nil
-			}
-		}
-	}
-
-	return "", nil
+	return ManagedRhods, nil
 }
 
 func GetPlatform(cli client.Client) (Platform, error) {

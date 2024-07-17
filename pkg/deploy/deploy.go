@@ -376,7 +376,7 @@ func ClusterSubscriptionExists(cli client.Client, name string) (bool, error) {
 
 // OperatorExists checks if an Operator with 'operatorPrefix' is installed.
 // Return true if found it, false if not.
-// TODO: if we need to check exact version of the operator installed, can append vX.Y.Z later.
+// if we need to check exact version of the operator installed, can append vX.Y.Z later.
 func OperatorExists(cli client.Client, operatorPrefix string) (bool, error) {
 	opConditionList := &ofapiv2.OperatorConditionList{}
 	err := cli.List(context.TODO(), opConditionList)
@@ -388,7 +388,6 @@ func OperatorExists(cli client.Client, operatorPrefix string) (bool, error) {
 			return true, nil
 		}
 	}
-
 	return false, nil
 }
 
