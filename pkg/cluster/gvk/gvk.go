@@ -153,6 +153,18 @@ var (
 		Kind:    "Route",
 	}
 
+	DataScienceCluster = schema.GroupVersionKind{
+		Group:   "datasciencecluster.opendatahub.io",
+		Version: "v1",
+		Kind:    "DataScienceCluster",
+	}
+
+	Deployment = schema.GroupVersionKind{
+		Group:   "apps",
+		Version: "v1",
+		Kind:    "Deployment",
+	}
+
 	KnativeServing = schema.GroupVersionKind{
 		Group:   "operator.knative.dev",
 		Version: "v1beta1",
