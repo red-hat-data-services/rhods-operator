@@ -63,6 +63,17 @@ func updateMap(m *map[string]string, key, val string) int {
 	return 1
 }
 
+// updateMap returns the number of updates made (it operates on 1 field, so 0 or 1 only).
+func updateMap(m *map[string]string, key, val string) int {
+	old := (*m)[key]
+	if old == val {
+		return 0
+	}
+
+	(*m)[key] = val
+	return 1
+}
+
 /*
 overwrite values in components' manifests params.env file
 This is useful for air gapped cluster
