@@ -136,10 +136,6 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 			return err
 		}
 	}
-	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
-		return fmt.Errorf("failed to apply manifetss %s: %w", notebookControllerPath, err)
-	}
-	l.WithValues("Path", notebookControllerPath).Info("apply manifests done NBC")
 
 	// Update image parameters for nbc in downstream
 	if enabled {
@@ -156,6 +152,11 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 			}
 		}
 	}
+	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+		return fmt.Errorf("failed to apply manifetss %s: %w", notebookControllerPath, err)
+	}
+	l.WithValues("Path", notebookControllerPath).Info("apply manifests done NBC")
+
 	if err = deploy.DeployManifestsFromPath(cli, owner,
 		kfnotebookControllerPath,
 		dscispec.ApplicationsNamespace,
@@ -165,6 +166,7 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 	var manifestsPath string
 	if platform == cluster.OpenDataHub || platform == "" {
 		// only for ODH after transit to kubeflow repo
+		// Remarks: this call should be not needed see line 161, but keep it since no need enhancement on previous release
 		if err = deploy.DeployManifestsFromPath(cli, owner,
 			kfnotebookControllerPath,
 			dscispec.ApplicationsNamespace,
