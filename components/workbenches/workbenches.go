@@ -133,10 +133,6 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 		}
 	}
 
-	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
-		return err
-	}
-
 	// Update image parameters for nbc in downstream
 	if enabled {
 		if (dscispec.DevFlags == nil || dscispec.DevFlags.ManifestsUri == "") && (w.DevFlags == nil || len(w.DevFlags.Manifests) == 0) {
@@ -152,6 +148,10 @@ func (w *Workbenches) ReconcileComponent(ctx context.Context, cli client.Client,
 			}
 		}
 	}
+	if err = deploy.DeployManifestsFromPath(cli, owner, notebookControllerPath, dscispec.ApplicationsNamespace, ComponentName, enabled); err != nil {
+		return err
+	}
+
 	if err = deploy.DeployManifestsFromPath(cli, owner,
 		kfnotebookControllerPath,
 		dscispec.ApplicationsNamespace,
