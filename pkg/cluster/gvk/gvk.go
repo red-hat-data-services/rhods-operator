@@ -158,6 +158,11 @@ var (
 		Version: "v1",
 		Kind:    "DataScienceCluster",
 	}
+	DSCInitialization = schema.GroupVersionKind{
+		Group:   "dscinitialization.opendatahub.io",
+		Version: "v1",
+		Kind:    "DSCInitialization",
+	}
 
 	Deployment = schema.GroupVersionKind{
 		Group:   "apps",
