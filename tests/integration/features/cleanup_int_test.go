@@ -60,6 +60,10 @@ var _ = Describe("feature cleanup", func() {
 			objectCleaner.DeleteAll(ctx, dsci)
 		})
 
+		AfterEach(func(ctx context.Context) {
+			objectCleaner.DeleteAll(ctx, dsci)
+		})
+
 		It("should successfully create resource and associated feature tracker", func(ctx context.Context) {
 			// when
 			Expect(testFeature.Apply(ctx, envTestClient)).Should(Succeed())
