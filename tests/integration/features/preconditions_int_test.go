@@ -26,12 +26,17 @@ var _ = Describe("feature preconditions", func() {
 			dsci          *dsciv1.DSCInitialization
 		)
 
-		BeforeEach(func() {
+		BeforeEach(func(ctx context.Context) {
 			objectCleaner = envtestutil.CreateCleaner(envTestClient, envTest.Config, fixtures.Timeout, fixtures.Interval)
 
 			testFeatureName := "test-ns-creation"
 			namespace = envtestutil.AppendRandomNameTo(testFeatureName)
-			dsci = fixtures.NewDSCInitialization(namespace)
+			dsciName := envtestutil.AppendRandomNameTo(testFeatureName)
+			dsci = fixtures.NewDSCInitialization(ctx, envTestClient, dsciName, namespace)
+		})
+
+		AfterEach(func(ctx context.Context) {
+			objectCleaner.DeleteAll(ctx, dsci)
 		})
 
 		It("should create namespace if it does not exist", func(ctx context.Context) {
@@ -43,7 +48,6 @@ var _ = Describe("feature preconditions", func() {
 			// when
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				errFeatureAdd := registry.Add(feature.Define("create-new-ns").
-					UsingConfig(envTest.Config).
 					PreConditions(feature.CreateNamespaceIfNotExists(namespace)),
 				)
 
@@ -53,7 +57,7 @@ var _ = Describe("feature preconditions", func() {
 			})
 
 			// then
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			// and
 			Eventually(func() error {
@@ -79,7 +83,6 @@ var _ = Describe("feature preconditions", func() {
 			// when
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				errFeatureAdd := registry.Add(feature.Define("create-new-ns").
-					UsingConfig(envTest.Config).
 					PreConditions(feature.CreateNamespaceIfNotExists(namespace)),
 				)
 
@@ -89,7 +92,7 @@ var _ = Describe("feature preconditions", func() {
 			})
 
 			// then
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 		})
 

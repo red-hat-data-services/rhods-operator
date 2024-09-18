@@ -37,17 +37,18 @@ var _ = Describe("Applying and updating resources", func() {
 		objectCleaner = envtestutil.CreateCleaner(envTestClient, envTest.Config, fixtures.Timeout, fixtures.Interval)
 
 		testNamespace = envtestutil.AppendRandomNameTo("test-namespace")
+		dsciName := envtestutil.AppendRandomNameTo("test-dsci")
 
 		var err error
 		namespace, err = cluster.CreateNamespace(ctx, envTestClient, testNamespace)
 		Expect(err).ToNot(HaveOccurred())
 
-		dsci = fixtures.NewDSCInitialization(testNamespace)
+		dsci = fixtures.NewDSCInitialization(ctx, envTestClient, dsciName, testNamespace)
 		dsci.Spec.ServiceMesh.ControlPlane.Namespace = namespace.Name
 	})
 
 	AfterEach(func(ctx context.Context) {
-		objectCleaner.DeleteAll(ctx, namespace)
+		objectCleaner.DeleteAll(ctx, namespace, dsci)
 	})
 
 	When("a feature is managed", func() {
@@ -57,7 +58,6 @@ var _ = Describe("Applying and updating resources", func() {
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(
 					feature.Define("create-local-gw-svc").
-						UsingConfig(envTest.Config).
 						Managed().
 						Manifests(
 							manifest.Location(fixtures.TestEmbeddedFiles).
@@ -66,7 +66,7 @@ var _ = Describe("Applying and updating resources", func() {
 						WithData(feature.Entry("ControlPlane", provider.ValueOf(dsci.Spec.ServiceMesh.ControlPlane).Get)),
 				)
 			})
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			// expect created svc to have managed annotation
 			service, err := fixtures.GetService(ctx, envTestClient, testNamespace, "knative-local-gateway")
@@ -81,7 +81,7 @@ var _ = Describe("Applying and updating resources", func() {
 
 			// then
 			// expect that modification is reconciled away
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 			updatedService, err := fixtures.GetService(ctx, envTestClient, testNamespace, "knative-local-gateway")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(updatedService.Annotations).To(
@@ -94,7 +94,6 @@ var _ = Describe("Applying and updating resources", func() {
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(
 					feature.Define("create-unmanaged-svc").
-						UsingConfig(envTest.Config).
 						Managed().
 						Manifests(
 							manifest.Location(fixtures.TestEmbeddedFiles).
@@ -103,7 +102,7 @@ var _ = Describe("Applying and updating resources", func() {
 						WithData(feature.Entry("ControlPlane", provider.ValueOf(dsci.Spec.ServiceMesh.ControlPlane).Get)),
 				)
 			})
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			// when
 			service, err := fixtures.GetService(ctx, envTestClient, testNamespace, "unmanaged-svc")
@@ -113,7 +112,7 @@ var _ = Describe("Applying and updating resources", func() {
 
 			// then
 			// expect that modification is reconciled away
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			updatedService, err := fixtures.GetService(ctx, envTestClient, testNamespace, "unmanaged-svc")
 			Expect(err).ToNot(HaveOccurred())
@@ -131,7 +130,6 @@ var _ = Describe("Applying and updating resources", func() {
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(
 					feature.Define("create-local-gw-svc").
-						UsingConfig(envTest.Config).
 						Manifests(
 							manifest.Location(fixtures.TestEmbeddedFiles).
 								Include(path.Join(fixtures.BaseDir, "local-gateway-svc.tmpl.yaml")),
@@ -139,7 +137,7 @@ var _ = Describe("Applying and updating resources", func() {
 						WithData(feature.Entry("ControlPlane", provider.ValueOf(dsci.Spec.ServiceMesh.ControlPlane).Get)),
 				)
 			})
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			// when
 			service, err := fixtures.GetService(ctx, envTestClient, testNamespace, "knative-local-gateway")
@@ -149,7 +147,7 @@ var _ = Describe("Applying and updating resources", func() {
 
 			// then
 			// expect that modification is reconciled away
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 			updatedService, err := fixtures.GetService(ctx, envTestClient, testNamespace, "knative-local-gateway")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(updatedService.Annotations).To(
@@ -165,7 +163,6 @@ var _ = Describe("Applying and updating resources", func() {
 			featuresHandler := feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(
 					feature.Define("create-managed-svc").
-						UsingConfig(envTest.Config).
 						Manifests(
 							manifest.Location(fixtures.TestEmbeddedFiles).
 								Include(path.Join(fixtures.BaseDir, "managed-svc.tmpl.yaml")),
@@ -173,7 +170,7 @@ var _ = Describe("Applying and updating resources", func() {
 						WithData(feature.Entry("ControlPlane", provider.ValueOf(dsci.Spec.ServiceMesh.ControlPlane).Get)),
 				)
 			})
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 
 			// when
 			service, err := fixtures.GetService(ctx, envTestClient, testNamespace, "managed-svc")
@@ -186,7 +183,7 @@ var _ = Describe("Applying and updating resources", func() {
 
 			// then
 			// expect that modification is reconciled away
-			Expect(featuresHandler.Apply(ctx)).To(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).To(Succeed())
 			updatedService, err := fixtures.GetService(ctx, envTestClient, testNamespace, "managed-svc")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(updatedService.Annotations).To(

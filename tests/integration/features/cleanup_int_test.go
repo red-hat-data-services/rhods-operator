@@ -21,22 +21,24 @@ import (
 
 var _ = Describe("feature cleanup", func() {
 
-	Context("using FeatureTracker and ownership as cleanup strategy", Ordered, func() {
-
+	Context("using FeatureTracker and ownership as cleanup strategy", func() {
 		const (
 			featureName = "create-secret"
 			secretName  = "test-secret"
 		)
 
 		var (
-			dsci        *dsciv1.DSCInitialization
-			namespace   string
-			testFeature *feature.Feature
+			dsci          *dsciv1.DSCInitialization
+			namespace     string
+			testFeature   *feature.Feature
+			objectCleaner *envtestutil.Cleaner
 		)
 
-		BeforeAll(func() {
+		BeforeEach(func(ctx context.Context) {
+			objectCleaner = envtestutil.CreateCleaner(envTestClient, envTest.Config, fixtures.Timeout, fixtures.Interval)
 			namespace = envtestutil.AppendRandomNameTo("test-secret-ownership")
-			dsci = fixtures.NewDSCInitialization(namespace)
+			dsciName := envtestutil.AppendRandomNameTo("secret-dsci")
+			dsci = fixtures.NewDSCInitialization(ctx, envTestClient, dsciName, namespace)
 			var errSecretCreation error
 			testFeature, errSecretCreation = feature.Define(featureName).
 				TargetNamespace(dsci.Spec.ApplicationsNamespace).
@@ -44,7 +46,6 @@ var _ = Describe("feature cleanup", func() {
 					Type: featurev1.DSCIType,
 					Name: dsci.Name,
 				}).
-				UsingConfig(envTest.Config).
 				PreConditions(
 					feature.CreateNamespaceIfNotExists(namespace),
 				).
@@ -55,9 +56,13 @@ var _ = Describe("feature cleanup", func() {
 
 		})
 
+		AfterEach(func(ctx context.Context) {
+			objectCleaner.DeleteAll(ctx, dsci)
+		})
+
 		It("should successfully create resource and associated feature tracker", func(ctx context.Context) {
 			// when
-			Expect(testFeature.Apply(ctx)).Should(Succeed())
+			Expect(testFeature.Apply(ctx, envTestClient)).Should(Succeed())
 
 			// then
 			Eventually(createdSecretHasOwnerReferenceToOwningFeature(namespace, featureName)).
@@ -69,7 +74,7 @@ var _ = Describe("feature cleanup", func() {
 
 		It("should remove feature tracker on clean-up", func(ctx context.Context) {
 			// when
-			Expect(testFeature.Cleanup(ctx)).To(Succeed())
+			Expect(testFeature.Cleanup(ctx, envTestClient)).To(Succeed())
 
 			// then
 			Consistently(createdSecretHasOwnerReferenceToOwningFeature(namespace, featureName)).
@@ -94,9 +99,10 @@ var _ = Describe("feature cleanup", func() {
 			featuresHandler *feature.FeaturesHandler
 		)
 
-		BeforeAll(func() {
+		BeforeAll(func(ctx context.Context) {
 			namespace = envtestutil.AppendRandomNameTo("test-conditional-cleanup")
-			dsci = fixtures.NewDSCInitialization(namespace)
+			dsciName := envtestutil.AppendRandomNameTo("cleanup-dsci")
+			dsci = fixtures.NewDSCInitialization(ctx, envTestClient, dsciName, namespace)
 		})
 
 		It("should create feature, apply resource and create feature tracker", func(ctx context.Context) {
@@ -106,7 +112,6 @@ var _ = Describe("feature cleanup", func() {
 
 			featuresHandler = feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(feature.Define(featureName).
-					UsingConfig(envTest.Config).
 					EnabledWhen(namespaceExists).
 					PreConditions(
 						feature.CreateNamespaceIfNotExists(namespace),
@@ -116,7 +121,7 @@ var _ = Describe("feature cleanup", func() {
 			})
 
 			// when
-			Expect(featuresHandler.Apply(ctx)).Should(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).Should(Succeed())
 
 			// then
 			Eventually(createdSecretHasOwnerReferenceToOwningFeature(namespace, featureName)).
@@ -134,7 +139,6 @@ var _ = Describe("feature cleanup", func() {
 			// Mimic reconcile by re-loading the feature handler
 			featuresHandler = feature.ClusterFeaturesHandler(dsci, func(registry feature.FeaturesRegistry) error {
 				return registry.Add(feature.Define(featureName).
-					UsingConfig(envTest.Config).
 					EnabledWhen(namespaceExists).
 					PreConditions(
 						feature.CreateNamespaceIfNotExists(namespace),
@@ -143,7 +147,7 @@ var _ = Describe("feature cleanup", func() {
 				)
 			})
 
-			Expect(featuresHandler.Apply(ctx)).Should(Succeed())
+			Expect(featuresHandler.Apply(ctx, envTestClient)).Should(Succeed())
 
 			// then
 			Consistently(createdSecretHasOwnerReferenceToOwningFeature(namespace, featureName)).
@@ -207,8 +211,8 @@ func createdSecretHasOwnerReferenceToOwningFeature(namespace, featureName string
 	}
 }
 
-func namespaceExists(ctx context.Context, f *feature.Feature) (bool, error) {
-	namespace, err := fixtures.GetNamespace(ctx, f.Client, "conditional-ns")
+func namespaceExists(ctx context.Context, cli client.Client, f *feature.Feature) (bool, error) {
+	namespace, err := fixtures.GetNamespace(ctx, cli, "conditional-ns")
 	if errors.IsNotFound(err) {
 		return false, nil
 	}

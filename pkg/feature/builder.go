@@ -4,14 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
-	ofapiv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
-	"github.com/pkg/errors"
-	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/features/v1"
@@ -24,9 +18,8 @@ type featureBuilder struct {
 	featureName string
 	managed     bool
 	source      featurev1.Source
+	owner       metav1.Object
 	targetNs    string
-
-	config *rest.Config
 
 	builders []partialBuilder
 }
@@ -90,6 +83,14 @@ func (fb *featureBuilder) Manifests(creators ...resource.Creator) *featureBuilde
 			return nil
 		})
 	}
+
+	return fb
+}
+
+// OwnedBy is optionally used to pass down the owning object in order to set the ownerReference
+// in the corresponding feature tracker.
+func (fb *featureBuilder) OwnedBy(object metav1.Object) *featureBuilder {
+	fb.owner = object
 
 	return fb
 }
@@ -187,7 +188,7 @@ func (fb *featureBuilder) OnDelete(cleanups ...CleanupFunc) *featureBuilder {
 // Create creates a new Feature instance and add it to corresponding FeaturesHandler.
 // The actual feature creation in the cluster is not performed here.
 func (fb *featureBuilder) Create() (*Feature, error) {
-	alwaysEnabled := func(_ context.Context, _ *Feature) (bool, error) {
+	alwaysEnabled := func(_ context.Context, _ client.Client, _ *Feature) (bool, error) {
 		return true, nil
 	}
 
@@ -197,18 +198,7 @@ func (fb *featureBuilder) Create() (*Feature, error) {
 		Enabled: alwaysEnabled,
 		Log:     log.Log.WithName("features").WithValues("feature", fb.featureName),
 		source:  &fb.source,
-	}
-
-	// UsingConfig builder wasn't called while constructing this feature.
-	// Get default settings and create needed clients.
-	if fb.config == nil {
-		if err := fb.withDefaultClient(); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := createClient(fb.config)(f); err != nil {
-		return nil, err
+		owner:   fb.owner,
 	}
 
 	for i := range fb.builders {
@@ -218,48 +208,4 @@ func (fb *featureBuilder) Create() (*Feature, error) {
 	}
 
 	return f, nil
-}
-
-// UsingConfig allows to pass a custom rest.Config to the feature. Useful for testing.
-func (fb *featureBuilder) UsingConfig(config *rest.Config) *featureBuilder {
-	fb.config = config
-	return fb
-}
-
-func createClient(config *rest.Config) partialBuilder {
-	return func(f *Feature) error {
-		var err error
-
-		f.Client, err = client.New(config, client.Options{})
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		var multiErr *multierror.Error
-		s := f.Client.Scheme()
-		multiErr = multierror.Append(multiErr, featurev1.AddToScheme(s), apiextv1.AddToScheme(s), ofapiv1alpha1.AddToScheme(s))
-
-		return multiErr.ErrorOrNil()
-	}
-}
-
-func (fb *featureBuilder) withDefaultClient() error {
-	restCfg, err := config.GetConfig()
-	if errors.Is(err, rest.ErrNotInCluster) {
-		// rollback to local kubeconfig - this can be helpful when running the process locally i.e. while debugging
-		kubeconfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-			&clientcmd.ClientConfigLoadingRules{ExplicitPath: clientcmd.RecommendedHomeFile},
-			&clientcmd.ConfigOverrides{},
-		)
-
-		restCfg, err = kubeconfig.ClientConfig()
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	fb.config = restCfg
-	return nil
 }

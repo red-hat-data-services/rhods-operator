@@ -78,6 +78,7 @@ func (tc *testContext) testComponentDeletion(component components.ComponentInter
 		})
 		if err != nil {
 			log.Printf("error getting component deployments :%v. Trying again...", err)
+
 			return false, err
 		}
 

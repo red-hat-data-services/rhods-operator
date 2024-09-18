@@ -47,7 +47,6 @@ func creationTestSuite(t *testing.T) {
 		t.Run("Creation of more than one of DSCInitialization instance", func(t *testing.T) {
 			testCtx.testDSCIDuplication(t)
 		})
-
 		t.Run("Validate DSCInitialization instance", func(t *testing.T) {
 			err = testCtx.validateDSCI()
 			require.NoError(t, err, "error validating DSCInitialization instance")
@@ -65,6 +64,7 @@ func creationTestSuite(t *testing.T) {
 		t.Run("Creation of more than one of DataScienceCluster instance", func(t *testing.T) {
 			testCtx.testDSCDuplication(t)
 		})
+
 		t.Run("Validate Ownerrefrences exist", func(t *testing.T) {
 			err = testCtx.testOwnerrefrences()
 			require.NoError(t, err, "error getting all DataScienceCluster's Ownerrefrences")
@@ -190,6 +190,7 @@ func (tc *testContext) validateDSCReady() error {
 	return waitDSCReady(tc)
 }
 
+// Verify DSC instance is in Ready phase when all components are up and running.
 func waitDSCReady(tc *testContext) error {
 	// wait for 2 mins which is on the safe side, normally it should get ready once all components are ready
 	err := tc.wait(func(ctx context.Context) (bool, error) {
@@ -217,24 +218,19 @@ func (tc *testContext) requireInstalled(t *testing.T, gvk schema.GroupVersionKin
 
 	err := tc.customClient.List(tc.ctx, list)
 	require.NoErrorf(t, err, "Could not get %s list", gvk.Kind)
-
 	require.NotEmptyf(t, list.Items, "%s has not been installed", gvk.Kind)
 }
 
 func (tc *testContext) testDuplication(t *testing.T, gvk schema.GroupVersionKind, o any) {
 	t.Helper()
 	tc.requireInstalled(t, gvk)
-
 	u, err := runtime.DefaultUnstructuredConverter.ToUnstructured(o)
 	require.NoErrorf(t, err, "Could not unstructure %s", gvk.Kind)
-
 	obj := &unstructured.Unstructured{
 		Object: u,
 	}
 	obj.SetGroupVersionKind(gvk)
-
 	err = tc.customClient.Create(tc.ctx, obj)
-
 	require.Errorf(t, err, "Could create second %s", gvk.Kind)
 }
 
@@ -301,6 +297,7 @@ func (tc *testContext) testComponentCreation(component components.ComponentInter
 		}
 
 		appList, err := tc.kubeClient.AppsV1().Deployments(tc.applicationsNamespace).List(ctx, metav1.ListOptions{
+
 			LabelSelector: labels.ODH.Component(componentName),
 		})
 		if err != nil {

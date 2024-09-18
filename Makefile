@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 2.12.0
+VERSION ?= 2.14.0
 # IMAGE_TAG_BASE defines the opendatahub.io namespace and part of the image name for remote images.
 # This variable is used to construct full image tags for bundle and catalog images.
 #
@@ -69,13 +69,13 @@ CRD_REF_DOCS ?= $(LOCALBIN)/crd-ref-docs
 YQ ?= $(LOCALBIN)/yq
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.0.2
-CONTROLLER_GEN_VERSION ?= v0.9.2
+CONTROLLER_GEN_VERSION ?= v0.16.1
 OPERATOR_SDK_VERSION ?= v1.31.0
 GOLANGCI_LINT_VERSION ?= v1.60.2
 YQ_VERSION ?= v4.12.2
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.24.2
-ENVTEST_PACKAGE_VERSION = v0.0.0-20240320141353-395cfc7486e6
+ENVTEST_K8S_VERSION = 1.31.0
+ENVTEST_PACKAGE_VERSION = v0.0.0-20240813183042-b901db121e1f
 CRD_REF_DOCS_VERSION = 0.1.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
