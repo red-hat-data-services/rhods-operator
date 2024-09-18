@@ -99,7 +99,7 @@ metadata:
     categories: AI/Machine Learning, Big Data
     certified: "False"
     containerImage: quay.io/opendatahub/opendatahub-operator:v2.0.0
-    createdAt: "2024-08-01T14:26:51Z"
+    createdAt: "2024-09-18T08:01:01Z"
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "false"
     features.operators.openshift.io/proxy-aware: "false"
@@ -1688,11 +1688,11 @@ spec:
           - list
           - patch
           - watch
-        serviceAccountName: redhat-ods-operator-controller-manager
+        serviceAccountName: rhoai-operator-controller-manager
       deployments:
       - label:
           control-plane: controller-manager
-        name: redhat-ods-operator-controller-manager
+        name: rhoai-operator-controller-manager
         spec:
           replicas: 1
           selector:
@@ -1757,7 +1757,7 @@ spec:
                   readOnly: true
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: redhat-ods-operator-controller-manager
+              serviceAccountName: rhoai-operator-controller-manager
               terminationGracePeriodSeconds: 10
               volumes:
               - name: cert
@@ -1796,7 +1796,7 @@ spec:
   - admissionReviewVersions:
     - v1
     containerPort: 443
-    deploymentName: redhat-ods-operator-controller-manager
+    deploymentName: rhoai-operator-controller-manager
     failurePolicy: Fail
     generateName: operator.opendatahub.io
     rules:

@@ -2,15 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: prometheus-k8s-viewer
+  name: rhoai-operator-metrics-reader
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - endpoints
+- nonResourceURLs:
+  - /metrics
   verbs:
   - get
-  - watch
-  - list
