@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 
+	operatorv1 "github.com/openshift/api/operator/v1"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -28,19 +29,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	dscv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/datasciencecluster/v1"
+	"github.com/opendatahub-io/opendatahub-operator/v2/components/modelregistry"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
 )
 
 var log = ctrl.Log.WithName("rhoai-controller-webhook")
 
-//+kubebuilder:webhook:path=/validate-opendatahub-io-v1,mutating=false,failurePolicy=fail,sideEffects=None,groups=datasciencecluster.opendatahub.io;dscinitialization.opendatahub.io,resources=datascienceclusters;dscinitializations,verbs=create;update,versions=v1,name=operator.opendatahub.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-opendatahub-io-v1,mutating=false,failurePolicy=fail,sideEffects=None,groups=datasciencecluster.opendatahub.io;dscinitialization.opendatahub.io,resources=datascienceclusters;dscinitializations,verbs=create;delete,versions=v1,name=operator.opendatahub.io,admissionReviewVersions=v1
 //nolint:lll
 
-type OpenDataHubWebhook struct {
+type OpenDataHubValidatingWebhook struct {
 	Client  client.Client
 	Decoder *admission.Decoder
 }
 
-func (w *OpenDataHubWebhook) SetupWithManager(mgr ctrl.Manager) {
+func (w *OpenDataHubValidatingWebhook) SetupWithManager(mgr ctrl.Manager) {
 	hookServer := mgr.GetWebhookServer()
 	odhWebhook := &webhook.Admission{
 		Handler: w,
@@ -48,14 +53,33 @@ func (w *OpenDataHubWebhook) SetupWithManager(mgr ctrl.Manager) {
 	hookServer.Register("/validate-opendatahub-io-v1", odhWebhook)
 }
 
-func (w *OpenDataHubWebhook) checkDupCreation(ctx context.Context, req admission.Request) admission.Response {
-	if req.Operation != admissionv1.Create {
-		return admission.Allowed(fmt.Sprintf("duplication check: skipping %v request", req.Operation))
+func countObjects(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind) (int, error) {
+	list := &unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(gvk)
+
+	if err := cli.List(ctx, list); err != nil {
+		return 0, err
 	}
 
+	return len(list.Items), nil
+}
+
+func denyCountGtZero(ctx context.Context, cli client.Client, gvk schema.GroupVersionKind, msg string) admission.Response {
+	count, err := countObjects(ctx, cli, gvk)
+	if err != nil {
+		return admission.Errored(http.StatusBadRequest, err)
+	}
+
+	if count > 0 {
+		return admission.Denied(msg)
+	}
+
+	return admission.Allowed("")
+}
+
+func (w *OpenDataHubValidatingWebhook) checkDupCreation(ctx context.Context, req admission.Request) admission.Response {
 	switch req.Kind.Kind {
-	case "DataScienceCluster":
-	case "DSCInitialization":
+	case "DataScienceCluster", "DSCInitialization":
 	default:
 		log.Info("Got wrong kind", "kind", req.Kind.Kind)
 		return admission.Errored(http.StatusBadRequest, nil)
@@ -67,35 +91,79 @@ func (w *OpenDataHubWebhook) checkDupCreation(ctx context.Context, req admission
 		Kind:    req.Kind.Kind,
 	}
 
-	list := &unstructured.UnstructuredList{}
-	list.SetGroupVersionKind(gvk)
-
-	if err := w.Client.List(ctx, list); err != nil {
-		return admission.Errored(http.StatusBadRequest, err)
-	}
-
-	// if len == 1 now creation of #2 is being handled
-	if len(list.Items) > 0 {
-		return admission.Denied(fmt.Sprintf("Only one instance of %s object is allowed", req.Kind.Kind))
-	}
-
-	return admission.Allowed(fmt.Sprintf("%s duplication check passed", req.Kind.Kind))
+	// if count == 1 now creation of #2 is being handled
+	return denyCountGtZero(ctx, w.Client, gvk,
+		fmt.Sprintf("Only one instance of %s object is allowed", req.Kind.Kind))
 }
 
-func (w *OpenDataHubWebhook) Handle(ctx context.Context, req admission.Request) admission.Response {
-	var resp admission.Response
-
-	// Handle only Create and Update
-	if req.Operation == admissionv1.Delete || req.Operation == admissionv1.Connect {
-		msg := fmt.Sprintf("RHOAI skipping %v request", req.Operation)
-		log.Info(msg)
-		return admission.Allowed(msg)
+func (w *OpenDataHubValidatingWebhook) checkDeletion(ctx context.Context, req admission.Request) admission.Response {
+	if req.Kind.Kind == "DataScienceCluster" {
+		return admission.Allowed("")
 	}
 
-	resp = w.checkDupCreation(ctx, req)
+	// Restrict deletion of DSCI if DSC exists
+	return denyCountGtZero(ctx, w.Client, gvk.DataScienceCluster,
+		fmt.Sprintln("Cannot delete DSCI object when DSC object still exists"))
+}
+
+func (w *OpenDataHubValidatingWebhook) Handle(ctx context.Context, req admission.Request) admission.Response {
+	var resp admission.Response
+	resp.Allowed = true // initialize Allowed to be true in case Operation falls into "default" case
+
+	switch req.Operation {
+	case admissionv1.Create:
+		resp = w.checkDupCreation(ctx, req)
+	case admissionv1.Delete:
+		resp = w.checkDeletion(ctx, req)
+	default: // for other operations by default it is admission.Allowed("")
+		// no-op
+	}
 	if !resp.Allowed {
 		return resp
 	}
 
-	return admission.Allowed(fmt.Sprintf("%s allowed", req.Kind.Kind))
+	return admission.Allowed(fmt.Sprintf("Operation %s on %s allowed", req.Operation, req.Kind.Kind))
+}
+
+//+kubebuilder:webhook:path=/mutate-opendatahub-io-v1,mutating=true,failurePolicy=fail,sideEffects=None,groups=datasciencecluster.opendatahub.io,resources=datascienceclusters,verbs=create;update,versions=v1,name=mutate.operator.opendatahub.io,admissionReviewVersions=v1
+//nolint:lll
+
+// OpenDataHubMutatingWebhook is a mutating webhook
+// It currently only sets defaults for modelregiestry in datascienceclusters.
+type OpenDataHubMutatingWebhook struct {
+	Client  client.Client
+	Decoder *admission.Decoder
+}
+
+func (w *OpenDataHubMutatingWebhook) SetupWithManager(mgr ctrl.Manager) {
+	hookServer := mgr.GetWebhookServer()
+	odhWebhook := &webhook.Admission{
+		Handler: w,
+	}
+	hookServer.Register("/mutate-opendatahub-io-v1", odhWebhook)
+}
+
+func (w *OpenDataHubMutatingWebhook) Handle(ctx context.Context, req admission.Request) admission.Response {
+	var resp admission.Response
+	resp.Allowed = true // initialize Allowed to be true in case Operation falls into "default" case
+
+	dsc := &dscv1.DataScienceCluster{}
+	err := w.Decoder.Decode(req, dsc)
+	if err != nil {
+		return admission.Denied(fmt.Sprintf("failed to decode request body: %s", err))
+	}
+	resp = w.setDSCDefaults(ctx, dsc)
+	return resp
+}
+
+func (w *OpenDataHubMutatingWebhook) setDSCDefaults(_ context.Context, dsc *dscv1.DataScienceCluster) admission.Response {
+	// set default registriesNamespace if empty
+	if len(dsc.Spec.Components.ModelRegistry.RegistriesNamespace) == 0 && dsc.Spec.Components.ModelRegistry.ManagementState == operatorv1.Managed {
+		return admission.Patched("Property registriesNamespace set to default value", webhook.JSONPatchOp{
+			Operation: "replace",
+			Path:      "spec.components.modelregistry.registriesNamespace",
+			Value:     modelregistry.DefaultModelRegistriesNamespace,
+		})
+	}
+	return admission.Allowed("")
 }

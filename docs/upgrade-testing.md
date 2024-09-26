@@ -136,6 +136,9 @@ spec:
         name: knative-serving
     modelmeshserving:
       managementState: Managed
+    modelregistry:
+      managementState: Managed
+      registriesNamespace: "rhoai-model-registries"
     ray:
       managementState: Managed
     kueue:
