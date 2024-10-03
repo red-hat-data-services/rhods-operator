@@ -2,9 +2,15 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: redhat-ods-operator-metrics-reader
+  name: prometheus-k8s-viewer
 rules:
-- nonResourceURLs:
-  - /metrics
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
   verbs:
   - get
+  - watch
+  - list
