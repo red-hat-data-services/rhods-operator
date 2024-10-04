@@ -88,7 +88,7 @@ type Platform string
 func detectSelfManaged(ctx context.Context, cli client.Client) (Platform, error) {
 	variants := map[string]Platform{
 		"opendatahub-operator": OpenDataHub,
-		"rhods-operator":       SelfManagedRhods,
+		"rhods-operator":       SelfManagedRhoai,
 	}
 
 	for k, v := range variants {
@@ -104,22 +104,22 @@ func detectSelfManaged(ctx context.Context, cli client.Client) (Platform, error)
 	return Unknown, nil
 }
 
-// detectManagedRHODS checks if catsrc CR add-on exists ManagedRhods.
-func detectManagedRHODS(ctx context.Context, cli client.Client) (Platform, error) {
+// detectManagedRHoAI checks if catsrc CR add-on exists ManagedRhoai.
+func detectManagedRHOAI(ctx context.Context, cli client.Client) (Platform, error) {
 	catalogSource := &ofapiv1alpha1.CatalogSource{}
 	err := cli.Get(ctx, client.ObjectKey{Name: "addon-managed-odh-catalog", Namespace: "redhat-ods-operator"}, catalogSource)
 	if err != nil {
 		return Unknown, client.IgnoreNotFound(err)
 	}
-	return ManagedRhods, nil
+	return ManagedRhoai, nil
 }
 
 func GetPlatform(ctx context.Context, cli client.Client) (Platform, error) {
-	// First check if its addon installation to return 'ManagedRhods, nil'
-	if platform, err := detectManagedRHODS(ctx, cli); err != nil {
+	// First check if its addon installation to return 'ManagedRhoai, nil'
+	if platform, err := detectManagedRHOAI(ctx, cli); err != nil {
 		return Unknown, err
-	} else if platform == ManagedRhods {
-		return ManagedRhods, nil
+	} else if platform == ManagedRhoai {
+		return ManagedRhoai, nil
 	}
 
 	// check and return whether ODH or self-managed platform
