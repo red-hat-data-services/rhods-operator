@@ -3,13 +3,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
-  namespace: system
+  name: rhods-operator
+  namespace: redhat-ods-operator
 spec:
   template:
     spec:
       containers:
-      - name: manager
+      - name: rhods-operator
         args:
         - "--health-probe-bind-address=:8081"
         - "--metrics-bind-address=0.0.0.0:8080"

@@ -3,26 +3,26 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: system
+  name: redhat-ods-operator
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
-  namespace: system
+  name: rhods-operator
+  namespace: redhat-ods-operator
   labels:
-    control-plane: controller-manager
+    name: rhods-operator
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      name: rhods-operator
   replicas: 1
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: rhods-operator
       labels:
-        control-plane: controller-manager
+        name: rhods-operator
     spec:
       securityContext:
         runAsNonRoot: true
@@ -37,6 +37,8 @@ spec:
       - command:
         - /manager
         env:
+          - name: OPERATOR_NAME
+            value: rhods-operator
           - name: OPERATOR_NAMESPACE
             valueFrom:
               fieldRef:
@@ -44,11 +46,12 @@ spec:
           - name: DEFAULT_MANIFESTS_PATH
             value: /opt/manifests
         args:
-        - --leader-elect
-        - --operator-name=opendatahub
+          - --health-probe-bind-address=:8081
+          - --metrics-bind-address=0.0.0.0:8080
+          - --leader-elect
         image: controller:latest
         imagePullPolicy: Always
-        name: manager
+        name: rhods-operator
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -75,5 +78,5 @@ spec:
           requests:
             cpu: 100m
             memory: 780Mi
-      serviceAccountName: controller-manager
+      serviceAccountName: redhat-ods-operator-controller-manager
       terminationGracePeriodSeconds: 10
