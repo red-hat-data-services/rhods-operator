@@ -195,7 +195,7 @@ func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(ctx context.
 	if err != nil {
 		return err
 	}
-	if platform == cluster.ManagedRhods || platform == cluster.SelfManagedRhods {
+	if platform == cluster.ManagedRhoai || platform == cluster.SelfManagedRhoai {
 		// Deploy networkpolicy for operator namespace
 		err = deploy.DeployManifestsFromPath(ctx, r.Client, dscInit, networkpolicyPath+"/operator", "redhat-ods-operator", "networkpolicy", true)
 		if err != nil {
