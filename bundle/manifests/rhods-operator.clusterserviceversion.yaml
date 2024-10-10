@@ -103,7 +103,7 @@ metadata:
     categories: AI/Machine Learning, Big Data
     certified: "False"
     containerImage: quay.io/opendatahub/opendatahub-operator:v2.0.0
-    createdAt: "2024-09-16T16:41:56Z"
+    createdAt: "2024-10-10T09:47:22Z"
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "false"
     features.operators.openshift.io/proxy-aware: "false"
@@ -173,7 +173,7 @@ metadata:
     operators.operatorframework.io/builder: operator-sdk-v1.31.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/red-hat-data-services/rhods-operator
-  name: rhods-operator.v2.14.0
+  name: rhods-operator.v2.15.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -1167,6 +1167,8 @@ spec:
                       fieldPath: metadata.namespace
                 - name: DEFAULT_MANIFESTS_PATH
                   value: /opt/manifests
+                - name: ODH_PLATFORM_TYPE
+                  value: SelfManagedRHOAI
                 image: REPLACE_IMAGE:latest
                 imagePullPolicy: Always
                 livenessProbe:
@@ -1244,7 +1246,7 @@ spec:
   minKubeVersion: 1.25.0
   provider:
     name: Red Hat
-  version: 2.14.0
+  version: 2.15.0
   webhookdefinitions:
   - admissionReviewVersions:
     - v1
