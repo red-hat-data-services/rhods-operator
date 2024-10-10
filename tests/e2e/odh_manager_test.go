@@ -16,7 +16,7 @@ func testODHOperatorValidation(t *testing.T) {
 
 func (tc *testContext) testRHOAIDeployment(t *testing.T) {
 	// Verify if the operator deployment is created
-	require.NoErrorf(t, tc.waitForOperatorDeployment("redhat-ods-operator-controller-manager", 1),
+	require.NoErrorf(t, tc.waitForOperatorDeployment("rhoai-operator-controller-manager", 1),
 		"error in validating rhoai operator deployment")
 }
 
