@@ -9,4 +9,6 @@ const (
 	OpenDataHub Platform = "Open Data Hub"
 	// Unknown indicates that operator is not deployed using OLM.
 	Unknown Platform = ""
+	// Default cluster-scope Authentication CR name.
+	ClusterAuthenticationObj = "cluster"
 )
