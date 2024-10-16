@@ -9,11 +9,11 @@ metadata:
           "kind": "DataScienceCluster",
           "metadata": {
             "labels": {
-              "app.kubernetes.io/created-by": "rhods-operator",
+              "app.kubernetes.io/created-by": "rhoai-operator",
               "app.kubernetes.io/instance": "default-dsc",
               "app.kubernetes.io/managed-by": "kustomize",
               "app.kubernetes.io/name": "datasciencecluster",
-              "app.kubernetes.io/part-of": "rhods-operator"
+              "app.kubernetes.io/part-of": "rhoai-operator"
             },
             "name": "default-dsc"
           },
@@ -70,11 +70,11 @@ metadata:
           "kind": "DSCInitialization",
           "metadata": {
             "labels": {
-              "app.kubernetes.io/created-by": "rhods-operator",
+              "app.kubernetes.io/created-by": "rhoai-operator",
               "app.kubernetes.io/instance": "default-dsci",
               "app.kubernetes.io/managed-by": "kustomize",
               "app.kubernetes.io/name": "dscinitialization",
-              "app.kubernetes.io/part-of": "rhods-operator"
+              "app.kubernetes.io/part-of": "rhoai-operator"
             },
             "name": "default-dsci"
           },
@@ -103,7 +103,7 @@ metadata:
     categories: AI/Machine Learning, Big Data
     certified: "False"
     containerImage: quay.io/opendatahub/opendatahub-operator:v2.0.0
-    createdAt: "2024-09-16T16:41:56Z"
+    createdAt: "2024-09-23T20:12:33Z"
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "false"
     features.operators.openshift.io/proxy-aware: "false"
@@ -121,9 +121,9 @@ metadata:
           "labels": {
             "app.kubernetes.io/name": "datasciencecluster",
             "app.kubernetes.io/instance": "default-dsc",
-            "app.kubernetes.io/part-of": "rhods-operator",
+            "app.kubernetes.io/part-of": "rhoai-operator",
             "app.kubernetes.io/managed-by": "kustomize",
-            "app.kubernetes.io/created-by": "rhods-operator"
+            "app.kubernetes.io/created-by": "rhaoi-operator"
           }
         },
         "spec": {
@@ -1167,7 +1167,7 @@ spec:
                       fieldPath: metadata.namespace
                 - name: DEFAULT_MANIFESTS_PATH
                   value: /opt/manifests
-                image: REPLACE_IMAGE:latest
+                image: quay.io/apratap/opendatahub-operator:2.14.0
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
