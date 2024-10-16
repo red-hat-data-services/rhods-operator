@@ -12,10 +12,12 @@ metadata:
   namespace: system
   labels:
     control-plane: controller-manager
+    name: rhoai-operator
 spec:
   selector:
     matchLabels:
       control-plane: controller-manager
+      name: rhoai-operator
   replicas: 1
   template:
     metadata:
@@ -23,6 +25,7 @@ spec:
         kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager
+        name: rhoai-operator
     spec:
       securityContext:
         runAsNonRoot: true
