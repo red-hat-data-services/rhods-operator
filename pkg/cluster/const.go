@@ -33,7 +33,8 @@ const (
 
 	// KueueLegacyManagedLabelKey is the legacy label key used to indicate a namespace is managed by Kueue.
 	KueueLegacyManagedLabelKey = "kueue-managed"
-
 	// DefaultNotebooksNamespace defines default namespace for notebooks.
 	DefaultNotebooksNamespace = "rhods-notebooks"
+	// Default cluster-scope Authentication CR name.
+	ClusterAuthenticationObj = "cluster"
 )
