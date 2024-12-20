@@ -41,94 +41,6 @@ data:
         - targets:
           - "prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
 
-    - job_name: 'user_facing_endpoints_status_workbenches'
-      scrape_interval: 10s
-      metrics_path: /probe
-      scheme: https
-      tls_config:
-        insecure_skip_verify: true
-      params:
-        module: [http_2xx]
-      authorization:
-        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets: [notebook-controller-service.<odh_application_namespace>.svc:8080/metrics,odh-notebook-controller-service.<odh_application_namespace>.svc:8080/metrics]
-        labels:
-          name: notebook-spawner
-      relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
-
-    - job_name: 'user_facing_endpoints_status_rhods_dashboard'
-      scrape_interval: 10s
-      metrics_path: /probe
-      scheme: https
-      tls_config:
-        insecure_skip_verify: true
-      params:
-        module: [http_2xx]
-      authorization:
-        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets: [rhods-dashboard-<odh_application_namespace>.<console_domain>]
-        labels:
-          name: rhods-dashboard
-      relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
-    
-    - job_name: 'user_facing_endpoints_status_codeflare'
-      scrape_interval: 10s
-      metrics_path: /probe
-      scheme: https
-      tls_config:
-        insecure_skip_verify: true
-      params:
-        module: [http_2xx]
-      authorization:
-        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets: [codeflare-operator-manager-metrics.<odh_application_namespace>.svc:8080/metrics]
-        labels:
-          name: codeflare-operator
-      relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
-
-    - job_name: 'user_facing_endpoints_status_dsp'
-      scrape_interval: 10s
-      metrics_path: /probe
-      scheme: https
-      tls_config:
-        insecure_skip_verify: true
-      params:
-        module: [http_2xx]
-      authorization:
-        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets: [data-science-pipelines-operator-service.<odh_application_namespace>.svc:8080/metrics]
-        labels:
-          name: data-science-pipelines-operator
-      relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
-
     - job_name: 'Kubeflow Notebook Controller Service Metrics'
       honor_labels: true
       metrics_path: /metrics
@@ -596,6 +508,29 @@ data:
               triage: 'https://gitlab.cee.redhat.com/service/managed-tenants-sops/-/blob/main/RHODS/Distributed-Workloads/codeflare-operator-absent-over-time.md'
               summary: Alerting for CodeFlare Operator
 
+  codeflare-job: |
+    job_name: 'user_facing_endpoints_status_codeflare'
+    scrape_interval: 10s
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    params:
+      module: [http_2xx]
+    authorization:
+      credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
+    static_configs:
+    - targets: [codeflare-operator-manager-metrics.<odh_application_namespace>.svc:8080/metrics]
+      labels:
+        name: codeflare-operator
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
+
   trainingoperator-alerting.rules: |
     groups:
     - name: KubeFlow Training Operator
@@ -809,6 +744,28 @@ data:
           labels:
             severity: warning
             namespace: redhat-ods-applications
+  rhods-dashboard-job: |
+    job_name: 'user_facing_endpoints_status_rhods_dashboard'
+    scrape_interval: 10s
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    params:
+      module: [http_2xx]
+    authorization:
+      credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
+    static_configs:
+    - targets: [rhods-dashboard-<odh_application_namespace>.<console_domain>]
+      labels:
+        name: rhods-dashboard
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
 
   data-science-pipelines-operator-recording.rules: |
     groups:
@@ -1041,6 +998,29 @@ data:
           labels:
             severity: info
             namespace: redhat-ods-applications
+
+  data-science-pipelines-operator-job: |
+    job_name: 'user_facing_endpoints_status_dsp'
+    scrape_interval: 10s
+    metrics_path: /probe
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    params:
+      module: [http_2xx]
+    authorization:
+      credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
+    static_configs:
+    - targets: [data-science-pipelines-operator-service.<odh_application_namespace>.svc:8080/metrics]
+      labels:
+        name: data-science-pipelines-operator
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
 
   model-mesh-recording.rules: |
     groups:
@@ -1514,6 +1494,29 @@ data:
           labels:
             severity: warning
             instance: notebook-spawner
+
+  workbenches-job: |
+      job_name: 'user_facing_endpoints_status_workbenches'
+      scrape_interval: 10s
+      metrics_path: /probe
+      scheme: https
+      tls_config:
+        insecure_skip_verify: true
+      params:
+        module: [http_2xx]
+      authorization:
+        credentials_file: /run/secrets/kubernetes.io/serviceaccount/token
+      static_configs:
+      - targets: [notebook-controller-service.<odh_application_namespace>.svc:8080/metrics,odh-notebook-controller-service.<odh_application_namespace>.svc:8080/metrics]
+        labels:
+          name: notebook-spawner
+      relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter.<odh_monitoring_project>.svc.cluster.local:9114
 
   trustyai-recording.rules: |
     groups:
