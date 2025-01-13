@@ -96,6 +96,73 @@ func (c *Component) ConfigComponentLogger(logger logr.Logger, component string, 
 	return logger.WithName("DSC.Components." + component)
 }
 
+func getJobName(job map[any]any) (string, bool) {
+	nameAny, ok := job["job_name"]
+	if !ok {
+		fmt.Println("Could not fetch job_name")
+		return "", false
+	}
+	name, ok := nameAny.(string)
+	if !ok {
+		fmt.Println("job_name is not a string")
+		return "", false
+	}
+
+	return name, true
+}
+
+func getJobIdx(scrapeConfigs *[]any, jobName string) (int, bool) {
+	for i, j := range *scrapeConfigs {
+		job, ok := j.(map[any]any)
+		if !ok {
+			fmt.Println("scrape_configs element is not array")
+			return 0, false
+		}
+		name, ok := getJobName(job)
+		if ok && name == jobName {
+			return i, true
+		}
+	}
+	return 0, false
+}
+
+func updateJob(prometheusContent *map[any]any, jobStr string, enable bool) {
+	var job map[any]any
+
+	if err := yaml.Unmarshal([]byte(jobStr), &job); err != nil {
+		fmt.Printf("Error Unmarshaling job: %v\n", err)
+		return
+	}
+
+	scrapeConfigsAny, ok := (*prometheusContent)["scrape_configs"]
+	if !ok {
+		fmt.Println("Could not fetch scrape_configs")
+		return
+	}
+
+	scrapeConfigs, ok := scrapeConfigsAny.([]any)
+	if !ok {
+		fmt.Println("scrape_configs is not an array")
+		return
+	}
+
+	name, ok := getJobName(job)
+	if !ok {
+		return
+	}
+
+	idx, exists := getJobIdx(&scrapeConfigs, name)
+	switch {
+	case enable && !exists:
+		scrapeConfigs = append(scrapeConfigs, job)
+	case !enable && exists:
+		scrapeConfigs = append(scrapeConfigs[:idx], scrapeConfigs[idx+1:]...)
+	default:
+		return
+	}
+	(*prometheusContent)["scrape_configs"] = scrapeConfigs
+}
+
 // UpdatePrometheusConfig update prometheus-configs.yaml to include/exclude <component>.rules
 // parameter enable when set to true to add new rules, when set to false to remove existing rules.
 func (c *Component) UpdatePrometheusConfig(_ client.Client, logger logr.Logger, enable bool, component string) error {
@@ -115,19 +182,23 @@ func (c *Component) UpdatePrometheusConfig(_ client.Client, logger logr.Logger, 
 			DeadManSnitchRules     string `yaml:"deadmanssnitch-alerting.rules"`
 			DashboardRRules        string `yaml:"rhods-dashboard-recording.rules"`
 			DashboardARules        string `yaml:"rhods-dashboard-alerting.rules"`
+			DashboardJob           string `yaml:"rhods-dashboard-job"`
 			DSPRRules              string `yaml:"data-science-pipelines-operator-recording.rules"`
 			DSPARules              string `yaml:"data-science-pipelines-operator-alerting.rules"`
+			DSPJob                 string `yaml:"data-science-pipelines-operator-job"`
 			MMRRules               string `yaml:"model-mesh-recording.rules"`
 			MMARules               string `yaml:"model-mesh-alerting.rules"`
 			OdhModelRRules         string `yaml:"odh-model-controller-recording.rules"`
 			OdhModelARules         string `yaml:"odh-model-controller-alerting.rules"`
 			CFORRules              string `yaml:"codeflare-recording.rules"`
 			CFOARules              string `yaml:"codeflare-alerting.rules"`
+			CFOJob                 string `yaml:"codeflare-job"`
 			RayARules              string `yaml:"ray-alerting.rules"`
 			KueueARules            string `yaml:"kueue-alerting.rules"`
 			TrainingOperatorARules string `yaml:"trainingoperator-alerting.rules"`
 			WorkbenchesRRules      string `yaml:"workbenches-recording.rules"`
 			WorkbenchesARules      string `yaml:"workbenches-alerting.rules"`
+			WorkbenchesJob         string `yaml:"workbenches-job"`
 			TrustyAIRRules         string `yaml:"trustyai-recording.rules"`
 			TrustyAIARules         string `yaml:"trustyai-alerting.rules"`
 			KserveRRules           string `yaml:"kserve-recording.rules"`
@@ -178,6 +249,17 @@ func (c *Component) UpdatePrometheusConfig(_ client.Client, logger logr.Logger, 
 			}
 			prometheusContent["rule_files"] = ruleList
 		}
+	}
+
+	job, ok := map[string]string{
+		"codeflare":                       configMap.Data.CFOJob,
+		"data-science-pipelines-operator": configMap.Data.DSPJob,
+		"rhods-dashboard":                 configMap.Data.DashboardJob,
+		"workbenches":                     configMap.Data.WorkbenchesJob,
+	}[component]
+
+	if ok {
+		updateJob(&prometheusContent, job, enable)
 	}
 
 	// Marshal back
