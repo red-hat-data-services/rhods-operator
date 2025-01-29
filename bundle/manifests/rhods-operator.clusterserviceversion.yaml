@@ -1801,20 +1801,20 @@ spec:
         serviceAccountName: redhat-ods-operator-controller-manager
       deployments:
       - label:
-          control-plane: controller-manager
-        name: redhat-ods-operator-controller-manager
+          name: rhods-operator
+        name: rhods-operator
         spec:
           replicas: 1
           selector:
             matchLabels:
-              control-plane: controller-manager
+              name: rhods-operator
           strategy: {}
           template:
             metadata:
               annotations:
-                kubectl.kubernetes.io/default-container: manager
+                kubectl.kubernetes.io/default-container: rhods-operator
               labels:
-                control-plane: controller-manager
+                name: rhods-operator
             spec:
               containers:
               - args:
@@ -1831,7 +1831,7 @@ spec:
                     port: 8081
                   initialDelaySeconds: 15
                   periodSeconds: 20
-                name: manager
+                name: rhods-operator
                 readinessProbe:
                   httpGet:
                     path: /readyz
