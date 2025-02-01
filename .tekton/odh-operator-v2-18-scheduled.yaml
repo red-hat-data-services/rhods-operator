@@ -54,28 +54,28 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-    - name: send-slack-notification
-      params:
-      - name: message
-        value: "$(tasks.rhoai-init.results.slack-message-failure-text)"
-      - name: secret-name
-        value: rhoai-konflux-secret
-      - name: key-name
-        value: slack-webhook
-      taskRef:
-        params:
-        - name: name
-          value: slack-webhook-notification
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-slack-webhook-notification:0.1@sha256:dc17b70633363d78414b8c06dc1660d25742935f106a6116995638e1210c2730
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(tasks.status)
-        operator: in
-        values:
-        - "Failed"
+    # - name: send-slack-notification
+    #   params:
+    #   - name: message
+    #     value: "$(tasks.rhoai-init.results.slack-message-failure-text)"
+    #   - name: secret-name
+    #     value: rhoai-konflux-secret
+    #   - name: key-name
+    #     value: slack-webhook
+    #   taskRef:
+    #     params:
+    #     - name: name
+    #       value: slack-webhook-notification
+    #     - name: bundle
+    #       value: quay.io/konflux-ci/tekton-catalog/task-slack-webhook-notification:0.1@sha256:dc17b70633363d78414b8c06dc1660d25742935f106a6116995638e1210c2730
+    #     - name: kind
+    #       value: task
+    #     resolver: bundles
+    #   when:
+    #   - input: $(tasks.status)
+    #     operator: in
+    #     values:
+    #     - "Failed"
     params:
     - description: Source Repository URL
       name: git-url
