@@ -4,16 +4,17 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
       == "rhoai-2.18"
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhoai-v2-18
     appstudio.openshift.io/component: odh-operator-v2-18
     pipelines.appstudio.openshift.io/type: build
-  name: odh-operator-v2-18-on-push
+  name: odh-operator-v2-18-on-pull-request
   namespace: rhoai-tenant
 spec:
   params:
@@ -22,7 +23,9 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/rhoai/odh-rhel8-operator:{{revision}}
+    value: quay.io/rhoai/odh-rhel8-operator:on-pr-{{revision}}
+  - name: image-expires-after
+    value: 5d
   - name: dockerfile
     value: Dockerfiles/Dockerfile.konflux
   pipelineSpec:
