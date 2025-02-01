@@ -14,7 +14,7 @@ metadata:
     appstudio.openshift.io/application: rhoai-v2-18
     appstudio.openshift.io/component: odh-operator-v2-18
     pipelines.appstudio.openshift.io/type: build
-  name: odh-operator-v2-18-on-schedule
+  name: odh-operator-v2-18-on-schedule-{{revision}}
   namespace: rhoai-tenant
 spec:
   params:
