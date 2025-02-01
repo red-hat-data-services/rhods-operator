@@ -7,13 +7,13 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "schedule/bundle-github-trigger.txt"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "rhoai-2.18" &&  "build/schedule/operator-tekton-trigger.txt".pathChanged()
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "rhoai-2.18"
   creationTimestamp:
   labels:
     appstudio.openshift.io/application: rhoai-v2-18
     appstudio.openshift.io/component: odh-operator-v2-18
     pipelines.appstudio.openshift.io/type: build
-  name: odh-operator-v2-18-on-schedule
+  name: odh-operator-v2-18-on-schedule-{{revision}}
   namespace: rhoai-tenant
 spec:
   params:
