@@ -1,92 +1,37 @@
-# This file is generated automatically by `make manifests`,
-# Please, do not manually change this file.---
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  creationTimestamp: null
   name: odh-model-controller-role
 rules:
 - apiGroups:
   - ""
   resources:
   - configmaps
-  - secrets
-  - serviceaccounts
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - endpoints
   - namespaces
   - pods
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
+  - secrets
+  - serviceaccounts
   - services
   verbs:
   - create
-  - delete
   - get
   - list
   - patch
   - update
-  - watch
-- apiGroups:
-  - authorino.kuadrant.io
-  resources:
-  - authconfigs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - datasciencecluster.opendatahub.io
-  resources:
-  - datascienceclusters
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - dscinitialization.opendatahub.io
-  resources:
-  - dscinitializations
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - extensions
-  resources:
-  - ingresses
-  verbs:
-  - get
-  - list
   - watch
 - apiGroups:
   - maistra.io
   resources:
   - servicemeshcontrolplanes
   verbs:
+  - create
   - get
   - list
+  - patch
+  - update
   - use
   - watch
 - apiGroups:
@@ -94,13 +39,29 @@ rules:
   resources:
   - servicemeshmemberrolls
   verbs:
+  - create
+  - delete
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - maistra.io
   resources:
   - servicemeshmembers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - maistra.io
+  resources:
+  - servicemeshmembers/finalizers
   verbs:
   - create
   - delete
@@ -117,16 +78,6 @@ rules:
   verbs:
   - create
   - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - networking.istio.io
-  resources:
-  - gateways
-  verbs:
   - get
   - list
   - patch
@@ -155,14 +106,6 @@ rules:
   - list
   - patch
   - update
-  - watch
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs:
-  - get
-  - list
   - watch
 - apiGroups:
   - networking.k8s.io
@@ -210,13 +153,6 @@ rules:
 - apiGroups:
   - security.istio.io
   resources:
-  - authorizationpolicies
-  verbs:
-  - get
-  - list
-- apiGroups:
-  - security.istio.io
-  resources:
   - peerauthentications
   verbs:
   - create
@@ -233,7 +169,6 @@ rules:
   verbs:
   - get
   - list
-  - update
   - watch
 - apiGroups:
   - serving.kserve.io
