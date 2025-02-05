@@ -14,15 +14,43 @@ generatorOptions:
 
 vars:
   - fieldref:
-      fieldPath: metadata.namespace
-    name: mesh-namespace
+      fieldPath: data.caikit-tgis-image
+    name: caikit-tgis-image
     objref:
       apiVersion: v1
       kind: ConfigMap
       name: odh-model-controller-parameters
   - fieldref:
-      fieldPath: data.monitoring-namespace
-    name: monitoring-namespace
+      fieldPath: data.caikit-standalone-image
+    name: caikit-standalone-image
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: odh-model-controller-parameters
+  - fieldref:
+      fieldPath: data.tgis-image
+    name: tgis-image
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: odh-model-controller-parameters
+  - fieldref:
+      fieldPath: data.ovms-image
+    name: ovms-image
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: odh-model-controller-parameters
+  - fieldref:
+      fieldPath: data.vllm-image
+    name: vllm-image
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: odh-model-controller-parameters
+  - fieldref:
+      fieldPath: metadata.namespace
+    name: mesh-namespace
     objref:
       apiVersion: v1
       kind: ConfigMap
