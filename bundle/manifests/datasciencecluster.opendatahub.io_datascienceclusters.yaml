@@ -321,6 +321,7 @@ spec:
                             type: array
                         type: object
                       managementState:
+                        default: Removed
                         description: "Set to one of the following values: \n - \"Managed\"
                           : the operator is actively managing the component and trying
                           to keep it active. It will only upgrade the component if
@@ -421,7 +422,10 @@ spec:
                         type: string
                     type: object
                   trustyai:
-                    description: TrustyAI component configuration.
+                    description: '## DEPRECATED ## : Installation of TrustyAI operator
+                      is deprecated in downstream(RHOAI). If TrustyAI operator is
+                      installed, it will be removed Changes in managemenstState are
+                      not supported.'
                     properties:
                       devFlags:
                         description: Add developer fields
