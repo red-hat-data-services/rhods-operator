@@ -2,27 +2,13 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: rhods-operator.${RHODS_OPERATOR_VERSION}
+  name: rhods-operator.NAME
   namespace: placeholder
   annotations:
-    olm.skipRange: "${SKIP_RANGE}"
-    anaconda-cronjob-image: registry.redhat.io/openshift4/ose-cli@sha256:75bf9b911b6481dcf29f7942240d1555adaa607eec7fc61bedb7f624f87c36d4
-    odh-etcd-image: registry.redhat.io/rhel7/etcd@sha256:d3495b263b103681f1b09a558be43c21989bfc269eb90f84c2609042cebdc626
-    ose-oauth-proxy-image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4bef31eb993feb6f1096b51b4876c65a6fb1f4401fee97fa4f4542b6b7c9bc46
-    ose-oauth-proxy-dashboard-image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:ab112105ac37352a2a4916a39d6736f5db6ab4c29bad4467de8d613e80e9bb33
-    ubi-minimal-image: registry.redhat.io/ubi8/ubi-minimal@sha256:5d2d4d4dbec470f8ffb679915e2a8ae25ad754cd9193fa966deee1ecb7b3ee00
-    prometheus-base-image: registry.redhat.io/openshift4/ose-prometheus@sha256:c432e571eb737d55323b5f350b5f714803bf525144cfee3f20782660d9bf10ad
-    prometheus-alertmanager-image: registry.redhat.io/openshift4/ose-prometheus-alertmanager@sha256:169b788b3f8eb8909ecc1d698ab0a6bf103b49043c7f5fd569789b179928def6
-    prometheus-config-reloader-image: registry.redhat.io/openshift4/ose-prometheus-config-reloader@sha256:bd543e039c7c2b0857a7e0ce34d582b8954a8ad3a3f13a2eaaff2904cdae7c53
-    prometheus-operator-image: registry.redhat.io/openshift4/ose-prometheus-operator@sha256:4aeb07f66dc39889e3d0e66eee7c4ea2e39ce4025852d1d1eaf662af8bd8eeb6
-    ose-cli-image: registry.redhat.io/openshift4/ose-cli@sha256:25fef269ac6e7491cb8340119a9b473acbeb53bc6970ad029fdaae59c3d0ca61
-    odh-ml-pipeline-moveresult-image: registry.redhat.io/ubi8/ubi-micro@sha256:396baed3d689157d96aa7d8988fdfea7eb36684c8335eb391cf1952573e689c1
-    odh-ml-pipeline-mariadb-image: registry.redhat.io/rhel8/mariadb-103@sha256:3d30992e60774f887c4e7959c81b0c41b0d82d042250b3b56f05ab67fd4cdee1
-    ose-oauth-proxy-dsp-image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:ab112105ac37352a2a4916a39d6736f5db6ab4c29bad4467de8d613e80e9bb33
     capabilities: Full Lifecycle
     categories: AI/Machine Learning, Big Data
-    containerImage: "${ODH_OPERATOR_IMAGE}"
-    createdAt: "${BUILD_TIME}"
+    containerImage: REPLACE_IMAGE:latest
+    createdAt: REPLACE_DATE
     features.operators.openshift.io/disconnected: "true"
     features.operators.openshift.io/fips-compliant: "true"
     features.operators.openshift.io/proxy-aware: "false"
@@ -217,8 +203,7 @@ spec:
     * Model Monitoring
     * Distributed workloads (KubeRay, CodeFlare, Kueue)
 
-  version: "${RHODS_OPERATOR_VERSION}"
-  replaces: "${RHODS_PREVIOUS_RELEASE_VERSION}"
+  version: REPLACE_VERSION
   maturity: stable
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -1778,7 +1763,7 @@ spec:
               spec:
                 containers:
                 - name: rhods-operator
-                  image: "${ODH_OPERATOR_IMAGE}"
+                  image: REPLACE_IMAGE:latest
                   imagePullPolicy:
                     Always
                   args:
@@ -1788,44 +1773,6 @@ spec:
                   env:
                     - name: OPERATOR_NAME
                       value: rhods-operator
-                    - name: RELATED_IMAGE_ODH_DASHBOARD_IMAGE
-                      value: "${ODH_DASHBOARD_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_KF_NOTEBOOK_CONTROLLER_IMAGE
-                      value: "${ODH_KF_NOTEBOOK_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE
-                      value: "${ODH_NOTEBOOK_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_ML_PIPELINES_PERSISTENCEAGENT_IMAGE
-                      value: "${ODH_ML_PIPELINES_PERSISTENCEAGENT_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_ML_PIPELINES_API_SERVER_IMAGE
-                      value: "${ODH_ML_PIPELINES_API_SERVER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_ML_PIPELINES_CACHE_IMAGE
-                      value: "${ODH_ML_PIPELINES_CACHE_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_ML_PIPELINES_SCHEDULEDWORKFLOW_IMAGE
-                      value: "${ODH_ML_PIPELINES_SCHEDULEDWORKFLOW_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_ML_PIPELINES_ARTIFACT_MANAGER_IMAGE
-                      value: "${ODH_ML_PIPELINES_ARTIFACT_MANAGER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_DATA_SCIENCE_PIPELINES_OPERATOR_CONTROLLER_IMAGE
-                      value: "${ODH_DATA_SCIENCE_PIPELINES_OPERATOR_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_MODELMESH_CONTROLLER_IMAGE
-                      value: "${ODH_MODELMESH_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_MODEL_CONTROLLER_IMAGE
-                      value: "${ODH_MODEL_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_MM_REST_PROXY_IMAGE
-                      value: "${ODH_MM_REST_PROXY_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_MODELMESH_IMAGE
-                      value: "${ODH_MODELMESH_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_MODELMESH_RUNTIME_ADAPTER_IMAGE
-                      value: "${ODH_MODELMESH_RUNTIME_ADAPTER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_IMAGE
-                      value: "${ODH_TRUSTYAI_SERVICE_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_OPERATOR_IMAGE
-                      value: "${ODH_TRUSTYAI_SERVICE_OPERATOR_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_CODEFLARE_OPERATOR_IMAGE
-                      value: "${ODH_CODEFLARE_OPERATOR_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE
-                      value: "${ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE}"
-                    - name: RELATED_IMAGE_ODH_KUEUE_CONTROLLER_IMAGE
-                      value: "${ODH_KUEUE_CONTROLLER_IMAGE}"
                   command:
                     - /manager
                   livenessProbe:
