@@ -1,3 +1,4 @@
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
@@ -98,16 +99,9 @@ metadata:
     capabilities: Full Lifecycle
     categories: AI/Machine Learning, Big Data
     certified: "False"
-    containerImage: quay.io/opendatahub/opendatahub-operator:v2.0.0
-    createdAt: "2024-10-15T10:03:01Z"
-    features.operators.openshift.io/disconnected: "true"
-    features.operators.openshift.io/fips-compliant: "false"
-    features.operators.openshift.io/proxy-aware: "false"
-    features.operators.openshift.io/tls-profiles: "false"
-    features.operators.openshift.io/token-auth-aws: "false"
-    features.operators.openshift.io/token-auth-azure: "false"
-    features.operators.openshift.io/token-auth-gcp: "false"
-    olm.skipRange: '>=1.0.0 <2.0.0'
+    containerImage: REPLACE_IMAGE:latest
+    createdAt: "2025-02-11T13:28:45Z"
+    olm.skipRange: ">=2.13.0 <2.13.2"
     operatorframework.io/initialization-resource: |-
       {
         "apiVersion": "datasciencecluster.opendatahub.io/v1",
@@ -154,22 +148,36 @@ metadata:
             "ray": {
               "managementState": "Managed"
             },
-            "workbenches": {
-              "managementState": "Managed"
-            },
             "trainingoperator": {
               "managementState": "Removed"
             },
             "trustyai": {
               "managementState": "Removed"
+            },
+            "workbenches": {
+              "managementState": "Managed"
             }
           }
         }
       }
-    operators.operatorframework.io/builder: operator-sdk-v1.31.0
+    operators.operatorframework.io/builder: operator-sdk-v1.24.1
+    operators.operatorframework.io/internal-objects: '[dscinitialization.opendatahub.io]'
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/red-hat-data-services/rhods-operator
-  name: rhods-operator.v2.13.1
+    features.operators.openshift.io/disconnected: "true"
+    features.operators.openshift.io/fips-compliant: "false"
+    features.operators.openshift.io/proxy-aware: "false"
+    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/token-auth-aws: "false"
+    features.operators.openshift.io/token-auth-azure: "false"
+    features.operators.openshift.io/token-auth-gcp: "false"
+    description:
+      Operator for deployment and management of Red Hat OpenShift AI
+    support: Red Hat OpenShift AI
+    operators.openshift.io/valid-subscription: '["OpenShift AI"]'
+    operatorframework.io/suggested-namespace: redhat-ods-operator
+    operators.openshift.io/infrastructure-features: '["disconnected"]'
+  name: rhods-operator.2.13.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -222,7 +230,7 @@ spec:
     - kind: FeatureTracker
       name: featuretrackers.features.opendatahub.io
       version: v1
-  description: |-
+  description: |
     Red Hat OpenShift AI is a complete platform for the entire lifecycle of your AI/ML projects.
 
     When using Red Hat OpenShift AI, your users will find all the tools they would expect from a modern AI/ML platform in an interface that is intuitive, requires no local install, and is backed by the power of your OpenShift cluster.
@@ -235,10 +243,10 @@ spec:
 
     ### Components
     * Dashboard
-    * Curated Workbench Images (incl CUDA, PyTorch, Tensorflow, VScode)
+    * Curated Workbench Images (incl CUDA, PyTorch, Tensorflow, code-server)
     * Ability to add Custom Images
     * Ability to leverage accelerators (such as NVIDIA GPU)
-    * Data Science Pipelines. (including Elyra notebook interface, and based on standard OpenShift Pipelines)
+    * Data Science Pipelines (including Elyra notebook interface)
     * Model Serving using ModelMesh and Kserve.
     * Ability to use other runtimes for serving
     * Model Monitoring
@@ -424,29 +432,29 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - autoscaling.openshift.io
           resources:
           - machineautoscalers
           verbs:
           - delete
-          - get
           - list
           - patch
+          - get
         - apiGroups:
           - autoscaling.openshift.io
           resources:
           - machinesets
           verbs:
           - delete
-          - get
           - list
           - patch
+          - get
         - apiGroups:
           - batch
           resources:
@@ -484,10 +492,10 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         - apiGroups:
           - build.openshift.io
           resources:
@@ -506,10 +514,10 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         - apiGroups:
           - cert-manager.io
           resources:
@@ -531,9 +539,9 @@ spec:
           resources:
           - clusterversions
           verbs:
-          - get
           - list
           - watch
+          - get
         - apiGroups:
           - config.openshift.io
           resources:
@@ -560,15 +568,6 @@ spec:
           - list
           - patch
         - apiGroups:
-          - controller-runtime.sigs.k8s.io
-          resources:
-          - controllermanagerconfigs
-          verbs:
-          - create
-          - delete
-          - get
-          - patch
-        - apiGroups:
           - coordination.k8s.io
           resources:
           - leases
@@ -585,9 +584,9 @@ spec:
           resources:
           - clusterversions
           verbs:
-          - get
           - list
           - watch
+          - get
         - apiGroups:
           - ""
           resources:
@@ -656,11 +655,11 @@ spec:
           - namespaces/finalizers
           verbs:
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - ""
           resources:
@@ -696,9 +695,9 @@ spec:
           resources:
           - rhmis
           verbs:
-          - get
           - list
           - watch
+          - get
         - apiGroups:
           - ""
           resources:
@@ -755,11 +754,11 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - custom.tekton.dev
           resources:
@@ -840,9 +839,9 @@ spec:
           resources:
           - datasciencepipelinesapplications/finalizers
           verbs:
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - datasciencepipelinesapplications.opendatahub.io
           resources:
@@ -887,10 +886,10 @@ spec:
           - events
           verbs:
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         - apiGroups:
           - extensions
           resources:
@@ -964,28 +963,28 @@ spec:
           - rhmis
           verbs:
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         - apiGroups:
           - machine.openshift.io
           resources:
           - machineautoscalers
           verbs:
           - delete
-          - get
           - list
           - patch
+          - get
         - apiGroups:
           - machine.openshift.io
           resources:
           - machinesets
           verbs:
           - delete
-          - get
           - list
           - patch
+          - get
         - apiGroups:
           - machinelearning.seldon.io
           resources:
@@ -1043,46 +1042,6 @@ spec:
         - apiGroups:
           - monitoring.coreos.com
           resources:
-          - alertmanagerconfigs
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - alertmanagers
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - alertmanagers/finalizers
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - alertmanagers/status
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
           - podmonitors
           verbs:
           - create
@@ -1092,16 +1051,6 @@ spec:
           - patch
           - update
           - watch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - probes
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
         - apiGroups:
           - monitoring.coreos.com
           resources:
@@ -1156,36 +1105,6 @@ spec:
           - update
           - watch
         - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - thanosrulers
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - thanosrulers/finalizers
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - thanosrulers/status
-          verbs:
-          - create
-          - delete
-          - deletecollection
-          - get
-          - patch
-        - apiGroups:
           - networking.istio.io
           resources:
           - envoyfilters
@@ -1221,9 +1140,9 @@ spec:
           - virtualservices/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - networking.k8s.io
           resources:
@@ -1290,10 +1209,10 @@ spec:
           - consoles
           verbs:
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         - apiGroups:
           - operator.openshift.io
           resources:
@@ -1465,11 +1384,11 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.knative.dev
           resources:
@@ -1477,20 +1396,20 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.knative.dev
           resources:
           - services/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1498,11 +1417,11 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1510,20 +1429,20 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
           - clusterservingruntimes/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1531,10 +1450,10 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
+          - get
           - watch
         - apiGroups:
           - serving.kserve.io
@@ -1542,9 +1461,9 @@ spec:
           - inferencegraphs/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1575,9 +1494,9 @@ spec:
           - inferenceservices/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1585,28 +1504,28 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
           - predictors/finalizers
           verbs:
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
           - predictors/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
@@ -1630,7 +1549,6 @@ spec:
           resources:
           - servingruntimes/status
           verbs:
-          - get
           - patch
           - update
         - apiGroups:
@@ -1640,20 +1558,20 @@ spec:
           verbs:
           - create
           - delete
-          - get
           - list
           - patch
           - update
           - watch
+          - get
         - apiGroups:
           - serving.kserve.io
           resources:
           - trainedmodels/status
           verbs:
           - delete
-          - get
           - patch
           - update
+          - get
         - apiGroups:
           - snapshot.storage.k8s.io
           resources:
@@ -1676,6 +1594,33 @@ spec:
           verbs:
           - '*'
         - apiGroups:
+          - trustyai.opendatahub.io
+          resources:
+          - trustyaiservices
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - trustyai.opendatahub.io
+          resources:
+          - trustyaiservices/finalizers
+          verbs:
+          - update
+          - get
+        - apiGroups:
+          - trustyai.opendatahub.io
+          resources:
+          - trustyaiservices/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
           - user.openshift.io
           resources:
           - groups
@@ -1692,42 +1637,44 @@ spec:
           - users
           verbs:
           - delete
-          - get
           - list
           - patch
           - watch
+          - get
         serviceAccountName: redhat-ods-operator-controller-manager
       deployments:
       - label:
-          control-plane: controller-manager
-        name: redhat-ods-operator-controller-manager
+          name: rhods-operator
+        name: rhods-operator
         spec:
           replicas: 1
           selector:
             matchLabels:
-              control-plane: controller-manager
+              name: rhods-operator
           strategy: {}
           template:
             metadata:
               annotations:
                 kubectl.kubernetes.io/default-container: manager
               labels:
-                control-plane: controller-manager
+                name: rhods-operator
             spec:
               containers:
               - args:
                 - --health-probe-bind-address=:8081
                 - --metrics-bind-address=0.0.0.0:8080
                 - --leader-elect
-                command:
-                - /manager
                 env:
+                - name: OPERATOR_NAME
+                  value: rhods-operator
                 - name: OPERATOR_NAMESPACE
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
                 - name: DEFAULT_MANIFESTS_PATH
                   value: /opt/manifests
+                command:
+                - /manager
                 image: REPLACE_IMAGE:latest
                 imagePullPolicy: Always
                 livenessProbe:
@@ -1736,7 +1683,11 @@ spec:
                     port: 8081
                   initialDelaySeconds: 15
                   periodSeconds: 20
-                name: manager
+                name: rhods-operator
+                ports:
+                - containerPort: 8080
+                  name: http
+                  protocol: TCP
                 readinessProbe:
                   httpGet:
                     path: /readyz
@@ -1748,8 +1699,8 @@ spec:
                     cpu: 500m
                     memory: 4Gi
                   requests:
-                    cpu: 100m
-                    memory: 780Mi
+                    cpu: 500m
+                    memory: 256Mi
                 securityContext:
                   allowPrivilegeEscalation: false
                   capabilities:
@@ -1770,6 +1721,7 @@ spec:
   - supported: true
     type: AllNamespaces
   keywords:
+  - Operator
   - OpenShift
   - Open Data Hub
   - opendatahub
@@ -1783,7 +1735,12 @@ spec:
   links:
   - name: Red Hat OpenShift AI
     url: https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai
+  maturity: stable
   minKubeVersion: 1.25.0
   provider:
-    name: Red Hat
-  version: 2.13.1
+    name: 'Red Hat, Inc.'
+  maintainers:
+  - name: 'Red Hat Openshift AI'
+    email: managed-open-data-hub@redhat.com
+  version: 2.13.2
+  replaces: 2.13.0
