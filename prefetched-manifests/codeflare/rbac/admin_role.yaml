@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: clusterrole-admin
+  labels:
+    rbac.authorization.kubernetes.io/aggregate-to-admin: "true"
+rules:
+- apiGroups:
+  - quota.codeflare.dev
+  resources:
+  - quotasubtrees
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
