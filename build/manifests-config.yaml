@@ -25,7 +25,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: bc996e7580caf693a85d908862495b2bec8d580b
+    git.commit: c4b61939c4fd26f663a8580b2b657392f3e4b5af
   odh-codeflare-operator:
     src: config
     dest: codeflare
@@ -35,7 +35,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 36fc3560dcbf720d203020347af5a3903ad2d220
+    git.commit: db43fe9df279929a480e818135fca141b0af3ee6
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -44,8 +44,8 @@ map:
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
-    git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 94fcfc69c6e68dac2bf036fd90151da3be48c361
+    git.url: https://github.com/red-hat-data-services/trustyai-service-operator.git
+    git.commit: 3a6d84a7f51b054f5d65a4a8c11bec37778fbc14
   odh-model-controller:
     src: config
     dest: modelcontroller
@@ -55,7 +55,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: aabaf3e1098cb8dad06d1753716907e48bf4cda6
+    git.commit: 20cbd7b29ae47122a3857fd70a5c405bbe86638a
   odh-modelmesh-serving-controller:
     src: config
     dest: modelmeshserving
@@ -77,13 +77,13 @@ additional_meta:
     git.commit: a3c23288219c010680036821a6c9a99362bdb04c
   odh-modelmesh:
     git.url: https://github.com/red-hat-data-services/modelmesh
-    git.commit: 83f509f10fb2184f2f9d381f3f6f0e799fb93674
+    git.commit: c467a0b111718e0c95f3f6ea91ac729f95968e9b
   odh-modelmesh-runtime-adapter:
     git.url: https://github.com/red-hat-data-services/modelmesh-runtime-adapter
     git.commit: 99eb971090e3fad5fc8dcb1d5e05a0c2502b57a3
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
-    git.commit: f13849c41aa6c08b83a64b3f25a36287447cb594
+    git.commit: b79d5549888a4806d3b437100b9ad98118786de8
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata.git
     git.commit: 22c8d0ace5a87b938a651c8028ad7661f06d4dfa
