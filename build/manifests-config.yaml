@@ -30,12 +30,12 @@ map:
     src: config
     dest: codeflare
     git.url: https://github.com/red-hat-data-services/codeflare-operator
-    git.commit: dc359c9cdf3c9b5156015f502e43517147403d19
+    git.commit: b514c215d52262ba1cff20419c697ad9dc70df9a
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 9c3b275b2e59a6cce1d1dc080849a562ec27ea5d
+    git.commit: 1a8d68eee57cbb429ab2b937498329c00e8e33eb
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -50,7 +50,7 @@ map:
     src: config
     dest: odh-model-controller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 10d70b0d70784dc7b696b4a9429b2d132bb8923c
+    git.commit: c7b023ba8ae0d28a5a40aaeaa3604c0e8257eccc
   odh-modelmesh-serving-controller:
     src: config
     dest: model-mesh
@@ -60,14 +60,14 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 9b4f00b0c91229899a5ce3cbc27f6480b7a5409a
+    git.commit: 92c29a55967175c1bc5c492d2f9e3503f1e3f35c
 additional_meta:
   odh-ml-pipelines-persistenceagent:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
     git.commit: 3f95b2ca52f0ab996f831f825ab0e87fa9e4f78a
   odh-ml-pipelines-api-server:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: c4fbc933b1f92d574f34d799835fdaa00860186c
+    git.commit: acd8e0ff3ab755bac4fd3c7adbb5ff177529ecd0
   odh-ml-pipelines-cache:
     git.url: ''
     git.commit: ''
@@ -85,7 +85,7 @@ additional_meta:
     git.commit: fc070d5541b9d1b633e67f59d15916ac0e67a496
   odh-modelmesh-runtime-adapter:
     git.url: https://github.com/red-hat-data-services/modelmesh-runtime-adapter
-    git.commit: a6ab15a894615f1228beedb1733d9ebe4af8b180
+    git.commit: e50f2366ec111bdce1b050f2d7d469e39e5398f7
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
     git.commit: 444d5b4e3ced7756af0aa70064f03125851ebb18
