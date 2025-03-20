@@ -1,6 +1,6 @@
 # Prometheus Pod Monitor (Metrics)
 apiVersion: monitoring.coreos.com/v1
-kind: PodMonitor
+kind: ServiceMonitor
 metadata:
   name: controller-manager-metrics-monitor
   namespace: system
