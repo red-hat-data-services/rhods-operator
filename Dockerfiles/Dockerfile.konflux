@@ -36,7 +36,7 @@ COPY config/osd-configs/ /opt/odh-manifests/osd-configs/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 
 ################################################################################
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:02ee7de38ae977ac674ee2e830611c2c1a37eb0bb20505a076243d0f4f5479cf
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:31abc5ca265feb3627b8e5981154e3ef723b2829e3556d29d1873ee6cedc2ecb
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --chown=1001:0 --from=builder /opt/odh-manifests /opt/manifests
