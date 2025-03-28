@@ -41,6 +41,10 @@ RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -tags strict
 ################################################################################
 FROM registry.redhat.io/ubi8/ubi-minimal@sha256:33161cf5ec11ea13bfe60cad64f56a3aa4d893852e8ec44b2fd2a6b40cc38539
 WORKDIR /
+
+# needed to pass konflux ecosystem preflight check
+COPY LICENSE /licenses/LICENSE
+
 COPY --from=builder /workspace/manager .
 COPY --chown=1001:0 --from=builder /opt/manifests /opt/manifests
 # Recursive change all files
