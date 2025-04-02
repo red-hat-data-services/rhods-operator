@@ -8,15 +8,15 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
     pipelinesascode.tekton.dev/on-cel-expression: 'event == "push" && target_branch
-      == "rhoai-2.16" && !"bundle/**".pathChanged() && !"Dockerfiles/bundle.Dockerfile".pathChanged()
+      == "sealights-poc-2.16" && !"bundle/**".pathChanged() && !"Dockerfiles/bundle.Dockerfile".pathChanged()
       && (!"build/**".pathChanged() || "build/operands-map.yaml".pathChanged() ||
-      ".tekton/odh-operator-v2-16-push.yaml".pathChanged() ) && !".github/workflows/**".pathChanged()'
+      ".tekton/sealights-poc-odh-operator-v2-16-push.yaml".pathChanged() ) && !".github/workflows/**".pathChanged()'
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: rhoai-v2-16
-    appstudio.openshift.io/component: odh-operator-v2-16
+    appstudio.openshift.io/application: sealights-poc-v2-16
+    appstudio.openshift.io/component: sealights-poc-odh-operator-v2-16
     pipelines.appstudio.openshift.io/type: build
-  name: odh-operator-v2-16-on-push
+  name: sealights-poc-odh-operator-v2-16-on-push
   namespace: rhoai-tenant
 spec:
   params:
@@ -168,7 +168,7 @@ spec:
             echo "pipelinerun-name = $pipelinerun_name"
 
             application_name=${target_branch/rhoai-/}
-            application_name=rhoai-v${application_name/./-}
+            application_name=sealights-poc-v${application_name/./-}
             echo "application-name = $application_name"
 
             component_name=${pipelinerun_name/-on-*/}
