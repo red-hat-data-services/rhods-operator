@@ -8,7 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/status"
+	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/conditions"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
@@ -94,7 +94,7 @@ func (a *Action) run(ctx context.Context, rr *types.ReconciliationRequest) error
 
 	ready := 0
 	for _, deployment := range deployments.Items {
-		if deployment.Status.ReadyReplicas == deployment.Status.Replicas {
+		if deployment.Status.ReadyReplicas == deployment.Status.Replicas && deployment.Status.Replicas != 0 {
 			ready++
 		}
 	}

@@ -18,13 +18,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/apis/components/v1alpha1"
-	featuresv1 "github.com/opendatahub-io/opendatahub-operator/v2/apis/features/v1"
-	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/components/modelcontroller"
-	"github.com/opendatahub-io/opendatahub-operator/v2/controllers/status"
+	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
+	featuresv1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
+	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelcontroller"
+	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/feature/serverless"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/test/matchers/jq"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/test/testf"
 
@@ -59,7 +58,6 @@ func kserveTestSuite(t *testing.T) {
 	t.Run("Validate serving transition to Unmanaged", componentCtx.ValidateServingTransitionToUnmanaged)
 	t.Run("Validate serving transition to Removed", componentCtx.ValidateServingTransitionToRemoved)
 	t.Run("Validate component disabled", componentCtx.ValidateComponentDisabled)
-	// t.Run("Validate component releases", componentCtx.ValidateComponentReleases)
 }
 
 type KserveTestCtx struct {
@@ -206,7 +204,7 @@ func (c *KserveTestCtx) validateDefaultCertsAvailable(t *testing.T) {
 
 	defaultSecretName := dsc.Spec.Components.Kserve.Serving.IngressGateway.Certificate.SecretName
 	if defaultSecretName == "" {
-		defaultSecretName = serverless.DefaultCertificateSecretName
+		defaultSecretName = "knative-serving-cert"
 	}
 
 	ctrlPlaneSecret, err := cluster.GetSecret(g.Context(), g.Client(), dsci.Spec.ServiceMesh.ControlPlane.Namespace, defaultSecretName)
