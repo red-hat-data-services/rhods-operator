@@ -2,41 +2,39 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   labels:
-    opendatahub.io/dashboard: 'true'
-    opendatahub.io/ootb: 'true'
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/ootb: "true"
   annotations:
-    description: vLLM ServingRuntime to support Gaudi(for Habana AI processors)
-    openshift.io/display-name: vLLM Intel Gaudi Accelerator ServingRuntime for KServe
+    description: vLLM ServingRuntime with CUDA support (for NVIDIA GPUs)
+    openshift.io/display-name: vLLM NVIDIA GPU ServingRuntime for KServe
     openshift.io/provider-display-name: Red Hat, Inc.
     tags: rhods,rhoai,kserve,servingruntime
     template.openshift.io/documentation-url: https://github.com/opendatahub-io/vllm
-    template.openshift.io/long-description: This template defines resources needed to deploy vLLM Intel Gaudi Accelerator ServingRuntime with KServe in Red Hat OpenShift AI
+    template.openshift.io/long-description: This template defines resources needed to deploy vLLM NVIDIA GPU ServingRuntime with KServe in Red Hat OpenShift AI
     opendatahub.io/modelServingSupport: '["single"]'
-    opendatahub.io/apiProtocol: 'REST'
-  name: vllm-gaudi-runtime-template
+    opendatahub.io/apiProtocol: "REST"
+  name: vllm-cuda-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1
     kind: ServingRuntime
     metadata:
-      name: vllm-gaudi-runtime
+      name: vllm-cuda-runtime
       annotations:
-        openshift.io/display-name: vLLM Intel Gaudi Accelerator ServingRuntime for KServe
-        opendatahub.io/recommended-accelerators: '["habana.ai/gaudi"]'
+        openshift.io/display-name: vLLM NVIDIA GPU ServingRuntime for KServe
+        opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
       labels:
-        opendatahub.io/dashboard: 'true'
+        opendatahub.io/dashboard: "true"
     spec:
       annotations:
-        prometheus.io/port: '8080'
-        prometheus.io/path: '/metrics'
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
       multiModel: false
       supportedModelFormats:
-        - autoSelect: false
+        - autoSelect: true
           name: vLLM
-      builtInAdapter:
-        modelLoadingTimeoutMillis: 90000
       containers:
         - name: kserve-container
-          image: $(vllm-gaudi-image)
+          image: $(vllm-cuda-image)
           command:
             - python
             - -m
