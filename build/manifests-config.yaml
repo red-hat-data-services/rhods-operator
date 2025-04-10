@@ -74,6 +74,8 @@ map:
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
+    git.url: https://github.com/red-hat-data-services/feast
+    git.commit: d3749b9475873a05b3f86d95c383228d879f4eb0
 additional_meta:
   odh-mm-rest-proxy:
     git.url: https://github.com/red-hat-data-services/rest-proxy
@@ -117,3 +119,6 @@ additional_meta:
   odh-ml-pipelines-runtime-generic:
     git.url: https://github.com/red-hat-data-services/ilab-on-ocp
     git.commit: b82b7a5c9dab978ccbe0f4b12ec254b1a9b0d6d4
+  odh-feature-server:
+    git.url: https://github.com/red-hat-data-services/feast
+    git.commit: c8914c28ba4dd326f3f2c7d32a3cd8a54adc11ef
