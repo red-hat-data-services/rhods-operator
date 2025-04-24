@@ -77,6 +77,8 @@ spec:
             value: quay.io/opendatahub/mlmd-grpc-server:latest
           - name: REST_IMAGE
             value: quay.io/opendatahub/model-registry:latest
+          - name: OAUTH_PROXY_IMAGE
+            value: quay.io/openshift/origin-oauth-proxy:latest
           - name: ENABLE_WEBHOOKS
             value: "false"
           - name: CREATE_AUTH_RESOURCES

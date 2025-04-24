@@ -28,6 +28,10 @@ spec:
       name: Gateway
       priority: 2
       type: string
+    - jsonPath: .status.conditions[?(@.type=="OAuthProxyAvailable")].status
+      name: OAuthProxy
+      priority: 2
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -473,6 +477,65 @@ spec:
                 - host
                 - username
                 type: object
+              oauthProxy:
+                description: OpenShift OAuth proxy configuration options
+                properties:
+                  image:
+                    description: Optional image to support overriding the image deployed
+                      by the operator.
+                    type: string
+                  port:
+                    default: 8443
+                    description: Listen port for OAuth Proxy connections, defaults
+                      to 8443
+                    format: int32
+                    maximum: 65535
+                    minimum: 0
+                    type: integer
+                  serviceRoute:
+                    default: enabled
+                    description: Create an OpenShift Route for REST proxy Service,
+                      enabled by default
+                    enum:
+                    - disabled
+                    - enabled
+                    type: string
+                  tlsCertificateSecret:
+                    description: |-
+                      This parameter specifies the Kubernetes Secret name and key of the proxy public key certificate.
+                      If this option is not set, the operator uses OpenShift Serving Certificate by default in OpenShift clusters.
+                      In non-OpenShift clusters, a secret named `<modelregistry-name>-oauth-proxy` MUST be provided with data keys
+                      `tls.crt` and `tls.key` for the certificate and secret key respectively.
+                    properties:
+                      key:
+                        description: Key name in secret
+                        type: string
+                      name:
+                        description: Kubernetes secret name
+                        type: string
+                    required:
+                    - key
+                    - name
+                    type: object
+                  tlsKeySecret:
+                    description: |-
+                      This parameter specifies the optional Kubernetes Secret name and key used for the
+                      proxy private key if `SSLCertificateSecret` is set.
+                    properties:
+                      key:
+                        description: Key name in secret
+                        type: string
+                      name:
+                        description: Kubernetes secret name
+                        type: string
+                    required:
+                    - key
+                    - name
+                    type: object
+                type: object
+                x-kubernetes-validations:
+                - message: tlsCertificateSecret and tlsKeySecret MUST be set together
+                  rule: has(self.tlsCertificateSecret) == has(self.tlsKeySecret)
               postgres:
                 description: PostgreSQL configuration options
                 properties:
@@ -690,6 +753,9 @@ spec:
             - grpc
             - rest
             type: object
+            x-kubernetes-validations:
+            - message: Cannot use both istio and oauthProxy
+              rule: '!(has(self.istio) && has(self.oauthProxy))'
           status:
             description: ModelRegistryStatus defines the observed state of ModelRegistry
             properties:
