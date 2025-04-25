@@ -2,15 +2,15 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   annotations:
+    build.appstudio.openshift.io/build-nudge-files: bundle/bundle-patch.yaml
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
-    pipelinesascode.tekton.dev/on-cel-expression: 'event == "push" && target_branch
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
       == "rhoai-2.21" && !"bundle/**".pathChanged() && !"Dockerfiles/bundle.Dockerfile".pathChanged()
       && (!"build/**".pathChanged() || "build/operands-map.yaml".pathChanged() ||
-      ".tekton/odh-operator-v2-21-push.yaml".pathChanged() ) && !".github/workflows/**".pathChanged()'
+      ".tekton/odh-operator-v2-21-push.yaml".pathChanged() ) && !".github/workflows/**".pathChanged()
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhoai-v2-21
@@ -19,8 +19,6 @@ metadata:
   name: odh-operator-v2-21-on-push
   namespace: rhoai-tenant
 spec:
-  timeouts:
-    pipeline: 4h
   params:
   - name: git-url
     value: '{{source_url}}'
@@ -62,7 +60,7 @@ spec:
     - name: send-slack-notification
       params:
       - name: message
-        value: "$(tasks.rhoai-init.results.slack-message-failure-text)"
+        value: $(tasks.rhoai-init.results.slack-message-failure-text)
       - name: secret-name
         value: rhoai-konflux-secret
       - name: key-name
@@ -80,7 +78,7 @@ spec:
       - input: $(tasks.status)
         operator: in
         values:
-        - "Failed"
+        - Failed
     params:
     - description: Source Repository URL
       name: git-url
@@ -161,20 +159,23 @@ spec:
     - name: rhoai-init
       params:
       - name: pipelinerun-name
-        value: "$(context.pipelineRun.name)"
+        value: $(context.pipelineRun.name)
       taskSpec:
+        metadata: {}
         results:
         - description: Notification text to be posted to slack
           name: slack-message-failure-text
+        spec: null
         steps:
-        - image: quay.io/rhoai-konflux/alpine:latest
-          name: rhoai-init
+        - computeResources: {}
           env:
           - name: slack_message
             valueFrom:
               secretKeyRef:
-                name: rhoai-konflux-secret
                 key: slack-component-failure-notification
+                name: rhoai-konflux-secret
+          image: quay.io/rhoai-konflux/alpine:latest
+          name: rhoai-init
           script: |
             pipelinerun_name=$(params.pipelinerun-name)
             target_branch={{target_branch}}
@@ -205,6 +206,8 @@ spec:
         value: $(params.rebuild)
       - name: skip-checks
         value: $(params.skip-checks)
+      runAfter:
+      - rhoai-init
       taskRef:
         params:
         - name: name
@@ -214,8 +217,6 @@ spec:
         - name: kind
           value: task
         resolver: bundles
-      runAfter:
-      - rhoai-init
     - name: clone-repository
       params:
       - name: url
@@ -271,12 +272,12 @@ spec:
         workspace: git-auth
       - name: netrc
         workspace: netrc
-    - name: build-images
-      matrix:
+    - matrix:
         params:
         - name: PLATFORM
           value:
           - $(params.build-platforms)
+      name: build-images
       params:
       - name: IMAGE
         value: $(params.output-image)
@@ -408,7 +409,6 @@ spec:
         operator: in
         values:
         - "false"
-      workspaces: []
     - name: deprecated-base-image-check
       params:
       - name: IMAGE_URL
@@ -681,7 +681,10 @@ spec:
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-odh-operator-v2-21
+  timeouts:
+    pipeline: 4h0m0s
   workspaces:
   - name: git-auth
     secret:
