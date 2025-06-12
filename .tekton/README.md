@@ -6,7 +6,7 @@ All Tekton file updates **must be made in the `konflux-central` repository**.
 
 ## ✅ How to Make Changes
 
-To modify the pipelines for `` in the `` release:
+To modify the pipelines for `rhods-operator` in the `rhoai-2.19` release:
 
 - Clone the [`konflux-central`](https://github.com/red-hat-data-services/konflux-central) repository.
 
@@ -18,13 +18,13 @@ cd konflux-central
 - Check out the release branch
 
 ```bash
-git checkout 
+git checkout rhoai-2.19
 ```
 
 - Navigate to the Tekton files for your component(s).
 
 ```bash
-cd pipelineruns//.tekton
+cd pipelineruns/rhods-operator/.tekton
 ```
 
 - Make the required changes to the Tekton YAML files.
@@ -32,8 +32,8 @@ cd pipelineruns//.tekton
 - Commit and push your changes.
 
 ```bash
-git commit -am "Update pipelinerun for  ()"
-git push origin 
+git commit -am "Update pipelinerun for rhods-operator (rhoai-2.19)"
+git push origin rhoai-2.19
 ```
 
 - Once pushed, automation will automatically sync your updates to the corresponding component repository.
