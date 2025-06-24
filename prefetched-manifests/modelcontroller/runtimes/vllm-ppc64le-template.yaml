@@ -5,24 +5,22 @@ metadata:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/ootb: 'true'
   annotations:
-    description: vLLM ServingRuntime to support Gaudi(for Habana AI processors)
-    openshift.io/display-name: vLLM Intel Gaudi Accelerator ServingRuntime for KServe
+    description: vLLM is a high-throughput and memory-efficient inference and serving engine for LLMs
+    openshift.io/display-name: vLLM CPU ppc64le ServingRuntime for KServe
     openshift.io/provider-display-name: Red Hat, Inc.
     tags: rhods,rhoai,kserve,servingruntime
     template.openshift.io/documentation-url: https://github.com/opendatahub-io/vllm
-    template.openshift.io/long-description: This template defines resources needed to deploy vLLM Intel Gaudi Accelerator ServingRuntime with KServe in Red Hat OpenShift AI
+    template.openshift.io/long-description: This template defines resources needed to deploy vLLM CPU ServingRuntime with KServe in Red Hat OpenShift AI (ppc64le architectures only)
     opendatahub.io/modelServingSupport: '["single"]'
     opendatahub.io/apiProtocol: 'REST'
-  name: vllm-gaudi-runtime-template
+  name: vllm-ppc64le-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1
     kind: ServingRuntime
     metadata:
-      name: vllm-gaudi-runtime
+      name: vllm-ppc64le-runtime
       annotations:
-        openshift.io/display-name: vLLM Intel Gaudi Accelerator ServingRuntime for KServe
-        opendatahub.io/recommended-accelerators: '["habana.ai/gaudi"]'
-        opendatahub.io/runtime-version: 'v0.6.6.post1'
+        openshift.io/display-name: vLLM CPU ppc64le ServingRuntime for KServe
       labels:
         opendatahub.io/dashboard: 'true'
     spec:
@@ -31,21 +29,19 @@ objects:
         prometheus.io/path: '/metrics'
       multiModel: false
       supportedModelFormats:
-        - autoSelect: false
+        - autoSelect: true
           name: vLLM
-      builtInAdapter:
-        modelLoadingTimeoutMillis: 90000
       containers:
         - name: kserve-container
-          image: $(vllm-gaudi-image)
+          image: $(vllm-ppc64le-image)
           command:
             - python
             - -m
             - vllm.entrypoints.openai.api_server
           args:
-            - "--port=8080"
-            - "--model=/mnt/models"
-            - "--served-model-name={{.Name}}"
+            - '--port=8080'
+            - '--model=/mnt/models'
+            - '--served-model-name={{.Name}}'
           env:
             - name: HF_HOME
               value: /tmp/hf_home

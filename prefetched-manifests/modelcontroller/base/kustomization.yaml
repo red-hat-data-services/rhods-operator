@@ -11,6 +11,8 @@ configMapGenerator:
       - params-vllm-cpu.env
       - params-vllm-rocm.env
       - params-vllm-gaudi.env
+      - params-vllm-ppc64le.env
+      - params-vllm-s390x.env
       - params-guardrails-hf-runtime.env
     name: odh-model-controller-parameters
 generatorOptions:
@@ -125,6 +127,28 @@ replacements:
       - select:
           kind: Template
           name: vllm-gaudi-runtime-template
+        fieldPaths:
+          - objects.0.spec.containers.0.image
+  - source:
+      kind: ConfigMap
+      version: v1
+      name: odh-model-controller-parameters
+      fieldPath: data.vllm-ppc64le-image
+    targets:
+      - select:
+          kind: Template
+          name: vllm-ppc64le-runtime-template
+        fieldPaths:
+          - objects.0.spec.containers.0.image
+  - source:
+      kind: ConfigMap
+      version: v1
+      name: odh-model-controller-parameters
+      fieldPath: data.vllm-s390x-image
+    targets:
+      - select:
+          kind: Template
+          name: vllm-s390x-runtime-template
         fieldPaths:
           - objects.0.spec.containers.0.image
   - source:
