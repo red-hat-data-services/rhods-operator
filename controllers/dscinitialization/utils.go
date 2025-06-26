@@ -176,7 +176,7 @@ func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(
 ) error {
 	log := logf.FromContext(ctx)
 	name := dscInit.Spec.ApplicationsNamespace
-	if platform == cluster.ManagedRhoai {
+	if platform == cluster.ManagedRhoai || platform == cluster.SelfManagedRhoai {
 		// Get operator namepsace
 		operatorNs, err := cluster.GetOperatorNamespace()
 		if err != nil {
@@ -189,8 +189,8 @@ func (r *DSCInitializationReconciler) reconcileDefaultNetworkPolicy(
 			log.Error(err, "error to set networkpolicy in operator namespace", "path", networkpolicyPath)
 			return err
 		}
-		// Deploy networkpolicy for monitoring namespace
-		if dscInit.Spec.Monitoring.ManagementState == operatorv1.Managed {
+		// Deploy networkpolicy for monitoring namespace only for managed cluster.
+		if dscInit.Spec.Monitoring.ManagementState == operatorv1.Managed && platform == cluster.ManagedRhoai {
 			err = deploy.DeployManifestsFromPath(ctx, r.Client, dscInit, networkpolicyPath+"/monitoring", dscInit.Spec.Monitoring.Namespace, "networkpolicy", true)
 			if err != nil {
 				log.Error(err, "error to set networkpolicy in monitroing namespace", "path", networkpolicyPath)
