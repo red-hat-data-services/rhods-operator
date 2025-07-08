@@ -12,7 +12,7 @@ metadata:
       && !"Dockerfiles/bundle.Dockerfile".pathChanged() && (!"build/**".pathChanged()
       || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v2-19-push.yaml".pathChanged()
       ) && !".github/workflows/**".pathChanged()
-  creationTimestamp: null
+  creationTimestamp:
   labels:
     appstudio.openshift.io/application: rhoai-v2-19
     appstudio.openshift.io/component: odh-operator-v2-19
@@ -32,7 +32,7 @@ spec:
     - '{{target_branch}}-{{revision}}'
   - name: additional-labels
     value:
-    - version=v2.19.1
+    - version=v2.19.2
     - io.openshift.tags=odh-operator
   - name: output-image
     value: quay.io/rhoai/odh-rhel8-operator:{{target_branch}}
