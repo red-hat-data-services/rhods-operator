@@ -191,6 +191,30 @@ func (tc *KserveTestCtx) ValidateKnativeServing(t *testing.T) {
 	)
 }
 
+// ValidateKnativeServing ensures that the KnativeServing resource exists and is recreated upon deletion.
+func (tc *KserveTestCtx) ValidateKnativeServing(t *testing.T) {
+	t.Helper()
+
+	// Retrieve the DataScienceCluster instance.
+	dsc := tc.FetchDataScienceCluster()
+
+	// Check KnativeServing was created.
+	managedKnativeServing := types.NamespacedName{Name: dsc.Spec.Components.Kserve.Serving.Name, Namespace: knativeServingNamespace}
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.KnativeServing, managedKnativeServing),
+	)
+
+	// Delete it.
+	tc.DeleteResource(
+		WithMinimalObject(gvk.KnativeServing, managedKnativeServing),
+	)
+
+	// Check eventually got recreated.
+	tc.EnsureResourceExistsConsistently(
+		WithMinimalObject(gvk.KnativeServing, managedKnativeServing),
+	)
+}
+
 // ValidateNoFeatureTrackerOwnerReferences ensures no FeatureTrackers are owned by Kserve.
 func (tc *KserveTestCtx) ValidateNoKServeFeatureTrackerOwnerReferences(t *testing.T) {
 	t.Helper()
