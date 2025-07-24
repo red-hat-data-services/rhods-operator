@@ -34,6 +34,16 @@ declare -A PLATFORM_MANIFESTS=(
     ["kueue-configs"]="config/kueue-configs"
 )
 
+# PLATFORM_MANIFESTS is a list of manifests that are contained in the operator repository. Please also add them to the
+# Dockerfile COPY instructions. Declaring them here causes this script to create a symlink in the manifests folder, so
+# they can be easily modified during development, but during a container build, they must be copied into the proper
+# location instead, as this script DOES NOT manage platform manifest files for a container build.
+declare -A PLATFORM_MANIFESTS=(
+    ["osd-configs"]="config/osd-configs"
+    ["monitoring"]="config/monitoring"
+    ["kueue-configs"]="config/kueue-configs"
+)
+
 # Allow overwriting repo using flags component=repo
 pattern="^[a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+:[a-zA-Z0-9_./-]+:[a-zA-Z0-9_./-]+$"
 if [ "$#" -ge 1 ]; then

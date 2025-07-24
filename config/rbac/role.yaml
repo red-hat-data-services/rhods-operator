@@ -436,6 +436,15 @@ rules:
   - update
   - watch
 - apiGroups:
+  - dashboard.opendatahub.io
+  resources:
+  - hardwareprofiles
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
   - datasciencecluster.opendatahub.io
   resources:
   - datascienceclusters
@@ -595,6 +604,32 @@ rules:
   verbs:
   - get
 - apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - hardwareprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - hardwareprofiles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - hardwareprofiles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - inference.networking.x-k8s.io
   resources:
   - inferencemodels
@@ -653,6 +688,48 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - kueue.openshift.io
+  resources:
+  - kueues
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kueue.openshift.io
+  resources:
+  - kueues/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kueue.x-k8s.io
+  resources:
+  - clusterqueues
+  - localqueues
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kueue.x-k8s.io
+  resources:
+  - clusterqueues/status
+  - localqueues/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - kueue.openshift.io
   resources:

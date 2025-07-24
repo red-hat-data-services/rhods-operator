@@ -23,6 +23,7 @@ func RegisterAllWebhooks(mgr ctrl.Manager) error {
 		kueuewebhook.RegisterWebhooks,
 		isvc.RegisterWebhooks,
 		notebookwebhook.RegisterWebhooks,
+		kueuewebhook.RegisterWebhooks,
 	}
 	for _, reg := range webhookRegistrations {
 		if err := reg(mgr); err != nil {
