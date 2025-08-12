@@ -292,6 +292,18 @@ func TestNotebookWebhook_Handle_Permissions(t *testing.T) {
 			shouldHavePatches: false,
 			forbiddenSecrets:  []string{fmt.Sprintf("%s/%s", testNamespace2, testSecret2)},
 		},
+		{
+			name:        "secret in a different namespace than Notebook CR's",
+			connections: fmt.Sprintf("%s/%s,%s/%s", testNamespace, testSecret1, testNamespace2, testSecret2),
+			allowPermissions: map[string]bool{
+				testSecret1: true,
+				testSecret2: true,
+			},
+			expectedAllowed:   false,
+			expectedMessage:   "some of the connection secret(s) do not exist or are outside the Notebook's namespace:",
+			shouldHavePatches: false,
+			forbiddenSecrets:  []string{fmt.Sprintf("%s/%s", testNamespace2, testSecret2)},
+		},
 	}
 
 	for _, tt := range tests {
