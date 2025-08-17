@@ -35,7 +35,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: c37eeca753c1b46298d67441d867d6b9680fa34c
+    git.commit: 3c5653523eeb6093e337a6c6a959bb23ba2c6106
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -55,12 +55,12 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 8f2473e5439446c027d536ae3b1976228a453cc0
+    git.commit: 003b98a600f8d88a139f43226dd62d5eee067f95
   odh-modelmesh-serving-controller:
     src: config
     dest: modelmeshserving
     git.url: https://github.com/red-hat-data-services/modelmesh-serving
-    git.commit: d2637d9645ef5a3a4632ea7bc1dc0cd6444e0d91
+    git.commit: 75e16ffddb4d9f5f19745070e762366660302d09
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -120,10 +120,10 @@ additional_meta:
     git.commit: 921ea2de4d3aa7c7450939b7a52606861f7cde25
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: 74af3ede135ce7b587aa89a5c9faa824958d1e84
+    git.commit: 31f7c9c90b1bbcbaad6d1cbe8287afed93222364
   odh-ml-pipelines-runtime-generic:
     git.url: https://github.com/red-hat-data-services/ilab-on-ocp
-    git.commit: 8271649771072a8331e3bbb7aa4b822554365d59
+    git.commit: b619801fe0ea51d9886a3d68fde942b420bfe52c
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: f24b78df4c5c1c4368c97eff7be73b11f164d4dc
