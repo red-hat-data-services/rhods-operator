@@ -1,0 +1,30 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: mutating-webhook-configuration
+webhooks:
+  - name: mdeployment.kb.io
+    namespaceSelector:
+      matchLabels:
+        kueue-managed: "true"
+  - name: mpod.kb.io
+    namespaceSelector:
+      matchLabels:
+        kueue-managed: "true"
+  - name: mjob.kb.io
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-system
+        - kube-public
+        - openshift
+        - openshift-config
+        - openshift-config-managed
+        - openshift-etcd
+        - openshift-image-registry
+        - openshift-marketplace
+        - openshift-monitoring
+        - openshift-operator-lifecycle-manager
+        - openshift-operators

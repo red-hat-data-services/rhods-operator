@@ -1,0 +1,22 @@
+apiVersion: llamastack.io/v1alpha1
+kind: LlamaStackDistribution
+metadata:
+  name: llamastackdistribution-sample
+spec:
+  replicas: 1
+  server:
+    containerSpec:
+      env:
+        - name: INFERENCE_MODEL
+          value: 'llama3.2:1b'
+        - name: OLLAMA_URL
+          value: 'http://ollama-server-service.ollama-dist.svc.cluster.local:11434'
+      name: llama-stack
+    distribution:
+      name: ollama
+    # Uncomment the storage section to use persistent storage
+    # storage: {}  # Will use default size of 10Gi and default mount path of /.llama
+    # Or specify custom values:
+    storage:
+      size: "20Gi"
+      mountPath: "/home/lls/.lls"  # Optional, defaults to /.llama. Use with custom distribution images that have a different setup.

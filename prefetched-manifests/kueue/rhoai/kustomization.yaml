@@ -1,0 +1,87 @@
+# RHOAI configuration for Kueue.
+
+# Adds namespace to all resources.
+namespace: opendatahub
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the namespace
+# field above.
+namePrefix: kueue-
+
+configMapGenerator:
+- name: rhoai-config
+  envs:
+    - params.env
+
+sortOptions:
+  order: legacy
+
+configurations:
+  - params.yaml
+
+vars:
+- name: image
+  objref:
+    kind: ConfigMap
+    name: rhoai-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.odh-kueue-controller-image
+
+# Labels to add to all resources and selectors.
+commonLabels:
+  app.kubernetes.io/name: kueue
+  app.kubernetes.io/component: controller
+
+resources:
+- ../components/crd
+- ../components/rbac
+- ../components/manager
+- ../components/internalcert
+- ../components/webhook
+- monitor.yaml
+- webhook_network_policy.yaml
+- kueue-metrics-service.yaml
+- prometheus_rule.yaml
+- kueue_metrics_reader_serviceaccount.yaml
+- metrics_reader_clusterrole_binding.yaml
+- kueue_metrics_reader_secret.yaml
+
+patches:
+# Mount the controller config file for loading manager configurations
+# through a ComponentConfig type
+- path: manager_config_patch.yaml
+- path: manager_webhook_patch.yaml
+- path: manager_role_patch.yaml
+  target:
+    kind: ClusterRole
+    name: manager-role
+- path: manager_metrics_patch.yaml
+- path: mutating_webhook_patch.yaml
+- path: validating_webhook_patch.yaml
+- path: clusterqueue_viewer_role_patch.yaml
+- path: remove_default_namespace.yaml
+
+replacements:
+  - source:
+      kind: ServiceAccount
+      name: controller-manager-metrics-reader
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: Secret
+          name: controller-manager-metrics-token
+        fieldPaths:
+          - metadata.annotations.[kubernetes.io/service-account.name]
+  - source:
+      kind: Secret
+      name: controller-manager-metrics-token
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: ServiceMonitor
+          name: controller-manager-metrics-monitor
+        fieldPaths:
+          - spec.endpoints.0.authorization.credentials.name

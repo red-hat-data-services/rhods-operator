@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kserve-llm-isvc-scheduler
+  labels:
+    app.kubernetes.io/name: kserve-llm-isvc-scheduler-monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: llminferenceservice-router-scheduler
+      app.kubernetes.io/part-of: llminferenceservice
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: metrics
+    authorization:
+      credentials:
+        name: kserve-metrics-reader-sa-secret
+        key: token
+    metricRelabelings:
+    - sourceLabels: [ __name__ ]
+      action: replace
+      replacement: "kserve_$1"
+      targetLabel: __name__
+    relabelings:
+    - sourceLabels: [ __meta_kubernetes_pod_label_app_kubernetes_io_name ]
+      action: replace
+      targetLabel: llm_isvc_name
+    - sourceLabels: [ __meta_kubernetes_pod_label_app_kubernetes_io_component ]
+      action: replace
+      regex: "llminferenceservice-(.*)"
+      replacement: "$1"
+      targetLabel: llm_isvc_component

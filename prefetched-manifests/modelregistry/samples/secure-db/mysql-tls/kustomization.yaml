@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+## Append samples of your project ##
+resources:
+  - ../../istio/mysql-tls
+
+components:
+  - ../components/
+
+# Apply MySQL SSL configuration as JSON patches to correct versions
+patches:
+  # Add SSL configuration to ModelRegistry (v1alpha1)
+  - target:
+      group: modelregistry.opendatahub.io
+      version: v1alpha1
+      kind: ModelRegistry
+      name: modelregistry-sample
+    patch: |-
+      - op: add
+        path: /spec/mysql/sslRootCertificateConfigMap
+        value:
+          name: model-registry-db-credential
+          key: ca.crt
+  
+  # Add SSL args to MySQL Deployment
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: model-registry-db
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --ssl-ca=/etc/server-cert/ca.crt
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --ssl-cert=/etc/server-cert/tls.crt
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --ssl-key=/etc/server-cert/tls.key
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --require-secure-transport
+
+#+kubebuilder:scaffold:manifestskustomizesamples

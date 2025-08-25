@@ -1,0 +1,30 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validating-webhook-configuration
+webhooks:
+  - name: vdeployment.kb.io
+    namespaceSelector:
+      matchLabels:
+        kueue-managed: "true"
+  - name: vpod.kb.io
+    namespaceSelector:
+      matchLabels:
+        kueue-managed: "true"
+  - name: vjob.kb.io
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-system
+        - kube-public
+        - openshift
+        - openshift-config
+        - openshift-config-managed
+        - openshift-etcd
+        - openshift-image-registry
+        - openshift-marketplace
+        - openshift-monitoring
+        - openshift-operator-lifecycle-manager
+        - openshift-operators
