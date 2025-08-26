@@ -4,6 +4,10 @@ kind: ClusterRole
 metadata:
   name: kserve-manager-role
 rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
 - apiGroups:
   - ""
   resources:
@@ -140,6 +144,19 @@ rules:
   - leaderworkerset.x-k8s.io
   resources:
   - leaderworkersets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - podmonitors
+  - servicemonitors
   verbs:
   - create
   - delete
