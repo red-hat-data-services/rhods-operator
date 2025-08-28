@@ -23,6 +23,7 @@ import (
 	"embed"
 	b64 "encoding/base64"
 	"fmt"
+	"io/fs"
 	"os"
 	"regexp"
 	"strings"

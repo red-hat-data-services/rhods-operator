@@ -2810,6 +2810,21 @@ _Appears in:_
 
 
 
+#### Alerting
+
+
+
+Alerting configuration for Prometheus
+
+
+
+_Appears in:_
+- [DSCIMonitoring](#dscimonitoring)
+- [MonitoringCommonSpec](#monitoringcommonspec)
+- [MonitoringSpec](#monitoringspec)
+
+
+
 #### Auth
 
 
