@@ -45,6 +45,7 @@ labels:
 # Overlay on operator default config with prometheus monitor
 resources:
 - ../../default
+- ../../jobs-async-upload
 - ../../webhook
 
 # Config map and replacements to use params.env for use in opendatahub-operator

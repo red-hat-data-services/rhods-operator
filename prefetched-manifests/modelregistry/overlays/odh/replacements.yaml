@@ -103,3 +103,14 @@
       fieldPaths:
         # uses regex since kustomize v4.5.3, hence the full match below
         - spec.template.spec.volumes.[name=^cert$].secret.secretName
+# Jobs async-upload replacement
+- source:
+    kind: ConfigMap
+    name: model-registry-operator-parameters
+    fieldPath: data.IMAGES_JOBS_ASYNC_UPLOAD
+  targets:
+    - select:
+        kind: Template
+        name: jobs-async-upload-s3-to-oci-template
+      fieldPaths:
+        - parameters.[name=JOB_IMAGE].value
