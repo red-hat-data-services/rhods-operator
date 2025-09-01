@@ -27,7 +27,7 @@ permissions:
 jobs:
   insta-merge:
     #    we also have the author and title check to be on safer side since we are using pull_request_target event,
-    if: ${{ github.event.sender.login == 'konflux-internal-p02[bot]'  && ( startsWith(github.event.pull_request.title, 'Update ') || startsWith(github.event.pull_request.title, 'chore(deps)') ) }}
+    if: ${{ ( github.event.sender.login == 'konflux-internal-p02[bot]' || github.event.sender.login == 'rhods-devops-app[bot]' )  && ( startsWith(github.event.pull_request.title, 'Update ') || startsWith(github.event.pull_request.title, 'chore(deps)') || startsWith(github.event.pull_request.title, 'Sync Agent:') ) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
