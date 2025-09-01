@@ -25,12 +25,12 @@ map:
     src: config
     dest: data-science-pipelines-operator
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 8f69618deab473402d32da73869650deaf3c12b4
+    git.commit: 84cc063fd31288b9c081036328427c91188f9b02
   odh-codeflare-operator:
     src: config
     dest: codeflare
     git.url: https://github.com/red-hat-data-services/codeflare-operator
-    git.commit: 5a858f7b6961c6457ece776461805942ca7a43df
+    git.commit: 48cbeb6ac726a33d9071b5e2a0a055d6b9074f77
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -50,7 +50,7 @@ map:
     src: config
     dest: odh-model-controller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 5831257105c4948d9b1725e77fe37e7b4ece793a
+    git.commit: 1591597fd41acfb54e4c0ffb9d1dc69bb3230351
   odh-modelmesh-serving-controller:
     src: config
     dest: model-mesh
@@ -60,11 +60,11 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 0d424f71ffec41a5f4056259a47e9c976daf4d5d
+    git.commit: 4ab33b84e94073e4b76a42458122816565cf04b1
 additional_meta:
   odh-ml-pipelines-persistenceagent:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: d28db46a94d307c7d99a4df68379510085a63f17
+    git.commit: 91111975ac2d6be157c30ee77cd760189897465f
   odh-ml-pipelines-api-server:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
     git.commit: a95274fc06c3e25ae2b7b1a95dbb0bfc651d93f0
@@ -73,7 +73,7 @@ additional_meta:
     git.commit: ''
   odh-ml-pipelines-scheduledworkflow:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: d28db46a94d307c7d99a4df68379510085a63f17
+    git.commit: 91111975ac2d6be157c30ee77cd760189897465f
   odh-ml-pipelines-artifact-manager:
     git.url: ''
     git.commit: ''
@@ -88,4 +88,4 @@ additional_meta:
     git.commit: 15c37aa7d400de0e2f35f1c667224bc8079f3063
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
-    git.commit: 32298dbd09af2d045e3292484f5d3c52e1dd292c
+    git.commit: 4ffeeb2f58c44a276d722c3516a434239cae61f8
