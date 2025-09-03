@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 03b429dd79a9cc4173f17a77c59f2538aae17bd2
+    git.commit: f9b4f465d9e83089f651d6b7a692c3403a68a2b8
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 03b429dd79a9cc4173f17a77c59f2538aae17bd2
+    git.commit: f9b4f465d9e83089f651d6b7a692c3403a68a2b8
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -34,7 +34,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 8672d4198e97d4ab454f3a326eebfc70c9e996df
+    git.commit: 4604ebb83d5b0c12c9a0a7cc5db98ab598a8c3ff
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -49,7 +49,7 @@ map:
     src: config
     dest: modelcontroller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 6de68b0abd6e7f2d40e84e7812e9fd4bb97f9bb5
+    git.commit: e9c75618b47d199818f1654b0786900bb7bd9332
   odh-model-registry-operator:
     src: config
     dest: modelregistry
@@ -69,7 +69,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 1e242fd6046aa7219edbf53ad8d479a00cd41036
+    git.commit: c6f0e35b3ceb028c7141221bf0df4e9ffafec1ca
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -119,7 +119,7 @@ additional_meta:
     git.commit: e1bbb12c28e30f3f8eb645f12d24340cb002d686
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: 3fc3b587faefa4b046d0f496e7a73960743872fe
+    git.commit: 832c8462f8871c2c7e6209b70e8c3c83d63f4a8f
   odh-ml-pipelines-runtime-generic:
     git.url: https://github.com/red-hat-data-services/ilab-on-ocp
     git.commit: fccf1b440000ac0f07b4b199f3f0ccae550aca9e
@@ -143,7 +143,7 @@ additional_meta:
     git.commit: 08532ed3816cc3a0fb3bf3c7162c5fc9565f0ceb
   odh-llm-d-routing-sidecar:
     git.url: https://github.com/red-hat-data-services/llm-d-routing-sidecar
-    git.commit: 796a31e6f1de60967889e442c3179209f664b6b4
+    git.commit: 7fea804ae31d893f08c32c837cd23b3c6777e54b
   odh-must-gather:
     git.url: https://github.com/red-hat-data-services/must-gather
     git.commit: 947dcac68fd546eec12490240330599d5dccc794
