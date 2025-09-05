@@ -49,7 +49,7 @@ spec:
             defaultMode: 0554
       initContainers:
         - name: etcd-secret-creator
-          image: registry.redhat.io/openshift4/ose-cli@sha256:4cfb4219f46c8cc25a5e567fd4cb8babe9a3778b0b86a1e354a3403994ef3677
+          image: $(ose-cli)
           command: ["/bin/bash", "-c", "--"]
           args:
             - |
@@ -69,10 +69,10 @@ spec:
                 exit 0
               elif [[ $etcdpasswordexists == "false" && $modelservingetcdexists != "false" ]]; then
                 echo "model-serving-etcd exists, creating etcdpasswords secret"
-                ETC_ROOT_PSW=$(oc get secrets/model-serving-etcd --template={{.data.etcd_connection}} | base64 -d | grep -o '"password": *"[^"]*"' | grep -o '"[^"]*"$' | grep -oP '"\K[^"\047]+(?=["\047])') 
+                ETC_ROOT_PSW=$(oc get secrets/model-serving-etcd --template={{.data.etcd_connection}} | base64 -d | grep -o '"password": *"[^"]*"' | grep -o '"[^"]*"$' | grep -oP '"\K[^"\047]+(?=["\047])')
                 oc create secret generic etcd-passwords --type=string --from-literal=root=$ETC_ROOT_PSW
                 exit 0
-              else 
+              else
                 echo "secrets etcdpasswords and model-serving-etcd exist, doing nothing"
                 exit 0
               fi
@@ -92,7 +92,7 @@ spec:
             - http://0.0.0.0:2379
             - "--data-dir"
             - /tmp/etcd.data
-          image: registry.redhat.io/openshift4/ose-etcd@sha256:d3275cd886d13865937d225d8138db7f6b7bf59ac1a94d9fbe61e35286bee6ff
+          image: $(ose-etcd)
           name: etcd
           env:
             - name: ROOT_PASSWORD
