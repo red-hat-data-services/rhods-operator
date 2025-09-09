@@ -176,7 +176,7 @@ metadata:
               "managementState": "Managed"
             },
             "modelregistry": {
-              "managementState": "Managed",
+              "managementState": "Removed",
               "registriesNamespace": "rhoai-model-registries"
             },
             "ray": {
@@ -203,14 +203,13 @@ metadata:
       "datasciencepipelines.components.platform.opendatahub.io", "kserves.components.platform.opendatahub.io",
       "kueues.components.platform.opendatahub.io", "modelmeshservings.components.platform.opendatahub.io",
       "modelregistries.components.platform.opendatahub.io", "rays.components.platform.opendatahub.io",
-      "trainingoperators.components.platform.opendatahub.io", "trustyais.components.platform.opendatahub.io",
-      "workbenches.components.platform.opendatahub.io", "monitorings.services.platform.opendatahub.io",
-      "servicemeshes.services.platform.opendatahub.io", "modelcontrollers.components.platform.opendatahub.io",
-      "feastoperators.components.platform.opendatahub.io", "llamastackoperators.components.platform.opendatahub.io"]
+      "trainingoperators.components.platform.opendatahub.io", "trustyais.components.platform.opendatahub.io",  "workbenches.components.platform.opendatahub.io",
+      "monitorings.services.platform.opendatahub.io","modelcontrollers.components.platform.opendatahub.io", "feastoperators.components.platform.opendatahub.io",
+      "llamastackoperators.components.platform.opendatahub.io"]
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
     repository: https://github.com/red-hat-data-services/rhods-operator
     support: Red Hat OpenShift AI
-  name: rhods-operator.v2.25.0
+  name: rhods-operator.v2.24.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -298,11 +297,6 @@ spec:
       kind: Ray
       name: rays.components.platform.opendatahub.io
       version: v1alpha1
-    - description: ServiceMesh is the Schema for the servicemesh API
-      displayName: Service Mesh
-      kind: ServiceMesh
-      name: servicemeshes.services.platform.opendatahub.io
-      version: v1alpha1
     - description: TrainingOperator is the Schema for the trainingoperators API
       displayName: Training Operator
       kind: TrainingOperator
@@ -323,7 +317,7 @@ spec:
 
     When using Red Hat OpenShift AI, your users will find all the tools they would expect from a modern AI/ML platform in an interface that is intuitive, requires no local install, and is backed by the power of your OpenShift cluster.
 
-    Your Data Scientists will feel right at home with quick and simple access to the Notebook interface they are used to. They can leverage the default Notebook Images (including PyTorch, TensorFlow, and CUDA), or add custom ones. Your MLOps engineers will be able to leverage Data Science Pipelines to easily parallelize and/or schedule the required workloads. They can then quickly serve, monitor, and update the created AI/ML models. They can do that by either using the provided out-of-the-box OpenVino Server Model Runtime or by adding their own custom serving runtime instead. These activities are tied together with the concept of Data Science Projects, simplifying both organization and collaboration.
+    Your Data Scientists will feel right at home with quick and simple access to the Notebook interface they are used to. They can leverage the default Notebook Images (Including PyTorch, tensorflow, and CUDA), or add custom ones. Your MLOps engineers will be able to leverage Data Science Pipelines to easily parallelize and/or schedule the required workloads. They can then quickly serve, monitor, and update the created AI/ML models. They can do that by either using the provided out-of-the-box OpenVino Server Model Runtime or by adding their own custom serving runtime instead. These activities are tied together with the concept of Data Science Projects, simplifying both organization and collaboration.
 
     But beyond the individual features, one of the key aspects of this platform is its flexibility. Not only can you augment it with your own Customer Workbench Image and Custom Model Serving Runtime Images, but you will also have a consistent experience across any infrastructure footprint. Be it in the public cloud, private cloud, on-premises, and even in disconnected clusters. Red Hat OpenShift AI can be installed on any supported OpenShift. It can scale out or in depending on the size of your team and its computing requirements.
 
@@ -359,82 +353,6 @@ spec:
           - get
           - list
           - watch
-        - apiGroups:
-          - ""
-          resources:
-          - clusterversions
-          - nodes
-          - rhmis
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          - events
-          - namespaces
-          - secrets
-          - secrets/finalizers
-          - serviceaccounts
-          - services/finalizers
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps/status
-          verbs:
-          - delete
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - deployments
-          - persistentvolumeclaims
-          - persistentvolumes
-          - pods
-          - pods/exec
-          - pods/log
-          verbs:
-          - '*'
-        - apiGroups:
-          - ""
-          resources:
-          - endpoints
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces/finalizers
-          verbs:
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - services
-          verbs:
-          - '*'
         - apiGroups:
           - '*'
           resources:
@@ -1091,10 +1009,10 @@ spec:
           - maistra.io
           resources:
           - servicemeshcontrolplanes
-          - servicemeshmembers
+          - servicemeshmemberrolls
+          - servicemeshmembers/finalizers
           verbs:
           - create
-          - delete
           - get
           - list
           - patch
@@ -1104,10 +1022,10 @@ spec:
         - apiGroups:
           - maistra.io
           resources:
-          - servicemeshmemberrolls
-          - servicemeshmembers/finalizers
+          - servicemeshmembers
           verbs:
           - create
+          - delete
           - get
           - list
           - patch
@@ -1475,7 +1393,6 @@ spec:
           resources:
           - auths
           - monitorings
-          - servicemeshes
           verbs:
           - create
           - delete
@@ -1489,7 +1406,6 @@ spec:
           resources:
           - auths/finalizers
           - monitorings/finalizers
-          - servicemeshes/finalizers
           verbs:
           - update
         - apiGroups:
@@ -1497,7 +1413,6 @@ spec:
           resources:
           - auths/status
           - monitorings/status
-          - servicemeshes/status
           verbs:
           - get
           - patch
@@ -1776,7 +1691,7 @@ spec:
   - llamastack
   links:
   - name: Red Hat OpenShift AI
-    url: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.25
+    url: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.23.0
   maintainers:
   - email: managed-open-data-hub@redhat.com
     name: Red Hat Openshift AI
@@ -1784,7 +1699,7 @@ spec:
   minKubeVersion: 1.25.0
   provider:
     name: Red Hat
-  version: 2.25.0
+  version: 3.0.0
   webhookdefinitions:
   - admissionReviewVersions:
     - v1
