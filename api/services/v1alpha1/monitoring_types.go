@@ -152,6 +152,10 @@ type TracesStorage struct {
 type Alerting struct {
 }
 
+// Alerting configuration for Prometheus
+type Alerting struct {
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster
