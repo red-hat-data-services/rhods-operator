@@ -12,7 +12,8 @@ metadata:
     template.openshift.io/documentation-url: https://github.com/opendatahub-io/vllm
     template.openshift.io/long-description: This template defines resources needed to deploy vLLM NVIDIA GPU ServingRuntime with KServe in Red Hat OpenShift AI
     opendatahub.io/modelServingSupport: '["single"]'
-    opendatahub.io/apiProtocol: "REST"
+    opendatahub.io/apiProtocol: 'REST'
+    opendatahub.io/model-type: '["generative"]'
   name: vllm-cuda-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1

@@ -8,9 +8,9 @@ configMapGenerator:
   - envs:
       - params.env
       - params-cuda.env
-      - params-vllm-cpu.env
       - params-vllm-rocm.env
       - params-vllm-gaudi.env
+      - params-vllm-cpu.env
       - params-guardrails-hf-runtime.env
     name: odh-model-controller-parameters
 generatorOptions:
@@ -109,22 +109,22 @@ replacements:
       kind: ConfigMap
       version: v1
       name: odh-model-controller-parameters
-      fieldPath: data.vllm-cpu-image
+      fieldPath: data.vllm-gaudi-image
     targets:
       - select:
           kind: Template
-          name: vllm-cpu-runtime-template
+          name: vllm-gaudi-runtime-template
         fieldPaths:
           - objects.0.spec.containers.0.image
   - source:
       kind: ConfigMap
       version: v1
       name: odh-model-controller-parameters
-      fieldPath: data.vllm-gaudi-image
+      fieldPath: data.vllm-cpu-image
     targets:
       - select:
           kind: Template
-          name: vllm-gaudi-runtime-template
+          name: vllm-cpu-runtime-template
         fieldPaths:
           - objects.0.spec.containers.0.image
   - source:

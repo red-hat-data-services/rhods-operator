@@ -13,6 +13,7 @@ metadata:
     template.openshift.io/long-description: This template defines resources needed to deploy vLLM Multi-Node ServingRuntime with KServe in Red Hat OpenShift AI
     opendatahub.io/modelServingSupport: '["single"]'
     opendatahub.io/apiProtocol: 'REST'
+    opendatahub.io/model-type: '["generative"]'
   name: vllm-multinode-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1

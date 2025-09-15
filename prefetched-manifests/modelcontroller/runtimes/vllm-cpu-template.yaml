@@ -5,25 +5,24 @@ metadata:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/ootb: 'true'
   annotations:
-    description: vLLM ServingRuntime to support ROCm (for AMD GPUs)
-    openshift.io/display-name: vLLM AMD GPU ServingRuntime for KServe
+    description: vLLM is a high-throughput and memory-efficient inference and serving engine for LLMs
+    openshift.io/display-name: vLLM CPU (ppc64le/s390x) ServingRuntime for KServe
     openshift.io/provider-display-name: Red Hat, Inc.
     tags: rhods,rhoai,kserve,servingruntime
     template.openshift.io/documentation-url: https://github.com/opendatahub-io/vllm
-    template.openshift.io/long-description: This template defines resources needed to deploy vLLM AMD GPU ServingRuntime with KServe in Red Hat OpenShift AI
+    template.openshift.io/long-description: This template defines resources needed to deploy vLLM CPU ServingRuntime with KServe in Red Hat OpenShift AI (ppc64le/s390x architectures only)
     opendatahub.io/modelServingSupport: '["single"]'
     opendatahub.io/apiProtocol: 'REST'
     opendatahub.io/model-type: '["generative"]'
-  name: vllm-rocm-runtime-template
+  name: vllm-cpu-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1
     kind: ServingRuntime
     metadata:
-      name: vllm-rocm-runtime
+      name: vllm-cpu-runtime
       annotations:
-        openshift.io/display-name: vLLM AMD GPU ServingRuntime for KServe
-        opendatahub.io/recommended-accelerators: '["amd.com/gpu"]'
-        opendatahub.io/runtime-version: 'v0.8.4.3'
+        openshift.io/display-name: vLLM CPU (ppc64le/s390x) ServingRuntime for KServe
+        opendatahub.io/runtime-version: 'v0.9.1.0'
       labels:
         opendatahub.io/dashboard: 'true'
     spec:
@@ -36,15 +35,15 @@ objects:
           name: vLLM
       containers:
         - name: kserve-container
-          image: $(vllm-rocm-image)
+          image: $(vllm-cpu-image)
           command:
             - python
             - -m
             - vllm.entrypoints.openai.api_server
           args:
-            - "--port=8080"
-            - "--model=/mnt/models"
-            - "--served-model-name={{.Name}}"
+            - '--port=8080'
+            - '--model=/mnt/models'
+            - '--served-model-name={{.Name}}'
           env:
             - name: HF_HOME
               value: /tmp/hf_home
