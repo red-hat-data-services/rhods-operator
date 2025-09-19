@@ -129,6 +129,10 @@ jobs:
                   git config --global init.defaultBranch ${BRANCH}
                   git init
                   git remote add origin $git_url
+                  if [[ $git_url == *"gitlab.cee.redhat.com"* ]]
+                  then
+                      git remote set-url origin https://${{ secrets.GITLAB_READONLY_USER }}:${{ secrets.GITLAB_READONLY_TOKEN }}@${git_url/https:\/\//}
+                  fi
                   git config core.sparseCheckout true
                   git config core.sparseCheckoutCone false
                   echo "$src" >> .git/info/sparse-checkout
