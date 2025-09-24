@@ -8,7 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "schedule/bundle-github-trigger.txt"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" && target_branch == "rhoai-2.16" 
+      event == "push" && target_branch != "rhoai-2.16" 
        &&  "build/schedule/operator-tekton-trigger.txt".pathChanged()
   creationTimestamp:
   labels:
