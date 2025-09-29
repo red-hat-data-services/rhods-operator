@@ -58,7 +58,8 @@ ENTRYPOINT ["/manager"]
 
 LABEL com.redhat.component="odh-operator-container" \
       description="rhoai-operator" \
-      name="managed-open-data-hub/odh-rhel8-operator" \
+      name="rhoai/odh-rhel9-operator" \
+      cpe="cpe:/a:redhat:openshift_ai:2.23::el9" \
       summary="odh-operator" \
       maintainer="['managed-open-data-hub@redhat.com']" \
       io.openshift.expose-services="" \
