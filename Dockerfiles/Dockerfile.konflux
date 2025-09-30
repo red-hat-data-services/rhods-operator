@@ -52,10 +52,11 @@ ENTRYPOINT ["/manager"]
 
 LABEL com.redhat.component="odh-operator-container" \
       description="rhoai-operator" \
-      name="managed-open-data-hub/odh-rhel9-operator" \
+      name="rhoai/odh-rhel9-operator" \
       summary="odh-operator" \
       maintainer="['managed-open-data-hub@redhat.com']" \
       io.openshift.expose-services="" \
       io.k8s.display-name="odh-operator" \
       io.k8s.description="odh-operator" \
-      com.redhat.license_terms="https://www.redhat.com/licenses/Red_Hat_Standard_EULA_20191108.pdf"
+      com.redhat.license_terms="https://www.redhat.com/licenses/Red_Hat_Standard_EULA_20191108.pdf" \
+      cpe="cpe:/a:redhat:openshift_ai:2.21::el9"
