@@ -79,6 +79,16 @@ func createGatewayClass(rr *odhtypes.ReconciliationRequest) error {
 				"app.kubernetes.io/managed-by": "opendatahub-operator",
 				"opendatahub.io/internal":      "true",
 			},
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         rr.Instance.GetObjectKind().GroupVersionKind().GroupVersion().String(),
+					Kind:               rr.Instance.GetObjectKind().GroupVersionKind().Kind,
+					Name:               rr.Instance.GetName(),
+					UID:                rr.Instance.GetUID(),
+					Controller:         &[]bool{true}[0],
+					BlockOwnerDeletion: &[]bool{false}[0], // Set to false to avoid finalizer issues
+				},
+			},
 		},
 		Spec: gwapiv1.GatewayClassSpec{
 			ControllerName: "openshift.io/gateway-controller/v1",

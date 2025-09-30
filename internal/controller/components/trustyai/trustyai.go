@@ -33,7 +33,34 @@ func (s *componentHandler) GetName() string {
 }
 
 func (s *componentHandler) NewCRObject(dsc *dscv1.DataScienceCluster) common.PlatformObject {
-	return &componentApi.TrustyAI{
+	// Create TrustyAI spec with explicit default values for boolean fields
+	trustyAISpec := componentApi.TrustyAISpec{
+		TrustyAICommonSpec: dsc.Spec.Components.TrustyAI.TrustyAICommonSpec,
+	}
+
+	// DEBUG: Log the original values from DSC
+	fmt.Printf("DEBUG: DSC TrustyAI Eval.LMEval.PermitCodeExecution: %v (type: %T)\n",
+		dsc.Spec.Components.TrustyAI.Eval.LMEval.PermitCodeExecution,
+		dsc.Spec.Components.TrustyAI.Eval.LMEval.PermitCodeExecution)
+	fmt.Printf("DEBUG: DSC TrustyAI Eval.LMEval.PermitOnline: %v (type: %T)\n",
+		dsc.Spec.Components.TrustyAI.Eval.LMEval.PermitOnline,
+		dsc.Spec.Components.TrustyAI.Eval.LMEval.PermitOnline)
+
+	// Always set explicit boolean values for eval fields to prevent type conversion issues
+	// This ensures the fields are explicitly set as boolean false instead of zero values
+	// that might be converted to strings during serialization
+	trustyAISpec.Eval.LMEval.PermitCodeExecution = false
+	trustyAISpec.Eval.LMEval.PermitOnline = false
+
+	// DEBUG: Log the values we're setting
+	fmt.Printf("DEBUG: Setting TrustyAI Eval.LMEval.PermitCodeExecution to: %v (type: %T)\n",
+		trustyAISpec.Eval.LMEval.PermitCodeExecution,
+		trustyAISpec.Eval.LMEval.PermitCodeExecution)
+	fmt.Printf("DEBUG: Setting TrustyAI Eval.LMEval.PermitOnline to: %v (type: %T)\n",
+		trustyAISpec.Eval.LMEval.PermitOnline,
+		trustyAISpec.Eval.LMEval.PermitOnline)
+
+	trustyAI := &componentApi.TrustyAI{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       componentApi.TrustyAIKind,
 			APIVersion: componentApi.GroupVersion.String(),
@@ -44,10 +71,18 @@ func (s *componentHandler) NewCRObject(dsc *dscv1.DataScienceCluster) common.Pla
 				annotations.ManagementStateAnnotation: string(dsc.Spec.Components.TrustyAI.ManagementState),
 			},
 		},
-		Spec: componentApi.TrustyAISpec{
-			TrustyAICommonSpec: dsc.Spec.Components.TrustyAI.TrustyAICommonSpec,
-		},
+		Spec: trustyAISpec,
 	}
+
+	// DEBUG: Log the final TrustyAI resource values
+	fmt.Printf("DEBUG: Final TrustyAI resource - PermitCodeExecution: %v (type: %T)\n",
+		trustyAI.Spec.Eval.LMEval.PermitCodeExecution,
+		trustyAI.Spec.Eval.LMEval.PermitCodeExecution)
+	fmt.Printf("DEBUG: Final TrustyAI resource - PermitOnline: %v (type: %T)\n",
+		trustyAI.Spec.Eval.LMEval.PermitOnline,
+		trustyAI.Spec.Eval.LMEval.PermitOnline)
+
+	return trustyAI
 }
 
 func (s *componentHandler) Init(platform common.Platform) error {

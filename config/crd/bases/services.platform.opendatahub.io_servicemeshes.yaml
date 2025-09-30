@@ -1,32 +1,36 @@
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.3
-  creationTimestamp: null
-  name: trustyais.components.platform.opendatahub.io
+  name: servicemeshes.services.platform.opendatahub.io
 spec:
-  group: components.platform.opendatahub.io
+  group: services.platform.opendatahub.io
   names:
-    kind: TrustyAI
-    listKind: TrustyAIList
-    plural: trustyais
-    singular: trustyai
+    kind: ServiceMesh
+    listKind: ServiceMeshList
+    plural: servicemeshes
+    singular: servicemesh
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: Ready
-      jsonPath: .status.conditions[?(@.type=="Ready")].status
+    - jsonPath: .spec.managementState
+      name: Management State
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: string
-    - description: Reason
-      jsonPath: .status.conditions[?(@.type=="Ready")].reason
+    - jsonPath: .status.conditions[?(@.type=="Ready")].reason
       name: Reason
       type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: TrustyAI is the Schema for the trustyais API
+        description: ServiceMesh is the Schema for the servicemesh API
         properties:
           apiVersion:
             description: |-
@@ -46,53 +50,72 @@ spec:
           metadata:
             type: object
           spec:
-            description: TrustyAISpec defines the desired state of TrustyAI
+            description: ServiceMeshSpec defines the desired state of ServiceMesh
             properties:
-              devFlags:
-                description: Add developer fields
+              auth:
+                description: |-
+                  Auth holds configuration of authentication and authorization services
+                  used by Service Mesh in Opendatahub.
                 properties:
-                  manifests:
-                    description: List of custom manifests for the given component
+                  audiences:
+                    default:
+                    - https://kubernetes.default.svc
+                    description: |-
+                      Audiences is a list of the identifiers that the resource server presented
+                      with the token identifies as. Audience-aware token authenticators will verify
+                      that the token was intended for at least one of the audiences in this list.
+                      If no audiences are provided, the audience will default to the audience of the
+                      Kubernetes apiserver (kubernetes.default.svc).
                     items:
-                      properties:
-                        contextDir:
-                          default: manifests
-                          description: contextDir is the relative path to the folder
-                            containing manifests in a repository, default value "manifests"
-                          type: string
-                        sourcePath:
-                          default: ""
-                          description: 'sourcePath is the subpath within contextDir
-                            where kustomize builds start. Examples include any sub-folder
-                            or path: `base`, `overlays/dev`, `default`, `odh` etc.'
-                          type: string
-                        uri:
-                          default: ""
-                          description: uri is the URI point to a git repo with tag/branch.
-                            e.g.  https://github.com/org/repo/tarball/<tag/branch>
-                          type: string
-                      type: object
+                      type: string
                     type: array
+                  namespace:
+                    description: |-
+                      Namespace where it is deployed. If not provided, the default is to
+                      use '-auth-provider' suffix on the ApplicationsNamespace of the DSCI.
+                    maxLength: 63
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
+                    type: string
                 type: object
-              eval:
-                description: Eval configuration for TrustyAI evaluations
+              controlPlane:
+                description: ControlPlane holds configuration of Service Mesh used
+                  by Opendatahub.
                 properties:
-                  lmeval:
-                    description: LMEval configuration for model evaluations
-                    properties:
-                      permitCodeExecution:
-                        description: PermitCodeExecution controls whether code execution
-                          is allowed during evaluations
-                        type: boolean
-                      permitOnline:
-                        description: PermitOnline controls whether online access is
-                          allowed during evaluations
-                        type: boolean
-                    type: object
+                  metricsCollection:
+                    default: Istio
+                    description: |-
+                      MetricsCollection specifies if metrics from components on the Mesh namespace
+                      should be collected. Setting the value to "Istio" will collect metrics from the
+                      control plane and any proxies on the Mesh namespace (like gateway pods). Setting
+                      to "None" will disable metrics collection.
+                    enum:
+                    - Istio
+                    - None
+                    type: string
+                  name:
+                    default: data-science-smcp
+                    description: Name is a name Service Mesh Control Plane. Defaults
+                      to "data-science-smcp".
+                    type: string
+                  namespace:
+                    default: istio-system
+                    description: Namespace is a namespace where Service Mesh is deployed.
+                      Defaults to "istio-system".
+                    maxLength: 63
+                    pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
+                    type: string
                 type: object
+              managementState:
+                default: Removed
+                enum:
+                - Managed
+                - Unmanaged
+                - Removed
+                pattern: ^(Managed|Unmanaged|Force|Removed)$
+                type: string
             type: object
           status:
-            description: TrustyAIStatus defines the observed state of TrustyAI
+            description: ServiceMeshStatus defines the observed state of ServiceMesh
             properties:
               conditions:
                 items:
@@ -156,36 +179,9 @@ spec:
                 type: integer
               phase:
                 type: string
-              releases:
-                items:
-                  description: ComponentRelease represents the detailed status of
-                    a component release.
-                  properties:
-                    name:
-                      type: string
-                    repoUrl:
-                      type: string
-                    version:
-                      type: string
-                  required:
-                  - name
-                  type: object
-                type: array
-                x-kubernetes-list-map-keys:
-                - name
-                x-kubernetes-list-type: map
             type: object
         type: object
-        x-kubernetes-validations:
-        - message: TrustyAI name must be default-trustyai
-          rule: self.metadata.name == 'default-trustyai'
     served: true
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: null
-  storedVersions: null

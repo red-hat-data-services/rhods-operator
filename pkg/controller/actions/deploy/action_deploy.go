@@ -382,9 +382,29 @@ func (a *Action) patch(
 			return nil, fmt.Errorf("failed to create object %s/%s: %w", obj.GetNamespace(), obj.GetName(), err)
 		}
 	} else {
+		// DEBUG: Log the object before marshaling
+		if obj.GetKind() == "TrustyAI" {
+			fmt.Printf("DEBUG: Before JSON marshal - TrustyAI object: %+v\n", obj.Object)
+			if spec, ok := obj.Object["spec"].(map[string]interface{}); ok {
+				if eval, ok := spec["eval"].(map[string]interface{}); ok {
+					if lmeval, ok := eval["lmeval"].(map[string]interface{}); ok {
+						fmt.Printf("DEBUG: Before JSON marshal - PermitCodeExecution: %v (type: %T)\n",
+							lmeval["permitCodeExecution"], lmeval["permitCodeExecution"])
+						fmt.Printf("DEBUG: Before JSON marshal - PermitOnline: %v (type: %T)\n",
+							lmeval["permitOnline"], lmeval["permitOnline"])
+					}
+				}
+			}
+		}
+
 		data, err := json.Marshal(obj)
 		if err != nil {
 			return nil, err
+		}
+
+		// DEBUG: Log the marshaled data
+		if obj.GetKind() == "TrustyAI" {
+			fmt.Printf("DEBUG: After JSON marshal - TrustyAI data: %s\n", string(data))
 		}
 
 		err = cli.Patch(

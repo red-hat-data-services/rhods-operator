@@ -1,0 +1,62 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rhods-gateway-finalizer-patch-role
+rules:
+- apiGroups:
+  - "services.platform.opendatahub.io"
+  resources:
+  - "gatewayconfigs/finalizers"
+  - "servicemeshes/finalizers"
+  verbs:
+  - "update"
+- apiGroups:
+  - "services.platform.opendatahub.io"
+  resources:
+  - "servicemeshes"
+  - "servicemeshes/status"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+  - "create"
+  - "update"
+  - "patch"
+  - "delete"
+- apiGroups:
+  - "gateway.networking.k8s.io"
+  resources:
+  - "httproutes"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+  - "create"
+  - "update"
+  - "patch"
+  - "delete"
+- apiGroups:
+  - "networking.istio.io"
+  resources:
+  - "destinationrules"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+  - "create"
+  - "update"
+  - "patch"
+  - "delete"
+- apiGroups:
+  - "monitoring.coreos.com"
+  resources:
+  - "podmonitors"
+  - "servicemonitors"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+  - "create"
+  - "update"
+  - "patch"
+  - "delete"

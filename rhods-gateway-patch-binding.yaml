@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rhods-gateway-finalizer-patch-binding
+subjects:
+- kind: ServiceAccount
+  name: redhat-ods-operator-controller-manager
+  namespace: redhat-ods-operator
+roleRef:
+  kind: ClusterRole
+  name: rhods-gateway-finalizer-patch-role
+  apiGroup: rbac.authorization.k8s.io
