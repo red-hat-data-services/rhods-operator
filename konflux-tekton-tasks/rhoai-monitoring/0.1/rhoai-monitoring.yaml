@@ -1,0 +1,305 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: rhoai-monitoring
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/categories: Monitoring
+    tekton.dev/tags: monitoring, prometheus, metrics
+    tekton.dev/displayName: "RHOAI Pipeline Monitoring"
+    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le,linux/arm64"
+spec:
+  description: >-
+    This task collects important pipeline run parameters and metrics, then reports them to a Prometheus pushgateway.
+    It gathers information about the pipeline execution, build results, and runtime metrics for monitoring purposes.
+  results:
+  - description: Metrics reported to rhoai-monitoring - status
+    name: status-metrics-reported
+  params:
+  - name: pushgateway-url
+    type: string
+    description: URL of the Prometheus pushgateway endpoint
+    default: "http://prometheus-pushgateway:9091"
+  - name: job-name
+    type: string
+    description: Job name for the metrics in Prometheus
+    default: "tekton-pipeline-monitoring"
+  - name: pipeline-name
+    type: string
+    description: Name of the pipeline being monitored
+    default: ""
+  - name: git-url
+    type: string
+    description: Source repository URL
+    default: ""
+  - name: revision
+    type: string
+    description: Git revision/commit being built
+    default: ""
+  - name: target-branch
+    type: string
+    description: Target branch being built
+    default: ""
+  - name: output-image
+    type: string
+    description: Output image URL
+    default: ""
+  - name: image-digest
+    type: string
+    description: Built image digest
+    default: ""
+  - name: build-duration
+    type: string
+    description: Pipeline build duration in seconds
+    default: ""
+  - name: cluster-name
+    type: string
+    description: Name of the cluster where pipeline is running
+    default: ""
+  - name: namespace
+    type: string
+    description: Kubernetes namespace where pipeline is running
+    default: ""
+  - name: pipeline-status
+    type: string
+    description: Overall pipeline status (Success/Failed/Unknown)
+    default: "Unknown"
+  - name: skip-checks
+    type: string
+    description: Whether security checks were skipped
+    default: "false"
+  - name: hermetic
+    type: string
+    description: Whether build was executed with network isolation
+    default: "true"
+  - name: build-platforms
+    type: array
+    description: List of platforms the image was built for
+    default: []
+  - name: additional-labels
+    type: array
+    description: Additional custom labels for metrics
+    default: []
+  steps:
+  - name: collect-and-report-metrics
+    # image: quay.io/rhoai-konflux/alpine:latest
+    image: registry.access.redhat.com/ubi9:latest
+    env:
+    - name: PUSHGATEWAY_URL
+      valueFrom:
+        secretKeyRef:
+          name: rhoai-monitoring-secret
+          key: rhoai-monitoring-pushgateway-url
+    - name: JOB_NAME
+      value: $(params.job-name)
+    - name: PIPELINE_NAME
+      value: $(params.pipeline-name)
+    - name: GIT_URL
+      value: $(params.git-url)
+    - name: REVISION
+      value: $(params.revision)
+    - name: TARGET_BRANCH
+      value: $(params.target-branch)
+    - name: OUTPUT_IMAGE
+      value: $(params.output-image)
+    - name: IMAGE_DIGEST
+      value: $(params.image-digest)
+    - name: BUILD_DURATION
+      value: $(params.build-duration)
+    - name: CLUSTER_NAME
+      value: $(params.cluster-name)
+    - name: NAMESPACE
+      value: $(params.namespace)
+    - name: PIPELINE_STATUS
+      value: $(params.pipeline-status)
+    - name: SKIP_CHECKS
+      value: $(params.skip-checks)
+    - name: HERMETIC
+      value: $(params.hermetic)
+    # - name: BUILD_PLATFORMS
+    #   value: $(params.build-platforms[*])
+    # - name: ADDITIONAL_LABELS
+    #   value: $(params.additional-labels[*])
+    - name: PIPELINERUN_NAME
+      value: "$(context.pipelineRun.name)"
+    - name: PIPELINERUN_NAMESPACE
+      value: "$(context.pipelineRun.namespace)"
+    - name: PIPELINERUN_UID
+      value: "$(context.pipelineRun.uid)"
+    - name: TASK_RUN_NAME
+      value: "$(context.taskRun.name)"
+    - name: START_TIME
+      value: "$(context.pipelineRun.creationTimestamp)"
+    - name: BUILD_URL
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.annotations['pipelinesascode.tekton.dev/log-url']
+    script: |
+      #!/bin/bash
+      set -e
+
+      echo "=== RHOAI Pipeline Monitoring Task ==="
+      echo "Collecting pipeline metrics and reporting to Prometheus pushgateway"
+      echo "Pushgateway URL: $PUSHGATEWAY_URL"
+      echo "Job Name: $JOB_NAME"
+      echo "Pipeline Name: $PIPELINE_NAME"
+      echo "PipelineRun: $PIPELINERUN_NAME"
+      echo "Namespace: $PIPELINERUN_NAMESPACE"
+      echo "TARGET_BRANCH: $TARGET_BRANCH"
+
+      # Install curl if not available
+      if ! command -v curl &> /dev/null; then
+          echo "Installing curl..."
+          apk add --no-cache curl
+      fi
+
+      # Calculate current timestamp
+      CURRENT_TIME=$(date +%s)
+
+      # Calculate build duration if start time is available
+      if [ -n "$START_TIME" ] && [ -n "$BUILD_DURATION" ]; then
+          DURATION_SECONDS="$BUILD_DURATION"
+      elif [ -n "$START_TIME" ]; then
+          START_TIMESTAMP=$(date -d "$START_TIME" +%s 2>/dev/null || echo "0")
+          if [ "$START_TIMESTAMP" != "0" ]; then
+              DURATION_SECONDS=$((CURRENT_TIME - START_TIMESTAMP))
+          else
+              DURATION_SECONDS="0"
+          fi
+      else
+          DURATION_SECONDS="0"
+      fi
+
+      # Extract repository name from git URL
+      REPO_NAME=""
+      if [ -n "$GIT_URL" ]; then
+          REPO_NAME=$(echo "$GIT_URL" | sed 's|.*/||' | sed 's|\.git$||')
+      fi
+
+      # Extract image name from output image
+      OUTPUT_IMAGE=""
+      if [ -n "$OUTPUT_IMAGE" ]; then
+          OUTPUT_IMAGE=$(echo "$OUTPUT_IMAGE" | sed 's|.*/||' | cut -d':' -f1)
+      fi
+
+      # Convert pipeline status to numeric value for metrics
+      STATUS_CODE=0
+      case "$PIPELINE_STATUS" in
+          "Success"|"Succeeded") STATUS_CODE=1 ;;
+          "Failed"|"Error") STATUS_CODE=0 ;;
+          *) STATUS_CODE=2 ;;  # Unknown/Other
+      esac
+
+      # Convert boolean parameters to numeric
+      SKIP_CHECKS_NUM=0
+      [ "$SKIP_CHECKS" = "true" ] && SKIP_CHECKS_NUM=1
+
+      HERMETIC_NUM=0
+      [ "$HERMETIC" = "true" ] && HERMETIC_NUM=1
+
+      # Count build platforms
+      PLATFORM_COUNT=0
+      if [ -n "$BUILD_PLATFORMS" ]; then
+          PLATFORM_COUNT=$(echo "$BUILD_PLATFORMS" | wc -w)
+      fi
+
+      # Prepare base labels
+      BASE_LABELS="job=\"$JOB_NAME\",pipeline=\"$PIPELINE_NAME\",pipelinerun=\"$PIPELINERUN_NAME\",namespace=\"$PIPELINERUN_NAMESPACE\""
+
+      if [ -n "$REPO_NAME" ]; then
+          BASE_LABELS="$BASE_LABELS,repository=\"$REPO_NAME\""
+      fi
+
+      if [ -n "$OUTPUT_IMAGE" ]; then
+          BASE_LABELS="$BASE_LABELS,image=\"$OUTPUT_IMAGE\""
+      fi
+
+      if [ -n "$CLUSTER_NAME" ]; then
+          BASE_LABELS="$BASE_LABELS,cluster=\"$CLUSTER_NAME\""
+      fi
+
+      if [ -n "$REVISION" ]; then
+          SHORT_REVISION=$(echo "$REVISION" | cut -c1-8)
+          BASE_LABELS="$BASE_LABELS,revision=\"$SHORT_REVISION\""
+      fi
+
+      if [ -n "$BUILD_URL" ]; then
+          KONFLUX_INSTANCE=$(echo $BUILD_URL | sed -n 's/.*\.apps\.\([^.]*\)\..*/\1/p')
+          BASE_LABELS="$BASE_LABELS,konflux_instance=\"$KONFLUX_INSTANCE\""
+      fi
+
+      # Create metrics payload
+      METRICS_FILE="/tmp/metrics.txt"
+
+      echo "# HELP rhoai_pipeline_build_duration_seconds Duration of the pipeline build in seconds" > "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_build_duration_seconds gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_build_duration_seconds{$BASE_LABELS} $DURATION_SECONDS" >> "$METRICS_FILE"
+
+      echo "# HELP rhoai_pipeline_status Pipeline execution status (0=failed, 1=success, 2=unknown)" >> "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_status gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_status{$BASE_LABELS} $STATUS_CODE" >> "$METRICS_FILE"
+
+      echo "# HELP rhoai_pipeline_skip_checks Whether security checks were skipped (0=false, 1=true)" >> "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_skip_checks gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_skip_checks{$BASE_LABELS} $SKIP_CHECKS_NUM" >> "$METRICS_FILE"
+
+      echo "# HELP rhoai_pipeline_hermetic_build Whether build was executed with network isolation (0=false, 1=true)" >> "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_hermetic_build gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_hermetic_build{$BASE_LABELS} $HERMETIC_NUM" >> "$METRICS_FILE"
+
+      echo "# HELP rhoai_pipeline_build_platforms_count Number of platforms the image was built for" >> "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_build_platforms_count gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_build_platforms_count{$BASE_LABELS} $PLATFORM_COUNT" >> "$METRICS_FILE"
+
+      echo "# HELP rhoai_pipeline_execution_timestamp_seconds Timestamp when the pipeline was executed" >> "$METRICS_FILE"
+      echo "# TYPE rhoai_pipeline_execution_timestamp_seconds gauge" >> "$METRICS_FILE"
+      echo "rhoai_pipeline_execution_timestamp_seconds{$BASE_LABELS} $CURRENT_TIME" >> "$METRICS_FILE"
+
+      # Add image digest as info metric if available
+      if [ -n "$IMAGE_DIGEST" ]; then
+          DIGEST_LABELS="$BASE_LABELS,digest=\"$IMAGE_DIGEST\""
+          echo "# HELP rhoai_pipeline_image_info Information about the built image" >> "$METRICS_FILE"
+          echo "# TYPE rhoai_pipeline_image_info gauge" >> "$METRICS_FILE"
+          echo "rhoai_pipeline_image_info{$DIGEST_LABELS} 1" >> "$METRICS_FILE"
+      fi
+
+      # Add platform-specific metrics
+      if [ -n "$BUILD_PLATFORMS" ]; then
+          echo "# HELP rhoai_pipeline_platform_build Platform-specific build information" >> "$METRICS_FILE"
+          echo "# TYPE rhoai_pipeline_platform_build gauge" >> "$METRICS_FILE"
+          for platform in $BUILD_PLATFORMS; do
+              PLATFORM_LABELS="$BASE_LABELS,platform=\"$platform\""
+              echo "rhoai_pipeline_platform_build{$PLATFORM_LABELS} 1" >> "$METRICS_FILE"
+          done
+      fi
+
+      echo ""
+      echo "=== Generated Metrics ==="
+      cat "$METRICS_FILE"
+      echo "========================="
+
+      # Send metrics to pushgateway
+      echo ""
+      echo "Sending metrics to pushgateway: $PUSHGATEWAY_URL"
+
+      PUSHGATEWAY_ENDPOINT="$PUSHGATEWAY_URL"
+
+      if curl -f -L --insecure -X POST \
+          --data-binary @"$METRICS_FILE" \
+          --connect-timeout 10 \
+          --max-time 30 \
+          "$PUSHGATEWAY_ENDPOINT"; then
+          echo ""
+          echo "✅ Successfully sent metrics to pushgateway"
+      else
+          echo ""
+          echo "❌ Failed to send metrics to pushgateway"
+          echo "Endpoint: $PUSHGATEWAY_ENDPOINT"
+          echo "This is not a fatal error - pipeline will continue"
+          exit 0  # Don't fail the pipeline if monitoring fails
+      fi
+
+      echo ""
+      echo "=== RHOAI Pipeline Monitoring Complete ==="
