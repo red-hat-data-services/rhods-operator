@@ -25,21 +25,11 @@ map:
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
     git.commit: 21b4e5c02b2f5d17a5e9f6d1b4d38979175a3e05
-  odh-codeflare-operator:
-    src: config
-    dest: codeflare
-    git.url: https://github.com/red-hat-data-services/codeflare-operator
-    git.commit: f6e301ff97db9efe2c36d2c1765eeb7093fae276
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
     git.commit: fde70db72669f1a10dab9bdb29a35e7580924c8a
-  odh-kueue-controller:
-    src: config
-    dest: kueue
-    git.url: https://github.com/red-hat-data-services/kueue
-    git.commit: 8d16b66ad86bb82387ca2001c5c8164a9e01aa6f
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -55,11 +45,6 @@ map:
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
     git.commit: d42ef7b9478e39cdd284cf13a6118476d3d07ce7
-  odh-modelmesh-serving-controller:
-    src: config
-    dest: modelmeshserving
-    git.url: https://github.com/red-hat-data-services/modelmesh-serving
-    git.commit: 8deb62b9278b63eacc1cf0df9db40548a124e8f5
   odh-dashboard:
     src: manifests
     dest: dashboard
