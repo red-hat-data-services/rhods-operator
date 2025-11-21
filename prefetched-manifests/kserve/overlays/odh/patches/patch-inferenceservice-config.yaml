@@ -106,3 +106,25 @@ data:
     {
       "autoMountServiceAccountToken": false
     }
+
+  credentials: |-
+    {
+       "storageSpecSecretName": "storage-config",
+       "storageSecretNameAnnotation": "serving.kserve.io/storageSecretName",
+       "gcs": {
+           "gcsCredentialFileName": "gcloud-application-credentials.json"
+       },
+       "s3": {
+           "s3AccessKeyIDName": "AWS_ACCESS_KEY_ID",
+           "s3SecretAccessKeyName": "AWS_SECRET_ACCESS_KEY",
+           "s3Endpoint": "",
+           "s3UseHttps": "",
+           "s3Region": "",
+           "s3VerifySSL": "",
+           "s3UseVirtualBucket": "",
+           "s3UseAccelerate": "",
+           "s3UseAnonymousCredential": "",
+           "s3CABundleConfigMap": "odh-kserve-custom-ca-bundle",
+           "s3CABundle": "/etc/ssl/custom-certs"
+       }
+    }
