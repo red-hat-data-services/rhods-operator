@@ -18,6 +18,7 @@ patches:
 - path: patches/patch-webhook-svc-openshift-cert-injection.yaml
 - path: patches/patch-inferenceservice-config.yaml
 - path: patches/patch-set-resources-manager.yaml
+- path: patches/remove-namespace.yaml
 - target:
     kind: MutatingWebhookConfiguration
   patch: |
