@@ -65,6 +65,11 @@ map:
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
     git.commit: 2ca8561ef9648ddaffdf14a871f978e492e44881
+  odh-trainer:
+    src: manifests
+    dest: traineroperator
+    git.url: https://github.com/red-hat-data-services/trainer
+    git.commit: 604cbab7f366add0dec8b2ddc664d0d8e499eb23
 additional_meta:
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
@@ -243,6 +248,3 @@ additional_meta:
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: e7f248fd0a86b717e3b8364f12083774cb049a8c
-  odh-trainer:
-    git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 604cbab7f366add0dec8b2ddc664d0d8e499eb23
