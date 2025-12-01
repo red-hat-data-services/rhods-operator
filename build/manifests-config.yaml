@@ -24,12 +24,12 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 8410b93b552943977aac3c287a540f16fc8daa8b
+    git.commit: 530174cc83fe1a3dc90bcbe90b854a356ad7c1d3
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: f9c8d7b5453983a56a84660e7e70aa9f6e7f5b7e
+    git.commit: 1cc568ef2060db1def1e04cf6339026ab5c64fba
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 25b1344cec5a22fc5f7ae784d85b89417782cf58
+    git.commit: aebf6110a65cd45e09bd9c25c3adf04c6d02dd1f
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -64,7 +64,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: 74d1a32219eee40482f1d747383dd21e856be587
+    git.commit: 9297c8fcbdccdb7c671b943e5ebc1b78f65b13a3
   odh-trainer:
     src: manifests
     dest: trainer
@@ -100,7 +100,7 @@ additional_meta:
     git.commit: bd2a3b827a60317ac7289e31e98752b357b2d0b5
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: cf9abc941240d61fb8c98ad40776ed9b4d994947
+    git.commit: 0b380f1334e117c9e59a085c331ed63cbcc59780
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: dced04d46bbfa38c28e61fd9b3c01f12550ee0a8
@@ -202,7 +202,7 @@ additional_meta:
     git.commit: c4cc6d34b3f5543943fd7d51c057498f90544302
   odh-llama-stack-core:
     git.url: https://gitlab.com/redhat/rhel-ai/llama-stack/containers
-    git.commit: da52d75abe249df16ca8247043443bceb3a2fd90
+    git.commit: 779718a22e5f9f4cdb653fb5c59c31d739b924d9
   odh-workbench-jupyter-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 4305ee4d6550ff0ce12260d2beec769e3bd4d0c6
