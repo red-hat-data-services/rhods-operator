@@ -19,12 +19,12 @@ map:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 3cdbbe3023e1d42ec156fadccfdbd6967dcd0d16
+    git.commit: 4c4bc96e2467594de68bb70f69c2fff3b12fda1d
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 74e6ca37e9b77cb1e5f539d35078eadabfde40a0
+    git.commit: 3191d67d546b7f37d1826f0604868d1640732f57
   odh-codeflare-operator:
     src: config
     dest: codeflare
@@ -34,7 +34,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 2469bef296289008876c3582f0c0a45743558c55
+    git.commit: c85ac157b680028d5dc2a54b299c6f29ea94151c
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -64,7 +64,7 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 59687ba7682da15db2b454d9c31638b9a681be39
+    git.commit: 293829d2253ee2cc9fa58bcd7b1d29f2a75d8744
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -79,7 +79,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: c3730e1fc0d2d78f3ec1028b39c0ee5617b1dc64
+    git.commit: 061e0fb8f15a0e310732cb1e2a64a18745b5be9f
 additional_meta:
   odh-mm-rest-proxy:
     git.url: https://github.com/red-hat-data-services/rest-proxy
@@ -239,7 +239,7 @@ additional_meta:
     git.commit: 8ecacd224e1309f074b97c8ced83d09655fb5ae1
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 59687ba7682da15db2b454d9c31638b9a681be39
+    git.commit: 293829d2253ee2cc9fa58bcd7b1d29f2a75d8744
   odh-workbench-jupyter-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: a1b087e9288206d59e9e001c8800db39e06e9735
