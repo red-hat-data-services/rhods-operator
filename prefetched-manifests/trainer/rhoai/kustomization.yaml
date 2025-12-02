@@ -54,6 +54,13 @@ patches:
 # through a ComponentConfig type
 - path: manager_config_patch.yaml
 - path: manager_metrics_patch.yaml
+# RHAI-specific RBAC for progression tracking
+- path: rbac_progression_patch.yaml
+  target:
+    group: rbac.authorization.k8s.io
+    version: v1
+    kind: ClusterRole
+    name: kubeflow-trainer-controller-manager
 - patch: |-
     - op: remove
       path: /spec/ports/0
