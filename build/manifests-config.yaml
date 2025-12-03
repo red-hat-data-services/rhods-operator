@@ -9,117 +9,117 @@ map:
     src: config
     dest: kserve
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: c77a202869b7f21be89a6aae25ff2067a2849761
+    git.commit: e2a570ab2fc7e2757f955a9a448e0e46a15d1f39
   odh-kf-notebook-controller:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 928e522981434c2d0746a45cc605db324c1a116a
+    git.commit: 746ab26c9ad250100d2f84c6fd6d547bf8d19cc0
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 928e522981434c2d0746a45cc605db324c1a116a
+    git.commit: 746ab26c9ad250100d2f84c6fd6d547bf8d19cc0
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 3191d67d546b7f37d1826f0604868d1640732f57
+    git.commit: 4f74fd62be4e2771c5c62732ad349d89cbf8e295
   odh-codeflare-operator:
     src: config
     dest: codeflare
     git.url: https://github.com/red-hat-data-services/codeflare-operator
-    git.commit: e802c3787aed9a511def888901217a3d7f239fa3
+    git.commit: 17a24f45bae7d64b7917d03d71ec093b0d763756
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 4b78ae2ce8e2fc4bbf71f798f4db4d1b46c566b6
+    git.commit: 7222c17a359b3d89712c98f98821edcbc5263940
   odh-kueue-controller:
     src: config
     dest: kueue
     git.url: https://github.com/red-hat-data-services/kueue
-    git.commit: bac65fba595c2a351e6bd62eef8195b3a2b30434
+    git.commit: 42ba0fa7375d448359fa384596e9f54a07822343
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: f9291e980c598147f4501de797fef46f5b8689a3
+    git.commit: 62bf1b66e4b80f19792db96c22dc056e664b060b
   odh-model-controller:
     src: config
     dest: modelcontroller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 10fb2dea16f03aa3a3f8301fed9114c3b1f11dc8
+    git.commit: a7e9ebfba7c8a9ef8a354ba8349ebdc6e6f0767b
   odh-model-registry-operator:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 1a78f6d609cc8fd77fafdf34f1b4d2fbf7284ea0
+    git.commit: beb9602836305093daae2b3a00a4ceeaf5dcac23
   odh-modelmesh-serving-controller:
     src: config
     dest: modelmeshserving
     git.url: https://github.com/red-hat-data-services/modelmesh-serving
-    git.commit: a1517cc5165f878b5d57158d1d054bdcb809fd35
+    git.commit: b28d7b35e9ab5eb1c0cf3d8fdc6f5a87c4a99073
   odh-dashboard:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 65d9a006ebbbaff4100852dca10d6665428ffab3
+    git.commit: 4c10cbe6817eeef76491832636ff00e720bcfc7d
   odh-training-operator:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 49823d90f86e5d6399938195ba9d6c7d8fcbeeda
+    git.commit: 3071414c5433581642a3144ee6564912043bbeb5
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: eceb35806cc04e95e460319d29d30ec6ad49bd3f
+    git.commit: e609652e1518f602486ec7e886797d483c41bccf
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: 061e0fb8f15a0e310732cb1e2a64a18745b5be9f
+    git.commit: 4c409ecf733b7275461ffe1ebe48ffab3a75ed7d
 additional_meta:
   odh-mm-rest-proxy:
     git.url: https://github.com/red-hat-data-services/rest-proxy
-    git.commit: 71a06c2c7236b2cbc761472b9b6493608dfebc02
+    git.commit: 894e2919fb19bae6a12a56227c3bcfbe35a6fbb6
   odh-modelmesh:
     git.url: https://github.com/red-hat-data-services/modelmesh
-    git.commit: d3a970fed423bd8c3486f485c86af93df61ddce0
+    git.commit: c51ce5d6eb423ebe37bd3c1c859dc38e206ccbfb
   odh-modelmesh-runtime-adapter:
     git.url: https://github.com/red-hat-data-services/modelmesh-runtime-adapter
-    git.commit: 59dfe5f47e32036f4ae2a542e19745afe161823e
+    git.commit: 483d0a80d8ed53bc5704b8474653ad0d9ab87e3d
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
-    git.commit: f5148344457497733e1918dab4c209cf22467a88
+    git.commit: 0cefa7f1c17abc5e0f875ab9f7325a1d503de236
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: dde752dfde96b93df1d4efe55945527917b7e42f
+    git.commit: 6f82d17b01e1a0affb15b596ec5dc65af02a82bc
   odh-ml-pipelines-api-server-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: 7d8cd8331fd138a4494cfbfd6a526e0a57e2e1c2
+    git.commit: 8d723a9f303db2facf03b3aec9f4949f1abaf022
   odh-ml-pipelines-persistenceagent-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: ce1bcf50d88e69d2b16854fbd0b2bad89b293fbd
+    git.commit: 8d723a9f303db2facf03b3aec9f4949f1abaf022
   odh-ml-pipelines-scheduledworkflow-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: ce1bcf50d88e69d2b16854fbd0b2bad89b293fbd
+    git.commit: 8d723a9f303db2facf03b3aec9f4949f1abaf022
   odh-ml-pipelines-driver:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: ce1bcf50d88e69d2b16854fbd0b2bad89b293fbd
+    git.commit: 8d723a9f303db2facf03b3aec9f4949f1abaf022
   odh-ml-pipelines-launcher:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: ce1bcf50d88e69d2b16854fbd0b2bad89b293fbd
+    git.commit: 8d723a9f303db2facf03b3aec9f4949f1abaf022
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 047004e3f7447f5d691ca55ddf811cf1477ae4e3
+    git.commit: 580f8fa7ce8df033db7a30c8381e3f0660de5268
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 047004e3f7447f5d691ca55ddf811cf1477ae4e3
+    git.commit: 580f8fa7ce8df033db7a30c8381e3f0660de5268
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: c1b7d5fed3e2ce1201454933656ad3e74e32fd04
+    git.commit: b86c53a16b5ada6dbb143d3de8e428b50e1d335e
   odh-ml-pipelines-runtime-generic:
     git.url: https://github.com/red-hat-data-services/ilab-on-ocp
     git.commit: 582fcf13f528314adb77f2bc0f989175bb96c65e
@@ -128,94 +128,94 @@ additional_meta:
     git.commit: f5734d203c416a8fb90bdc9361526bf612ee3094
   odh-kserve-agent:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: c77a202869b7f21be89a6aae25ff2067a2849761
+    git.commit: e2a570ab2fc7e2757f955a9a448e0e46a15d1f39
   odh-kserve-router:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: c77a202869b7f21be89a6aae25ff2067a2849761
+    git.commit: e2a570ab2fc7e2757f955a9a448e0e46a15d1f39
   odh-kserve-storage-initializer:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: c77a202869b7f21be89a6aae25ff2067a2849761
+    git.commit: e2a570ab2fc7e2757f955a9a448e0e46a15d1f39
   odh-llm-d-inference-scheduler:
     git.url: https://github.com/red-hat-data-services/llm-d-inference-scheduler
     git.commit: cc9adf6907a0513d071d636ab9920fc2906d1af5
   odh-llm-d-routing-sidecar:
     git.url: https://github.com/red-hat-data-services/llm-d-routing-sidecar
-    git.commit: 80012f0cd9ad12099e70587f831965b35c7aca00
+    git.commit: 9ac38eae82eae914c084529ffdba112bff4c2a99
   odh-must-gather:
     git.url: https://github.com/red-hat-data-services/must-gather
-    git.commit: fc9cb822f28dd023ef1dfce6b7901af3a65627e6
+    git.commit: 20851a6929534ae673d6058358963a2be5745b48
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: f9291e980c598147f4501de797fef46f5b8689a3
+    git.commit: 62bf1b66e4b80f19792db96c22dc056e664b060b
   odh-ta-lmes-job:
     git.url: https://github.com/red-hat-data-services/lm-evaluation-harness
-    git.commit: 4a1b5cb96a7f3d81d0759fc65a79d6996faf0991
+    git.commit: 9234edc4c525cd36c4d18cf394c25c58d99cece7
   odh-fms-guardrails-orchestrator:
     git.url: https://github.com/red-hat-data-services/fms-guardrails-orchestrator
-    git.commit: 3da7d78ac38e2855cf9f05042bca5f80d16ee376
+    git.commit: d5cff0d605182a6176f07e8432283077e6d0f460
   odh-trustyai-vllm-orchestrator-gateway:
     git.url: https://github.com/red-hat-data-services/vllm-orchestrator-gateway
-    git.commit: e7e2a63e2be3ad570070fc5173d602527feaa72f
+    git.commit: 0cd550b7fd9e634e352758dd05d09841522ed5ad
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
-    git.commit: 1918d89b13663f03d2e4ff3a26d9835fc24dc388
+    git.commit: 87f58036de4bcb3f6c45646faae8cbf065742b43
   odh-pipeline-runtime-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-minimal-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-pytorch-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-codeserver-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
   odh-workbench-jupyter-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-minimal-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-minimal-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-minimal-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-pytorch-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-trustyai-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-tensorflow-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-workbench-jupyter-tensorflow-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-caikit-nlp:
     git.url: https://github.com/red-hat-data-services/caikit-nlp
-    git.commit: 5cdf9cb7b68b248a74e85224503efab4f76e384a
+    git.commit: 25c65fb670ca959a1f03ad4406488ce3ffdc545f
   odh-caikit-tgis-serving:
     git.url: https://github.com/red-hat-data-services/caikit-tgis-serving
-    git.commit: 3d72199cee348ecde08aa31c06c1cffee4a71095
+    git.commit: 9ed5bd62265c747f217f81aa2eeefb5c03444f0f
   odh-guardrails-detector-huggingface-runtime:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
-    git.commit: 1918d89b13663f03d2e4ff3a26d9835fc24dc388
+    git.commit: 87f58036de4bcb3f6c45646faae8cbf065742b43
   odh-openvino-model-server:
     git.url: https://github.com/red-hat-data-services/openvino_model_server
     git.commit: 3381640d5fd68db14216e14c95918be6d6434df6
@@ -224,37 +224,37 @@ additional_meta:
     git.commit: 2ded03f1fde2617262d34f96c11fb65e42a5d82a
   odh-vllm-cuda:
     git.url: https://github.com/red-hat-data-services/vllm
-    git.commit: 36fe255789199c847781306fb63676dba4c90d2a
+    git.commit: 6f58778da24d0cb69a73a8dce67a9fd5fa81fdad
   odh-vllm-rocm:
     git.url: https://github.com/red-hat-data-services/vllm-rocm
-    git.commit: c33b4cf2491f6a17fa419a57525c07d690d574a5
+    git.commit: 70488a74cb4654f5ec809e43de3d8f72654aa51d
   odh-vllm-gaudi:
     git.url: https://github.com/red-hat-data-services/vllm-gaudi
-    git.commit: f70e03cf0b0bb89fac784434e6d6f344285e1e21
+    git.commit: 378d5df5beb35f8c053fdc2926b55b65d3c96138
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: c1b7d5fed3e2ce1201454933656ad3e74e32fd04
+    git.commit: b86c53a16b5ada6dbb143d3de8e428b50e1d335e
   odh-llama-stack-core:
     git.url: https://gitlab.com/redhat/rhel-ai/llama-stack/containers
     git.commit: 8ecacd224e1309f074b97c8ced83d09655fb5ae1
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 49172e463cd398509c567b5da276362e866e0d84
+    git.commit: 4c10cbe6817eeef76491832636ff00e720bcfc7d
   odh-workbench-jupyter-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-pipeline-runtime-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2af3c76968c32bd054df8ee670ee574a35ffb2cb
+    git.commit: 0978f3d13432936cdb6afe75096871a2bc964218
   odh-model-metadata-collection:
     git.url: https://github.com/red-hat-data-services/model-metadata-collection
-    git.commit: 9dff0268c08d1897673280915e700d5a4fff6113
+    git.commit: c74bd7f2fdda3d353b44ed333d021aa43216b8ab
   odh-training-cuda121-torch24-py311:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: 2b62fc52dd0a202dea43ef55f53d2ce9c5556b0f
+    git.commit: 7ab660ed91606f4d69b11c6c6875f803570dfde6
   odh-training-cuda124-torch25-py311:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: 2b62fc52dd0a202dea43ef55f53d2ce9c5556b0f
+    git.commit: 7ab660ed91606f4d69b11c6c6875f803570dfde6
   odh-training-rocm62-torch24-py311:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
     git.commit: 2b62fc52dd0a202dea43ef55f53d2ce9c5556b0f
