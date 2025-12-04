@@ -281,11 +281,11 @@ objects:
                     # Double check to make sure Model is ready to serve.
                     for i in 1 2; do
                       # Check model health
-                      model_health_check=$(curl -s ${HEAD_SVC}.${POD_NAMESPACE}.svc.cluster.local:8080/v1/models|grep -o ${ISVC_NAME})
-                      if [[ ${model_health_check} != "${ISVC_NAME}" ]]; then
+                      model_health_check=$(curl -s ${HEAD_SVC}.${POD_NAMESPACE}.svc.cluster.local:8080/v1/models | grep -q '"object":"model"' && echo true || echo false)
+                      if [[ "${model_health_check}" == "false" ]]; then
                         echo "Unhealthy - vLLM Runtime Health Check failed."
                         exit 1
-                      fi                     
+                      fi
                       sleep 10
                     done
         volumes:
