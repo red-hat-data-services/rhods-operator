@@ -15,6 +15,7 @@ configurations:
 - params.yaml
 
 replacements:
+# Replace controller image
 - source:
     kind: ConfigMap
     name: rhoai-config
@@ -26,6 +27,71 @@ replacements:
       name: kubeflow-trainer-controller-manager
     fieldPaths:
     - spec.template.spec.containers.0.image
+
+# Replace image for torch-distributed-rocm
+- source:
+    kind: ConfigMap
+    name: rhoai-config
+    version: v1
+    fieldPath: data.odh-training-rocm64-torch28-py312-image
+  targets:
+  - select:
+      kind: ClusterTrainingRuntime
+      name: torch-distributed-rocm
+    fieldPaths:
+    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
+
+# Replace image for torch-distributed-th03-cuda128-torch28-py312
+- source:
+    kind: ConfigMap
+    name: rhoai-config
+    version: v1
+    fieldPath: data.odh-training-cuda128-torch28-py312-image
+  targets:
+  - select:
+      kind: ClusterTrainingRuntime
+      name: torch-distributed-th03-cuda128-torch28-py312
+    fieldPaths:
+    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
+
+# Replace image for torch-distributed
+- source:
+    kind: ConfigMap
+    name: rhoai-config
+    version: v1
+    fieldPath: data.odh-training-cuda128-torch28-py312-image
+  targets:
+  - select:
+      kind: ClusterTrainingRuntime
+      name: torch-distributed
+    fieldPaths:
+    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
+
+# Replace image for training-hub-th03-cuda128-torch28-py312
+- source:
+    kind: ConfigMap
+    name: rhoai-config
+    version: v1
+    fieldPath: data.odh-training-cuda128-torch28-py312-image
+  targets:
+  - select:
+      kind: ClusterTrainingRuntime
+      name: training-hub03-cuda128-torch28-py312
+    fieldPaths:
+    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
+
+# Replace image for training-hub
+- source:
+    kind: ConfigMap
+    name: rhoai-config
+    version: v1
+    fieldPath: data.odh-training-cuda128-torch28-py312-image
+  targets:
+  - select:
+      kind: ClusterTrainingRuntime
+      name: training-hub
+    fieldPaths:
+    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
 # Labels to add to all resources and selectors.
 labels:
