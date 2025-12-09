@@ -163,6 +163,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - auths
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - user.openshift.io
   resources:
   - groups
