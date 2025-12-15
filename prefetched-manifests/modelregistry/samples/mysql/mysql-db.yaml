@@ -109,7 +109,7 @@ items:
               command:
               - /bin/bash
               - -c
-              - mysql -D ${MYSQL_DATABASE} -u${MYSQL_USER} -p${MYSQL_ROOT_PASSWORD} -e 'SELECT 1'
+              - mysql -h 127.0.0.1 -D ${MYSQL_DATABASE} -u${MYSQL_USER} -p${MYSQL_ROOT_PASSWORD} -e 'SELECT 1'
             initialDelaySeconds: 10
             timeoutSeconds: 5
           securityContext:
