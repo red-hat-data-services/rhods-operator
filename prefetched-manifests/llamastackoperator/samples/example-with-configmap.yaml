@@ -21,11 +21,34 @@ data:
         model_type: llm
     server:
       port: 8321
+    storage:
+      backends:
+        kv_default:
+          type: kv_sqlite
+          db_path: ${env.SQLITE_STORE_DIR:=~/.llama/distributions/ollama}/kvstore.db
+        sql_default:
+          type: sql_sqlite
+          db_path: ${env.SQLITE_STORE_DIR:=~/.llama/distributions/ollama}/sqlstore.db
+      stores:
+        metadata:
+          backend: kv_default
+          namespace: registry
+        inference:
+          backend: sql_default
+          table_name: inference_store
+          max_write_queue_size: 10000
+          num_writers: 4
+        conversations:
+          backend: sql_default
+          table_name: openai_conversations
+        prompts:
+          backend: kv_default
+          namespace: prompts
 ---
 apiVersion: llamastack.io/v1alpha1
 kind: LlamaStackDistribution
 metadata:
-  name: llamastack-with-config
+  name: llamastack-with-userconfig
 spec:
   replicas: 1
   server:
@@ -34,10 +57,8 @@ spec:
     containerSpec:
       port: 8321
       env:
-      - name: INFERENCE_MODEL
-        value: "llama3.2:1b"
-      - name: OLLAMA_URL
-        value: "http://ollama-server-service.ollama-dist.svc.cluster.local:11434"
+      - name: OLLAMA_EMBEDDING_MODEL
+        value: all-minilm:l6-v2
     userConfig:
       configMapName: llama-stack-config
       # configMapNamespace: ""  # Optional - defaults to the same namespace as the CR
