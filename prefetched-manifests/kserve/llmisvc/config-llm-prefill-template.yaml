@@ -140,7 +140,6 @@ spec:
               eval "vllm serve /mnt/models \
                 --served-model-name "{{ .Spec.Model.Name }}" \
                 --port "8000" \
-                --disable-log-requests \
                 ${VLLM_ADDITIONAL_ARGS} \
                 --enable-ssl-refresh \
                 --ssl-certfile /var/run/kserve/tls/tls.crt \
