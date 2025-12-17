@@ -131,6 +131,14 @@ rules:
   - patch
   - update
 - apiGroups:
+  - kuadrant.io
+  resources:
+  - kuadrants
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - metrics.k8s.io
   resources:
   - nodes
@@ -200,6 +208,14 @@ rules:
   - get
   - list
   - update
+  - watch
+- apiGroups:
+  - operator.authorino.kuadrant.io
+  resources:
+  - authorinos
+  verbs:
+  - get
+  - list
   - watch
 - apiGroups:
   - rbac.authorization.k8s.io

@@ -18,7 +18,7 @@ objects:
       annotations:
         openshift.io/display-name: OpenVINO Model Server
         opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
-        opendatahub.io/runtime-version: 'v2025.1'
+        opendatahub.io/runtime-version: 'v2025.4'
       name: kserve-ovms
       labels:
         opendatahub.io/dashboard: 'true'
@@ -58,9 +58,6 @@ objects:
             - '--rest_port=8888'
             - '--model_path=/mnt/models'
             - '--file_system_poll_wait_seconds=0'
-            - '--grpc_bind_address=0.0.0.0'
-            - '--rest_bind_address=0.0.0.0'
-            - '--target_device=AUTO'
             - '--metrics_enable'
           ports:
             - containerPort: 8888
