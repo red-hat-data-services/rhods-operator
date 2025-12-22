@@ -15,9 +15,9 @@ data:
         "localGateway" : "knative-serving/knative-local-gateway",
         "localGatewayService" : "knative-local-gateway.istio-system.svc.cluster.local",
         "ingressDomain"  : "$OPENSHIFT_INGRESS_DOMAIN",
-        "ingressClassName" : "openshift-default",
+        "ingressClassName" : "istio",
         "domainTemplate": "{{ .Name }}-{{ .Namespace }}.{{ .IngressDomain }}",
-        "urlScheme": "http",
-        "disableIstioVirtualHost": false,
+        "urlScheme": "https",
+        "disableIstioVirtualHost": true,
         "disableIngressCreation": false
     }
