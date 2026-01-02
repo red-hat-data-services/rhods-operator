@@ -111,10 +111,6 @@ func (DSCIServiceMeshPredicate) Update(e event.UpdateEvent) bool {
 	return oldState != newState
 }
 
-func (DSCIServiceMeshPredicate) Delete(e event.DeleteEvent) bool {
-	return true
-}
-
 func NewDSCIServiceMeshPredicate() *DSCIServiceMeshPredicate {
 	return &DSCIServiceMeshPredicate{}
 }
