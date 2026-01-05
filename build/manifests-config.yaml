@@ -70,6 +70,11 @@ map:
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
     git.commit: 46393c3439c54e4fd1aafe5d64e0f5e0e262d1b7
+  odh-mlflow-operator:
+    src: config
+    dest: mlflowoperator
+    git.url: https://github.com/red-hat-data-services/mlflow-operator
+    git.commit: cb5528e3616e307d4fee790be345394299dfc58f
 additional_meta:
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
@@ -254,6 +259,3 @@ additional_meta:
   odh-mlflow:
     git.url: https://github.com/red-hat-data-services/mlflow
     git.commit: e4725c91e9041fcdce1ed34863492a49f9ad5361
-  odh-mlflow-operator:
-    git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: cb5528e3616e307d4fee790be345394299dfc58f
