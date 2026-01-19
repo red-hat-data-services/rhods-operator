@@ -39,7 +39,7 @@ COPY config/osd-configs/ /opt/manifests/osd-configs/
 RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -tags strictfipsruntime -o manager main.go
 
 ################################################################################
-FROM registry.redhat.io/ubi8/ubi-minimal@sha256:9f5006710578c36da022efbc740b27821056d504d582e1aeb204a602d2e8e4ce
+FROM registry.redhat.io/ubi8/ubi-minimal@sha256:b3b8ab00587b6629ab7921a2cd0335287908bf4758167d68250a2bac99af57da
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --chown=1001:0 --from=builder /opt/manifests /opt/manifests
