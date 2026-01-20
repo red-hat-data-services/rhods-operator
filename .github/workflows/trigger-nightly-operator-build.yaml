@@ -10,7 +10,6 @@ on:
 
 env:
   GITHUB_ORG: red-hat-data-services
-  RESOLVE_CONFLICTS_FOR: build/operator-nudging.yaml
   LOG_FILE_DIR: ${{ github.workspace }}
   LOG_FILE_NAME: operator-processor.log
 
@@ -19,7 +18,7 @@ permissions:
 
 jobs:
   operator-processor:
-    if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && github.event.commits[0].author.name == 'konflux-internal-p02' )) }}
+    if: ${{ github.ref_name != 'main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout RBC repo
@@ -91,6 +90,7 @@ jobs:
           else
             echo "Log file not found at $LOG_FILE"
           fi
+
       - name: Fetch all manifests
         env:
           BRANCH: ${{ github.ref_name }}
@@ -99,19 +99,48 @@ jobs:
           set -e
           echo "current dir = $(pwd)"
           MANIFEST_CONFIG_PATH=${{ github.workspace }}/rhods-operator/build/manifests-config.yaml
-          mkdir -p rhods-operator/prefetched-manifests
+          PREFETCHED_MANIFEST_DIR_PATH="rhods-operator/prefetched-manifests"
+
+          # Clean up old prefetched manifests
+          if [ -d "$PREFETCHED_MANIFEST_DIR_PATH" ]; then
+              echo "Cleaning up old prefetched manifests..."
+              rm -rf "$PREFETCHED_MANIFEST_DIR_PATH"
+          fi
+
+          # Create fresh directories
+          mkdir -p "$PREFETCHED_MANIFEST_DIR_PATH"
           mkdir -p manifests
           cd manifests
           while IFS= read -r value;
           do
               value=${value/- /}
               component=$value
+
+              # Skip empty keys
+              [[ -z "$component" ]] && continue
+
+              echo "=============================================================="
+              echo "Fetching Manifest for component: $component"
+              echo "=============================================================="
               if [[ -n $component ]]
               then	
                   git_url=$(value="$value" yq '.map[strenv(value)]["git.url"]' ${MANIFEST_CONFIG_PATH})
                   git_commit=$(value="$value" yq '.map[strenv(value)]["git.commit"]' ${MANIFEST_CONFIG_PATH})
-                  if [[ "$git_commit" == "github.ref_name" ]]; then git_commit=${BRANCH}; echo "changed the value to $BRANCH"; fi
-                  
+                  ref_type=$(value="$value" yq '.map[strenv(value)]["ref_type"]' ${MANIFEST_CONFIG_PATH})
+
+                  # If ref_type is branch, resolve the actual commit SHA
+                  if [[ "$ref_type" == "branch" ]]; then
+                    # Fetch latest commit SHA for the branch from remote
+                    git_commit=$(git ls-remote "$git_url" "refs/heads/$BRANCH" | awk '{print $1}')
+                    echo "Resolved git.commit for branch '$BRANCH' to commit SHA $git_commit"
+
+                    # Update the git.commit field in manifests-config.yaml for the current component.
+                    # Using strenv() to safely reference both the component key ($value) and the new commit SHA ($git_commit).
+                    # This avoids issues with --arg, which is not supported in this yq version, and prevents creating an empty "" key.
+                    value="$value" git_commit="$git_commit" yq -i eval '.map[strenv(value)]["git.commit"] = strenv(git_commit)' ${MANIFEST_CONFIG_PATH}
+
+                  fi
+
                   src=$(value="$value" yq '.map[strenv(value)]["src"]' ${MANIFEST_CONFIG_PATH})
                   dest=$(value="$value" yq '.map[strenv(value)]["dest"]' ${MANIFEST_CONFIG_PATH})
                   
@@ -136,13 +165,17 @@ jobs:
                   cd ../
                   echo "current dir = $(pwd)"
                   
-                  mkdir -p ${{ github.workspace }}/rhods-operator/prefetched-manifests/$dest
-                  cp -r $component/$src/* ${{ github.workspace }}/rhods-operator/prefetched-manifests/$dest
+                  dest_dir_path=${{ github.workspace }}/${PREFETCHED_MANIFEST_DIR_PATH}/$dest
+                  mkdir -p ${dest_dir_path}
+
+                  cp -r $component/$src/* ${dest_dir_path}
+                  echo ""
               fi
           done < <(yq e '.map | keys' ${MANIFEST_CONFIG_PATH} )
           
-          cd ${{ github.workspace }}/rhods-operator/prefetched-manifests
+          cd ${{ github.workspace }}/${PREFETCHED_MANIFEST_DIR_PATH}
           tree
+
           # Update the schedule file to trigger the nightly build 
           echo $(date +'%d-%m-%Y %H:%M:%S:%3N') > ${{ github.workspace }}/rhods-operator/build/schedule/operator-tekton-trigger.txt
       - name: Commit and push the changes to release branch
@@ -152,7 +185,7 @@ jobs:
           branch: ${{ github.ref_name }}
           message: "Updating the operator repo with latest images and manifests"
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
-          directory: ${{ github.workspace }}/rhods-operator
+          directory: rhods-operator
           author_name: Openshift-AI DevOps
           author_email: openshift-ai-devops@redhat.com
 

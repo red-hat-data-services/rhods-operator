@@ -41,7 +41,7 @@ jobs:
           sparse-checkout: |
             utils/processors
           sparse-checkout-cone-mode: false
-      - name: Git checkout utils
+      - name: Git checkout operator repo
         uses: actions/checkout@v4
         with:
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
