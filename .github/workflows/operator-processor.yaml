@@ -12,7 +12,8 @@ on:
 
 env:
   GITHUB_ORG: red-hat-data-services
-  GITHUB_RKA_ORG: rhoai-rhtap
+  LOG_FILE_DIR: ${{ github.workspace }}
+  LOG_FILE_NAME: operator-processor.log
 
 permissions:
   contents: write
@@ -34,13 +35,13 @@ jobs:
       - name: Git checkout utils
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.GITHUB_RKA_ORG }}/RHOAI-Konflux-Automation
+          repository: ${{ env.GITHUB_ORG }}/RHOAI-Konflux-Automation
           ref: main
           path: utils
           sparse-checkout: |
-            utils/operator-processor
+            utils/processors
           sparse-checkout-cone-mode: false
-      - name: Git checkout utils
+      - name: Git checkout operator repo
         uses: actions/checkout@v4
         with:
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
@@ -63,7 +64,7 @@ jobs:
           ln -s $yq_filename yq
           cp $yq_filename /usr/local/bin/yq
   
-          pip install --default-timeout=100 -r utils/utils/operator-processor/requirements.txt
+          pip install --default-timeout=100 -r utils/utils/processors/requirements.txt
 
       - name: Execute Operator Processor
         env:
@@ -80,15 +81,18 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/operator-processor/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
           
-          echo "----- NUDGING_YAML ------"
-          cat $NUDGING_YAML_PATH
-          echo "----- OPERANDS_MAP ------"
-          cat $OPERANDS_MAP_PATH
-          echo "----- MANIFEST_CONFIG ------"
-          cat $MANIFEST_CONFIG_PATH
-          echo "current dir = $(pwd)"
+      - name: Print debug logs
+        if: always()
+        run: |
+          LOG_FILE="${{ env.LOG_FILE_DIR }}/${{ env.LOG_FILE_NAME }}"
+          if [ -f "$LOG_FILE" ]; then
+            cat "$LOG_FILE"
+          else
+            echo "Log file not found at $LOG_FILE"
+          fi
+
       - name: Fetch all manifests
         env:
           BRANCH: ${{ github.ref_name }}
@@ -184,3 +188,12 @@ jobs:
           directory: rhods-operator
           author_name: Openshift-AI DevOps
           author_email: openshift-ai-devops@redhat.com
+
+      - name: Upload debug logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operator-processor-output
+          path: ${{ env.LOG_FILE_DIR }}/${{ env.LOG_FILE_NAME }}
+          if-no-files-found: warn
+          retention-days: 30
