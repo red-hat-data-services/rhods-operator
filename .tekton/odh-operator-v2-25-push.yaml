@@ -1,5 +1,6 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
+# konflux build manual retrigger
 metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
@@ -12,7 +13,6 @@ metadata:
       && !"Dockerfiles/bundle.Dockerfile".pathChanged() && (!"build/**".pathChanged()
       || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v2-25-push.yaml".pathChanged()
       ) && !".github/workflows/**".pathChanged()
-  creationTimestamp: null
   labels:
     appstudio.openshift.io/application: rhoai-v2-25
     appstudio.openshift.io/component: odh-operator-v2-25
@@ -30,10 +30,8 @@ spec:
   - name: additional-tags
     value:
     - '{{target_branch}}-{{revision}}'
-  - name: additional-labels
-    value:
-    - version=v2.25.2
-    - io.openshift.tags=odh-operator
+  - name: rhoai-version
+    value: "2.25.2"
   - name: output-image
     value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
   - name: build-platforms
