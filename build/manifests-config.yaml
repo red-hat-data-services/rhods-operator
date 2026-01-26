@@ -29,17 +29,17 @@ map:
     src: config
     dest: codeflare
     git.url: https://github.com/red-hat-data-services/codeflare-operator
-    git.commit: d1a0589bdb8a1dd874b0c022a5793d4526fe81d2
+    git.commit: 2cd733202a496481d91c4f7dabc656a987926129
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 4d16c76cedef6c25ff163b4fe2972a5f599b4dee
+    git.commit: 5dd6d15fa50c373ec8f1e8aebccac27202ad0a7d
   odh-kueue-controller:
     src: config
     dest: kueue
     git.url: https://github.com/red-hat-data-services/kueue
-    git.commit: 5004065682c3542a05c4f90363329e6563b441ff
+    git.commit: 11b3c8799e14ed7e382505d2a05e785cd508edbf
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -64,7 +64,7 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 89797b0c78521e3a292451951cf5ca160374dec1
+    git.commit: fb12b37814574bd6377e21a204140936307f3fdb
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -79,7 +79,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: 892b36eda1f95444c2b29d95aacc88bd8acfbcaf
+    git.commit: a9eef46d93598a9a1726fbfa3f1cca99792140fc
 additional_meta:
   odh-mm-rest-proxy:
     git.url: https://github.com/red-hat-data-services/rest-proxy
@@ -113,7 +113,7 @@ additional_meta:
     git.commit: a6dfeb0a2907e57565a779aef927e9f920134f30
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 4608886638e8c0e54c04156d58ec22825d6c02dd
+    git.commit: 5c49550d7f8b8750d8feb1a1f609938bdeeac7e6
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 4608886638e8c0e54c04156d58ec22825d6c02dd
@@ -239,7 +239,7 @@ additional_meta:
     git.commit: e66a1cbfe73ce537c48c1a60875672bec798ded1
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 89797b0c78521e3a292451951cf5ca160374dec1
+    git.commit: fb12b37814574bd6377e21a204140936307f3fdb
   odh-workbench-jupyter-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: f026a9057efd3877322be9b540fbcb399639bc36
