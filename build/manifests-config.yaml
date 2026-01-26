@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 4c7ec52bee93ffff460dfa9412fc9685639c0db5
+    git.commit: b7a6db5758f09a4c7d14e02c43e51ada22204daa
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 4c7ec52bee93ffff460dfa9412fc9685639c0db5
+    git.commit: b7a6db5758f09a4c7d14e02c43e51ada22204daa
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: daa52c1a858d1de399e74d37245da3b71a720e11
+    git.commit: e16cc8426cae861f2872dc8132b93e743cbd8365
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -69,17 +69,17 @@ map:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: b014b76bcc5c7b2e2beada8613bd83b5d53d3c9f
+    git.commit: 6f4add1aa23a7de13f49ed13788a91a7450ff635
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: 75fc984b26e0b97c2d3136fc5dfb935b00a9e4fb
+    git.commit: da4ddd6236573456b4693cf455f8562f9febd764
   odh-maas-api:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: cf6a7f6e7dff6896bb805cc94652236c92bed70f
+    git.commit: 989047ba44351f329fd8ba67194a53de07bc4f41
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
@@ -113,7 +113,7 @@ additional_meta:
     git.commit: 9616697e36d693da5c4e5a2b026396354617747d
   odh-llama-stack-core:
     git.url: https://github.com/red-hat-data-services/llama-stack-distribution
-    git.commit: cb617f813ac87177220d31a34be9dd53aadaf30c
+    git.commit: 380990297e5aaa139c91d957054c8859ccaa5044
   odh-llm-d-inference-scheduler:
     git.url: https://github.com/red-hat-data-services/llm-d-inference-scheduler
     git.commit: edc479fda4a41cbe455276fabab5b0df4c4f7b30
@@ -152,7 +152,7 @@ additional_meta:
     git.commit: ba91ae480819302dcbd22e0090b55c01fcd37acb
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: c16c78993dc7bc93d2f15088b1657cea2b755086
+    git.commit: 887a8244b291d9c9290befc98848854a2ad09c89
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
     git.commit: c16c78993dc7bc93d2f15088b1657cea2b755086
