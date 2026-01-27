@@ -25,7 +25,7 @@ spec:
           imagePullPolicy: Always
           command:
             - /manager
-          args: ["--oauth-proxy-image", "registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4f8d66597feeb32bb18699326029f9a71a5aca4a57679d636b876377c2e95695"]
+          args: ["--oauth-proxy-image", "registry.redhat.io/openshift4/ose-oauth-proxy@sha256:d26a9f4fd48c83bd488ebb889ccec7d65f3bd49e2c94e57c98971a3594d90612"]
           securityContext:
             allowPrivilegeEscalation: false
           ports:
