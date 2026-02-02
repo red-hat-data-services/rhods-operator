@@ -88,8 +88,7 @@ items:
           args:
             - --datadir
             - /var/lib/mysql/datadir
-            - --default-authentication-plugin=mysql_native_password
-          image: container-registry.oracle.com/mysql/community-server:8.3.0
+          image: container-registry.oracle.com/mysql/community-server:8.4
           imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:
