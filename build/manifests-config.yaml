@@ -14,22 +14,22 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 3dc8b7b45f639575c11146068c3a719a1f3b5ddd
+    git.commit: 16c8850222f863ac975f5ccbccabaaeb74e56135
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 3dc8b7b45f639575c11146068c3a719a1f3b5ddd
+    git.commit: 16c8850222f863ac975f5ccbccabaaeb74e56135
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: be05484fcf96a665075b9834be19f8ab5fdef8a6
+    git.commit: 9d94973abbfef1a8c8b6ddec24464f08f88b03e3
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 82cd336726ffc90c18dd3722475a700e632a5a41
+    git.commit: ad296f9b3e2e7d2cde964747177a107330f1098e
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -64,7 +64,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: 2209556bf90f570935059565d1b8a63845c392c7
+    git.commit: 54ab19b45b0e972ca97fbd4e4c8379a1dbddc8b9
   odh-trainer:
     src: manifests
     dest: trainer
@@ -99,7 +99,7 @@ additional_meta:
     git.commit: 1089aef85b6f72bad10b5b3bd67fc6339da48a44
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 5d2aaa438b567d6fd855b44cc693a243d784991f
+    git.commit: da91d37b9f220e7f36721119f112100b33dda1f7
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 5d2aaa438b567d6fd855b44cc693a243d784991f
