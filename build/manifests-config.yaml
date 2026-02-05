@@ -14,17 +14,17 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 6c2c918dfb12c250d27ada4e638369f2ff89a0bb
+    git.commit: 9b89d6af043d864dc9d22a5a564103bf549771a8
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 6c2c918dfb12c250d27ada4e638369f2ff89a0bb
+    git.commit: 9b89d6af043d864dc9d22a5a564103bf549771a8
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 4d57eec675a9527e5339652d9e5eab463ccd3c2f
+    git.commit: 6babf3729d64926ae95be87fbdd17c4f0a160836
   odh-codeflare-operator:
     src: config
     dest: codeflare
@@ -34,12 +34,12 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: a32bf9db8d030cb50f499061ef319938ad7980dc
+    git.commit: f4db2aa7b997848a2e7da13e0b1027d465c5c0ed
   odh-kueue-controller:
     src: config
     dest: kueue
     git.url: https://github.com/red-hat-data-services/kueue
-    git.commit: 4732b2b81e849351f1b11fb74713adb9e0d819bc
+    git.commit: 2352a40a14c15fb29bb52088c7e5d489512af232
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -113,7 +113,7 @@ additional_meta:
     git.commit: 648dd9f55f34e9e38e91cc2dd3c810a6ae572d5c
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: e708c5f3806fc33fdc6eccec68e4b19d5989a2a0
+    git.commit: 4fd0e8051978364d2e68a885cbc487c78398484a
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: e708c5f3806fc33fdc6eccec68e4b19d5989a2a0
