@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 93d80e7a88b42131ac87b1e716a3dec58159381a
+    git.commit: 506d9bfccc35d142a7fbf3c4a21c636e9c306d47
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -79,7 +79,7 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: ad7ecdf1df1a5f8591dcb8433da06759e49d41ca
+    git.commit: b62a25d4e05cfc2699da8535db5ae90d2219896d
   odh-spark-operator:
     src: config
     dest: sparkoperator
@@ -200,9 +200,6 @@ additional_meta:
   odh-pipeline-runtime-tensorflow-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 8b3bff29e53f47f50b37b27dde5e4720ccd1f538
-  odh-spark-operator:
-    git.url: https://github.com/red-hat-data-services/spark-operator
-    git.commit: 3824476f16c83493ed54145f5f9cef720077b4f4
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
     git.commit: 00cc787ed6a6faaebe4ef29bd4e5ac01214647ea

@@ -1,0 +1,61 @@
+# Default Kustomization - Main entry point for standalone/development deployment
+# This deploys to spark-operator namespace
+#
+# Usage:
+#   oc apply -k config/default/ --server-side=true
+#
+# For environment-specific deployments, use overlays:
+#   - config/overlays/odh/   (namespace: opendatahub)
+#   - config/overlays/rhoai/ (namespace: redhat-ods-applications)
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Default namespace for standalone deployment
+namespace: spark-operator
+
+# Name prefix for all resources
+namePrefix: spark-operator-
+
+# Resources to include
+resources:
+  - ../crd
+  - ../rbac
+  - ../manager
+  - ../webhook
+
+# Labels applied to all resources
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: spark-operator
+      app.kubernetes.io/managed-by: kustomize
+
+# ConfigMap for parameters (same pattern as ODH/RHOAI overlays)
+configMapGenerator:
+  - name: spark-operator-params
+    envs:
+      - params.env
+
+# Image substitution - replaces $(SPARK_OPERATOR_*_IMAGE) variables in deployments
+replacements:
+  - source:
+      kind: ConfigMap
+      name: spark-operator-params
+      fieldPath: data.SPARK_OPERATOR_CONTROLLER_IMAGE
+    targets:
+      - select:
+          kind: Deployment
+          name: controller
+        fieldPaths:
+          - spec.template.spec.containers.[name=controller].image
+  - source:
+      kind: ConfigMap
+      name: spark-operator-params
+      fieldPath: data.SPARK_OPERATOR_WEBHOOK_IMAGE
+    targets:
+      - select:
+          kind: Deployment
+          name: webhook
+        fieldPaths:
+          - spec.template.spec.containers.[name=webhook].image
