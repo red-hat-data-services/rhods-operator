@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: de8c5d5961a177148ff9f7d19bb3ba680db286f8
+    git.commit: 340a0b3d2050d4e43ad865102a29193972382a17
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 4913ed539e55aaf61ef71ccb2c1fd999347945dc
+    git.commit: 1871275e5c9df2922aceef1f847a55ffddcfeb9d
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 4913ed539e55aaf61ef71ccb2c1fd999347945dc
+    git.commit: 1871275e5c9df2922aceef1f847a55ffddcfeb9d
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -69,7 +69,7 @@ map:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 62f45b2f121fcdf2d7e0785cb6645960e9abf7a0
+    git.commit: f5dd5ab9ecd5a1a01ce6a5a080b979f394e32b11
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
@@ -160,7 +160,7 @@ additional_meta:
     git.commit: 9b0687fce7001f31f1b2dc8a4221fa26d048cc1a
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: 3a089985c836515b666aabf0b0a2e1ef8a70b36f
+    git.commit: 5c27ae98997f9436010b493c51bd67e5e25e0719
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
     git.commit: 32c85737f91152faf47ac13458e95a1d67f22d17
