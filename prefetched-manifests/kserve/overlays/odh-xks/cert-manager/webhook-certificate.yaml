@@ -1,0 +1,18 @@
+# Certificate for the KServe webhook server.
+# Issued by the OpenDataHub CA ClusterIssuer.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kserve-webhook-server
+spec:
+  commonName: kserve-webhook-server-service.$(NAMESPACE).svc
+  dnsNames:
+    - kserve-webhook-server-service.$(NAMESPACE).svc
+    - kserve-webhook-server-service.$(NAMESPACE).svc.cluster.local
+  duration: 8760h  # 1 year
+  renewBefore: 720h  # 30 days
+  issuerRef:
+    name: $(ISSUER_REF_NAME)
+    kind: $(ISSUER_REF_KIND)
+    group: $(ISSUER_REF_GROUP)
+  secretName: kserve-webhook-server-cert

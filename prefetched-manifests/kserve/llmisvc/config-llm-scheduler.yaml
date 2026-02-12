@@ -70,7 +70,7 @@ spec:
               - /var/run/kserve/tls
             env:
               - name: SSL_CERT_DIR
-                value: "/var/run/secrets/kubernetes.io/serviceaccount:/etc/pki/tls/certs"
+                value: "/var/run/kserve/tls:/var/run/secrets/kubernetes.io/serviceaccount:/etc/pki/tls/certs"
             resources:
               requests:
                 cpu: 256m
