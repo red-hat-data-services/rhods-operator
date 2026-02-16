@@ -11,6 +11,13 @@ patches:
       annotations:
         service.beta.openshift.io/inject-cabundle: true
     webhooks:
+    - name: validating.configmap.odh-model-controller.opendatahub.io
+      clientConfig:
+        service:
+          name: odh-model-controller-webhook-service
+      objectSelector:
+        matchLabels:
+          component: tier-mapping
     - name: validating.llmisvc.odh-model-controller.opendatahub.io
       clientConfig:
         service:
