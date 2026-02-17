@@ -5,7 +5,7 @@ metadata:
 spec:
   # MLflow container image
   image:
-    image: quay.io/opendatahub/mlflow:master
+    image: quay.io/opendatahub/mlflow:odh-stable
     imagePullPolicy: Always
 
   # Number of replicas
@@ -36,6 +36,13 @@ spec:
   backendStoreUri: "sqlite:////mlflow/mlflow.db"
   registryStoreUri: "sqlite:////mlflow/mlflow.db"
   artifactsDestination: "file:///mlflow/artifacts"
+
+  # Custom CA Bundle (Optional)
+  # For connecting to services with self-signed certificates or private CAs
+  # caBundleConfigMap:
+  #   name: my-ca-bundle
+  #   key: ca-bundle.crt
+
 
   # IMPORTANT: serveArtifacts MUST be enabled when using file-based artifact storage
   serveArtifacts: true

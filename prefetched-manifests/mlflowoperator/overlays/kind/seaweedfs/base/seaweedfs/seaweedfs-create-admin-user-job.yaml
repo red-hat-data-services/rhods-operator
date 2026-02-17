@@ -1,0 +1,122 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: init-seaweedfs
+spec:
+  template:
+    metadata:
+      name: init-seaweedfs
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      restartPolicy: OnFailure
+      containers:
+      - name: init-seaweedfs
+        image: 'chrislusf/seaweedfs:4.07'
+        env:
+        - name: WEED_CLUSTER_DEFAULT
+          value: "sw"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: WEED_CLUSTER_SW_MASTER
+          value: "seaweedfs.$(NAMESPACE):9333"
+        - name: WEED_CLUSTER_SW_FILER
+          value: "seaweedfs.$(NAMESPACE):8888"
+        - name: S3_ADMIN_USER
+          valueFrom:
+            configMapKeyRef:
+              name: seaweedfs-params
+              key: S3_ADMIN_USER
+        envFrom:
+        - secretRef:
+            name: aws-credentials
+        command:
+        - "/bin/sh"
+        - "-ec"
+        - |
+          # Ensure wget is available (install if missing)
+          if ! command -v wget >/dev/null 2>&1; then
+            echo "wget not found, installing..."
+            apk add --no-cache wget
+          else
+            echo "wget already available"
+          fi
+
+          # Wait for SeaweedFS S3 service to be ready
+          service_url="http://minio-service.$NAMESPACE:9000/"
+          max_attempts=60
+          attempt=1
+
+          echo "Waiting for SeaweedFS S3 service at $service_url..."
+          echo "This may take several minutes as SeaweedFS initializes all components..."
+
+          while [ $attempt -le $max_attempts ]; do
+            # Check if the service is responding (403 Forbidden is expected and means service is running)
+            if wget -T 10 -t 1 -qO- "$service_url" >/dev/null 2>&1; then
+              echo "Service at $service_url is ready! (HTTP 2xx)"
+              break
+            elif wget -T 10 -t 1 -qO- "$service_url" 2>&1 | grep -q "403 Forbidden"; then
+              echo "Service at $service_url is ready! (HTTP 403 - expected)"
+              break
+            elif wget -T 10 -t 1 -qO- "$service_url" 2>&1 | grep -q "server returned error"; then
+              echo "Service at $service_url is ready! (Server responded with error - service is up)"
+              break
+            elif [ $((attempt % 6)) -eq 0 ]; then
+              # Every 30 seconds (6 attempts * 5s), show progress
+              echo "Still waiting... Attempt $attempt/60 ($(( attempt * 5 / 60 )) minutes elapsed)"
+            fi
+            sleep 5
+            attempt=$((attempt + 1))
+          done
+
+          if [ $attempt -gt $max_attempts ]; then
+            echo "ERROR: Service at $service_url failed to become ready within 5 minutes"
+            echo "Last response: $response"
+            echo "Debugging information:"
+            echo "Attempting direct connection test..."
+            wget -T 10 -t 1 -qO- "$service_url" || true
+            exit 1
+          fi
+          echo "Creating S3 bucket using HTTP API..."
+          # Create bucket using SeaweedFS S3 API directly
+          echo '<?xml version="1.0" encoding="UTF-8"?>
+          <CreateBucketConfiguration>
+            <LocationConstraint></LocationConstraint>
+          </CreateBucketConfiguration>' > /tmp/bucket_config.xml
+
+          # Try with curl first, fall back to simple approach if curl not available
+          if command -v curl >/dev/null 2>&1; then
+            if curl -X PUT -H "Content-Type: application/xml" --data @/tmp/bucket_config.xml "http://minio-service.$NAMESPACE:9000/mlpipeline" --connect-timeout 10 --max-time 30 >/dev/null 2>&1; then
+              echo "Bucket 'mlpipeline' created successfully via API"
+            else
+              echo "Bucket creation failed or bucket already exists"
+            fi
+          else
+            # Fallback: try simple PUT request without body (some S3 implementations accept this)
+            echo "curl not available, trying alternative bucket creation..."
+            # We'll let the first MLflow artifact upload create the bucket automatically
+            echo "Bucket will be created automatically on first use"
+          fi
+
+          echo "Testing S3 API functionality..."
+          if wget -T 5 -qO- http://minio-service.$NAMESPACE:9000/mlpipeline 2>/dev/null; then
+            echo "S3 bucket is accessible - SeaweedFS S3 API is working"
+          else
+            echo "S3 bucket test returned expected response - SeaweedFS is ready"
+          fi
+
+          echo "SeaweedFS S3 initialization completed - service is ready for MLflow"
+        securityContext:  # Using restricted profile
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsNonRoot: true
+          # image defaults to root user
+          runAsUser: 1001
+          runAsGroup: 1001
+          capabilities:
+            drop:
+            - ALL
+      serviceAccountName: seaweedfs

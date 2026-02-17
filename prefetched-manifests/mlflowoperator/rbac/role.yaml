@@ -7,11 +7,20 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - configmaps
   - namespaces
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - mlflow-artifact-connection
+  resources:
+  - secrets
+  verbs:
+  - get
 - apiGroups:
   - console.openshift.io
   resources:
@@ -35,6 +44,14 @@ rules:
   - list
   - patch
   - update
+  - watch
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - mlflowconfigs
+  verbs:
+  - get
+  - list
   - watch
 - apiGroups:
   - mlflow.opendatahub.io

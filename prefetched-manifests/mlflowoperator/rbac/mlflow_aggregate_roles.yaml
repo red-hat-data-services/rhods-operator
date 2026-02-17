@@ -19,6 +19,14 @@ rules:
       - list
       - watch
   - apiGroups:
+      - mlflow.kubeflow.org
+    resources:
+      - mlflowconfigs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
       - mlflow.opendatahub.io
     resources:
       - mlflows/status
@@ -29,9 +37,9 @@ rules:
   - apiGroups:
       - mlflow.kubeflow.org
     resources:
+      - datasets
       - experiments
       - registeredmodels
-      - jobs
       - gatewaysecrets
       - gatewayendpoints
       - gatewaymodeldefinitions
@@ -63,9 +71,19 @@ rules:
   - apiGroups:
       - mlflow.kubeflow.org
     resources:
+      - mlflowconfigs
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - patch
+      - update
+  - apiGroups:
+      - mlflow.kubeflow.org
+    resources:
+      - datasets
       - experiments
       - registeredmodels
-      - jobs
       - gatewaysecrets
       - gatewayendpoints
       - gatewaymodeldefinitions
