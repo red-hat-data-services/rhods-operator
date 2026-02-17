@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 2b196e9dc25f64f5f171862900393b35eb5d2b4c
+    git.commit: 704f23eca51310e29c25f99701f327cf11008ebe
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: b892396ba2d4cfb08b91eeca3c780c96401288b8
+    git.commit: 8842b9547797d78aa12aec2318d62edd1b80825d
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: b892396ba2d4cfb08b91eeca3c780c96401288b8
+    git.commit: 8842b9547797d78aa12aec2318d62edd1b80825d
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -59,7 +59,7 @@ map:
     src: infra/feast-operator/config
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: 9620c936a870745cb0f67cd4105cbcd9f2fbeed0
+    git.commit: 5364372e469dece4b46624e82782989fb0e86244
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
@@ -79,12 +79,12 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: a1d5b16f3f6fb81d4d7edd557e5c119ffa4b55d6
+    git.commit: ab79693559e6e6355c0a820f7348ebbe421eacf9
   odh-spark-operator:
     src: config
     dest: sparkoperator
     git.url: https://github.com/red-hat-data-services/spark-operator
-    git.commit: b1f8c8241ea78e44b7f7ffb64de3d407e58e0115
+    git.commit: 57eef0b9a48d6107e03a0033d8280a7d00d1fc13
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
