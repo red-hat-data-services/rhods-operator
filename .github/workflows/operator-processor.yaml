@@ -4,8 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'rhoai-[23].[0-9]' # Matches branches like 'rhoai-2.0', 'rhoai-3.1', etc.
-      - 'rhoai-[23].[0-9][0-9]' # Matches branches like 'rhoai-2.10', 'rhoai-3.12', etc.
+      - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
+      - 'rhoai-[23].[0-9][0-9]'  # e.g. rhoai-2.10, rhoai-3.10, rhoai-3.22
+      - 'rhoai-[23].[0-9]-ea.[0-9]'  # e.g. rhoai-2.4-ea.1, rhoai-3.4-ea.1, rhoai-3.5-ea.2
+      - 'rhoai-[23].[0-9][0-9]-ea.[0-9]'  # e.g. rhoai-2.10-ea.1, rhoai-3.10-ea.3
     paths:
       - build/operator-nudging.yaml
 
@@ -72,7 +74,7 @@ jobs:
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
-          COMPONENT_SUFFIX=${RHOAI_VERSION/./-}
+          COMPONENT_SUFFIX=${RHOAI_VERSION//./-}
           ODH_OPERATOR_COMPONENT_NAME=odh-operator-${COMPONENT_SUFFIX}
           PUSH_PIPELINE_PATH=rhods-operator/.tekton/${ODH_OPERATOR_COMPONENT_NAME}-push.yaml
           
