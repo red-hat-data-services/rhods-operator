@@ -70,7 +70,7 @@ jobs:
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
-          COMPONENT_SUFFIX=${RHOAI_VERSION/./-}
+          COMPONENT_SUFFIX=${RHOAI_VERSION//./-}
           ODH_OPERATOR_COMPONENT_NAME=odh-operator-${COMPONENT_SUFFIX}
           PUSH_PIPELINE_PATH=rhods-operator/.tekton/${ODH_OPERATOR_COMPONENT_NAME}-push.yaml
           
