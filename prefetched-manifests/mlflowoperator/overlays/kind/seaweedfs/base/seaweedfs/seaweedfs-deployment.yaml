@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seaweedfs
+  labels:
+    app: seaweedfs
+spec:
+  selector:
+    matchLabels:
+      app: seaweedfs
+  strategy:
+    type: Recreate
+  # Single container setup not scalable
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: seaweedfs
+        application-crd-id: $APPLICATION_CRD_ID
+    spec:
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: seaweedfs
+        image: 'chrislusf/seaweedfs:4.07'
+        args:
+        - 'server'
+        - '-dir=/data'
+        - '-s3'
+        - '-iam'
+        - '-filer'
+        - '-master.volumePreallocate=false'
+        ports:
+        - containerPort: 8333
+        - containerPort: 8111
+        - containerPort: 9333
+        - containerPort: 19333
+        - containerPort: 8888
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Wait for SeaweedFS S3 API to be ready (expect HTTP 403 as success)
+              POD_IP=$(hostname -i)
+              # Try wget with error output suppressed, check exit code
+              if wget -q -O /dev/null --timeout=3 http://$POD_IP:8333/ 2>/dev/null; then
+                exit 0  # Success (2xx response)
+              else
+                # Check if we got a server error (which means server is responding)
+                if wget -O /dev/null --timeout=3 http://$POD_IP:8333/ 2>&1 | grep -q "server returned error"; then
+                  exit 0  # Server is responding with error (expected)
+                else
+                  exit 1  # Connection failed
+                fi
+              fi
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 18
+          timeoutSeconds: 8
+        securityContext:  # Using restricted profile
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsNonRoot: true
+          # image defaults to root user
+          runAsUser: 1001
+          runAsGroup: 1001
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        resources:
+          requests:
+            cpu: 32m
+            memory: 128Mi
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: seaweedfs-pvc
+      serviceAccountName: seaweedfs

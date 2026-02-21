@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: $NAMESPACE
+
+resources:
+- seaweedfs-deployment.yaml
+- seaweedfs-pvc.yaml
+- seaweedfs-networkpolicy.yaml
+- seaweedfs-create-admin-user-job.yaml
+- seaweedfs-service.yaml
+- seaweedfs-service-account.yaml
+- minio-service.yaml
+- mlflow-aws-secret.yaml
+
+# Create ConfigMap from params.env for environment variable substitution
+configMapGenerator:
+- name: seaweedfs-params
+  envs:
+  - params.env
+  options:
+    disableNameSuffixHash: true
