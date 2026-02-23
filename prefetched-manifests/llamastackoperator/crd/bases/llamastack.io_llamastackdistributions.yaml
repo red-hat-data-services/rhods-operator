@@ -401,6 +401,12 @@ spec:
                           ServiceAccountName allows users to specify their own ServiceAccount
                           If not specified, the operator will use the default ServiceAccount
                         type: string
+                      terminationGracePeriodSeconds:
+                        description: |-
+                          TerminationGracePeriodSeconds is the time allowed for graceful pod shutdown.
+                          If not specified, Kubernetes defaults to 30 seconds.
+                        format: int64
+                        type: integer
                       volumeMounts:
                         items:
                           description: VolumeMount describes a mounting of a Volume
