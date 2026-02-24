@@ -9,7 +9,7 @@ map:
     src: config
     dest: kserve
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: bca77f0ed953bc3cf995f828cfbe7a20233f6a84
+    git.commit: 185667d3aab99fdb155d98b7d44dca022a0a6591
   odh-kf-notebook-controller:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 4465681fb0b8605cd29abd8a35adf230eec753a3
+    git.commit: 91e5d4ef52cbccd74d90c4942d403d25d3e62e28
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -39,7 +39,7 @@ map:
     src: config
     dest: modelcontroller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 73f700a1d8f0206abe9872ca016a321524a3f20a
+    git.commit: c3575d58f065f1622bbfe7267c3d66d421a32e74
   odh-model-registry-operator:
     src: config
     dest: modelregistry
@@ -59,7 +59,7 @@ map:
     src: infra/feast-operator/config
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: 5364372e469dece4b46624e82782989fb0e86244
+    git.commit: d5a9c5750c10bc4cb6f598f2b6f55806d130b420
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
@@ -88,10 +88,10 @@ map:
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
-    git.commit: 44839af968da6e76dc21b8b3f21b772d322580d5
+    git.commit: 5c23a910636a74684f3a8089b5de91d2a7629723
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: cb5f10abe4a398b76491646c8dabee96a77df6b8
+    git.commit: 1cc4404f93e2fb55662cd8ba3ee46b5dba5ba916
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 1cc4404f93e2fb55662cd8ba3ee46b5dba5ba916
@@ -109,7 +109,7 @@ additional_meta:
     git.commit: 44839af968da6e76dc21b8b3f21b772d322580d5
   odh-kserve-agent:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: bca77f0ed953bc3cf995f828cfbe7a20233f6a84
+    git.commit: 185667d3aab99fdb155d98b7d44dca022a0a6591
   odh-kserve-router:
     git.url: https://github.com/red-hat-data-services/kserve
     git.commit: bca77f0ed953bc3cf995f828cfbe7a20233f6a84
