@@ -79,7 +79,7 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 6e065934319f5adf8fc3030709bb9362ead3c95d
+    git.commit: d490e486673592a4836ea1ec5059cd43b531f0cf
   odh-spark-operator:
     src: config
     dest: sparkoperator
@@ -89,6 +89,9 @@ additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
     git.commit: 5c23a910636a74684f3a8089b5de91d2a7629723
+  odh-cli:
+    git.url: https://github.com/red-hat-data-services/odh-cli
+    git.commit: c3c0e9a3d7de8714edffcb94ebaa976333858239
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 1cc4404f93e2fb55662cd8ba3ee46b5dba5ba916
