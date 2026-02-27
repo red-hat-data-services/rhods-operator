@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: odh-dashboard-allow-ports
+spec:
+  podSelector:
+    matchLabels:
+      deployment: odh-dashboard
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8443
+          protocol: TCP
+        - port: 8043
+          protocol: TCP
+        - port: 8143
+          protocol: TCP
+        - port: 8243
+          protocol: TCP
+      from:
+        # Allow traffic from OpenShift ingress controller
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+        # Allow traffic from pods in the same namespace
+        - podSelector: {}
