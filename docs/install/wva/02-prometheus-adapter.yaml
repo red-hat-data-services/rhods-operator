@@ -12,11 +12,6 @@
 #   - "service.beta.openshift.io/serving-cert-secret-name" on the Service to generate
 #     a TLS serving certificate, enabling proper TLS for the adapter's API endpoint.
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: workload-variant-autoscaler-monitoring
----
 # OpenShift auto-injects the service-serving CA into this ConfigMap.
 # This CA is used by the prometheus-adapter to verify TLS when connecting
 # to Thanos Querier (which uses a service-serving cert).
@@ -24,7 +19,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-ca
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
   annotations:
     service.beta.openshift.io/inject-cabundle: "true"
 data: {}
@@ -38,13 +33,13 @@ metadata:
     app.kubernetes.io/name: prometheus-adapter
     app.kubernetes.io/part-of: prometheus-adapter
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
   labels:
     app.kubernetes.io/component: metrics
     app.kubernetes.io/instance: prometheus-adapter
@@ -208,7 +203,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -226,7 +221,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -244,7 +239,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -262,7 +257,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -299,7 +294,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 ---
 # The serving-cert-secret-name annotation causes OpenShift to generate a TLS
 # certificate for this Service and store it in the named Secret. This allows
@@ -316,7 +311,7 @@ metadata:
   annotations:
     service.beta.openshift.io/serving-cert-secret-name: prometheus-adapter-tls
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 spec:
   ports:
   - name: https
@@ -337,7 +332,7 @@ metadata:
     app.kubernetes.io/name: prometheus-adapter
     app.kubernetes.io/part-of: prometheus-adapter
   name: prometheus-adapter
-  namespace: workload-variant-autoscaler-monitoring
+  namespace: openshift-user-workload-monitoring
 spec:
   replicas: 2
   strategy:
@@ -441,7 +436,7 @@ metadata:
 spec:
   service:
     name: prometheus-adapter
-    namespace: workload-variant-autoscaler-monitoring
+    namespace: openshift-user-workload-monitoring
   group: custom.metrics.k8s.io
   version: v1beta1
   groupPriorityMinimum: 100
@@ -461,7 +456,7 @@ metadata:
 spec:
   service:
     name: prometheus-adapter
-    namespace: workload-variant-autoscaler-monitoring
+    namespace: openshift-user-workload-monitoring
   group: external.metrics.k8s.io
   version: v1beta1
   groupPriorityMinimum: 100
