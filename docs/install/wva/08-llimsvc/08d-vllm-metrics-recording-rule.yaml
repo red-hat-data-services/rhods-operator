@@ -1,0 +1,46 @@
+# PrometheusRule that creates vllm:* aliases for kserve_vllm:* metrics.
+# The LLMInferenceService PodMonitor relabels vllm:* to kserve_vllm:* but
+# WVA queries for the unprefixed vllm:* names. This recording rule bridges
+# the gap until WVA supports configurable metric prefixes.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vllm-metrics-alias
+  namespace: autoscaling-example
+  labels:
+    monitoring.opendatahub.io/scrape: "true"
+spec:
+  groups:
+  - name: vllm-metric-aliases
+    interval: 15s
+    rules:
+    - record: vllm:kv_cache_usage_perc
+      expr: kserve_vllm:kv_cache_usage_perc
+    - record: vllm:num_requests_waiting
+      expr: kserve_vllm:num_requests_waiting
+    - record: vllm:num_requests_running
+      expr: kserve_vllm:num_requests_running
+    - record: vllm:cache_config_info
+      expr: kserve_vllm:cache_config_info
+    - record: vllm:request_success_total
+      expr: kserve_vllm:request_success_total
+    - record: vllm:request_generation_tokens_sum
+      expr: kserve_vllm:request_generation_tokens_sum
+    - record: vllm:request_generation_tokens_count
+      expr: kserve_vllm:request_generation_tokens_count
+    - record: vllm:request_prompt_tokens_sum
+      expr: kserve_vllm:request_prompt_tokens_sum
+    - record: vllm:request_prompt_tokens_count
+      expr: kserve_vllm:request_prompt_tokens_count
+    - record: vllm:time_to_first_token_seconds_sum
+      expr: kserve_vllm:time_to_first_token_seconds_sum
+    - record: vllm:time_to_first_token_seconds_count
+      expr: kserve_vllm:time_to_first_token_seconds_count
+    - record: vllm:time_per_output_token_seconds_sum
+      expr: kserve_vllm:time_per_output_token_seconds_sum
+    - record: vllm:time_per_output_token_seconds_count
+      expr: kserve_vllm:time_per_output_token_seconds_count
+    - record: vllm:prefix_cache_hits
+      expr: kserve_vllm:prefix_cache_hits
+    - record: vllm:prefix_cache_queries
+      expr: kserve_vllm:prefix_cache_queries

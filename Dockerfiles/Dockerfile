@@ -68,7 +68,8 @@ COPY --chown=1001:0 --from=manifests /opt/charts /opt/charts
 
 # tar installed to allow easy use of "oc cp" for component dev use cases.
 # See hack/component-dev/README.md in the source repo for more info.
-RUN microdnf install -y tar && microdnf clean all
+# Skipped: requires RHEL entitlement certs not available on Mac builds.
+# RUN microdnf install -y tar && microdnf clean all
 
 # Recursive change all files
 RUN chmod -R g=u /opt/manifests /opt/charts
