@@ -1,0 +1,66 @@
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  name: sim-llama
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+spec:
+  model:
+    name: "Qwen/Qwen2.5-7B-Instruct"
+    uri: "hf://Qwen/Qwen2.5-7B-Instruct"
+  storageInitializer:
+    enabled: false
+  labels:
+    inference.optimization/acceleratorName: cpu
+  scaling:
+    minReplicas: 1
+    maxReplicas: 5
+    wva:
+      variantCost: "10.0"
+      keda:
+        pollingInterval: 5
+        cooldownPeriod: 30
+  template:
+    containers:
+      - name: main
+        image: ghcr.io/llm-d/llm-d-inference-sim:v0.5.1
+        command: ["/app/llm-d-inference-sim"]
+        args:
+          - "--port"
+          - "8000"
+          - "--model"
+          - "Qwen/Qwen2.5-7B-Instruct"
+          - "--mode"
+          - "random"
+          - "--max-num-seqs"
+          - "5"
+          - "--time-to-first-token"
+          - "100"
+          - "--inter-token-latency"
+          - "30"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "2Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          failureThreshold: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
