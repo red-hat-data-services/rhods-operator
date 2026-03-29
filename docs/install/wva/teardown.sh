@@ -17,7 +17,7 @@ safe_delete() {
 
 # ── Step 1: Delete LLMInferenceService and namespace ─────────────────────────
 info "Step 1: Deleting LLMInferenceService resources..."
-safe_delete -f "$DIR/08-llimsvc/08c-sim_llmisvc.yaml"
+safe_delete -f "$DIR/08-llimsvc/08c-llmisvc.yaml"
 safe_delete -f "$DIR/08-llimsvc/08b-gateway.yaml"
 safe_delete -f "$DIR/08-llimsvc/08a-namespace.yaml"
 

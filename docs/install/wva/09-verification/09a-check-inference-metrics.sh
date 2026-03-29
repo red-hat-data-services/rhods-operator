@@ -4,7 +4,7 @@
 set -euo pipefail
 
 NS="${1:-autoscaling-example}"
-ISVC="${2:-sim-llama}"
+ISVC="${2:-autoscaling-example-llama}"
 TOKEN=$(oc whoami -t)
 THANOS_URL="https://$(oc get route thanos-querier -n openshift-monitoring -o jsonpath='{.spec.host}')"
 

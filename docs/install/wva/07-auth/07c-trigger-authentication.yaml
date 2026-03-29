@@ -11,13 +11,6 @@ metadata:
     kubernetes.io/service-account.name: keda-metrics-reader
 type: kubernetes.io/service-account-token
 ---
-# ClusterTriggerAuthentication that provides bearer token auth for
-# Prometheus/Thanos queries. Reference this from ScaledObjects as:
-#
-#   authenticationRef:
-#     name: keda-thanos-token
-#     kind: ClusterTriggerAuthentication
-#
 apiVersion: keda.sh/v1alpha1
 kind: ClusterTriggerAuthentication
 metadata:

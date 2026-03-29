@@ -4,7 +4,7 @@
 set -euo pipefail
 
 NS="${1:-autoscaling-example}"
-ISVC="${2:-sim-llama}"
+ISVC="${2:-autoscaling-example-llama}"
 CONCURRENCY="${3:-10}"
 DURATION="${4:-120}"
 

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 NS="${1:-autoscaling-example}"
-ISVC="${2:-sim-llama}"
+ISVC="${2:-autoscaling-example-llama}"
 
 GATEWAY_URL=$(oc get llminferenceservice "$ISVC" -n "$NS" -o jsonpath='{.status.url}')
 if [ -z "$GATEWAY_URL" ]; then

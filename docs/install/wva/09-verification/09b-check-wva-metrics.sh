@@ -4,7 +4,7 @@
 set -euo pipefail
 
 NS="${1:-autoscaling-example}"
-ISVC="${2:-sim-llama}"
+ISVC="${2:-autoscaling-example-llama}"
 TOKEN=$(oc whoami -t)
 THANOS_URL="https://$(oc get route thanos-querier -n openshift-monitoring -o jsonpath='{.spec.host}')"
 
@@ -14,7 +14,6 @@ METRICS=(
   "wva_desired_replicas"
   "wva_current_replicas"
   "wva_desired_ratio"
-  "wva_replica_scaling_total"
 )
 
 found=0
