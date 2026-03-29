@@ -1,0 +1,18 @@
+# Red Hat Connectivity Link Operator for OpenShift
+# Installs the Red Hat Connectivity Link operator from the
+# redhat-operators catalog via OLM.
+#
+# This operator is a dependency of the Workload Variant Autoscaler (WVA),
+# providing Gateway API support and traffic management capabilities.
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: rhcl-operator
+  namespace: openshift-operators
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: rhcl-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

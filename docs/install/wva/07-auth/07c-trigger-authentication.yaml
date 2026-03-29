@@ -1,0 +1,25 @@
+# Long-lived SA token secret for the keda-metrics-reader ServiceAccount.
+# On OpenShift 4.x, SA tokens are no longer auto-generated as secrets,
+# so we create one explicitly for KEDA to use.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keda-metrics-reader-token
+  namespace: openshift-keda
+  annotations:
+    kubernetes.io/service-account.name: keda-metrics-reader
+type: kubernetes.io/service-account-token
+---
+apiVersion: keda.sh/v1alpha1
+kind: ClusterTriggerAuthentication
+metadata:
+  name: keda-thanos-token
+spec:
+  secretTargetRef:
+    - parameter: bearerToken
+      name: keda-metrics-reader-token
+      key: token
+    - parameter: ca
+      name: keda-metrics-reader-token
+      key: ca.crt

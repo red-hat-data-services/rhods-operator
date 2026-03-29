@@ -1,0 +1,31 @@
+# Custom Metrics Autoscaler (KEDA) Operator for OpenShift
+# Installs the Red Hat supported custom-metrics-autoscaler operator from the
+# redhat-operators catalog via OLM.
+#
+# This operator provides the KedaController CRD and manages KEDA on the cluster,
+# which is a dependency of the Workload Variant Autoscaler (WVA).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-keda
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-keda
+  namespace: openshift-keda
+spec:
+  upgradeStrategy: Default
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-custom-metrics-autoscaler-operator
+  namespace: openshift-keda
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: openshift-custom-metrics-autoscaler-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

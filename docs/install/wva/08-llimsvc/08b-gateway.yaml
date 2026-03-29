@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaling-example-gateway-config
+  namespace: autoscaling-example
+data:
+  service: |
+    metadata:
+      annotations:
+        service.beta.openshift.io/serving-cert-secret-name: "autoscaling-example-gateway-tls"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: autoscaling-example-gateway
+  namespace: autoscaling-example
+spec:
+  gatewayClassName: data-science-gateway-class
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: autoscaling-example-gateway-config
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - group: ""
+        kind: Secret
+        name: autoscaling-example-gateway-tls
+      mode: Terminate
