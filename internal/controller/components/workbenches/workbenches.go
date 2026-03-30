@@ -14,7 +14,6 @@ import (
 	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
 	dscv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v2"
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components"
-	cr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/registry"
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/conditions"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
@@ -24,9 +23,7 @@ import (
 
 type componentHandler struct{}
 
-func init() { //nolint:gochecknoinits
-	cr.Add(&componentHandler{})
-}
+func NewHandler() *componentHandler { return &componentHandler{} }
 
 func (s *componentHandler) GetName() string {
 	return componentApi.WorkbenchesComponentName
@@ -66,7 +63,7 @@ func (s *componentHandler) Init(platform common.Platform) error {
 		return fmt.Errorf("failed to update params.env from %s : %w", kfNbcManifestInfo.String(), err)
 	}
 
-	nbImgsManifestInfo := notebookImagesManifestInfo(notebookImagesParamsPath)
+	nbImgsManifestInfo := notebookImagesManifestInfo(notebookImagesParamsPath[platform])
 	if err := odhdeploy.ApplyParams(nbImgsManifestInfo.String(), "params-latest.env", map[string]string{
 		// CodeServer Workbench Images
 		"odh-workbench-codeserver-datascience-cpu-py312-ubi9-n": "RELATED_IMAGE_ODH_WORKBENCH_CODESERVER_DATASCIENCE_CPU_PY312_IMAGE",

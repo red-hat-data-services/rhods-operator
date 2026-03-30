@@ -20,9 +20,6 @@ import (
 	"context"
 	"strings"
 
-	templatev1 "github.com/openshift/api/template/v1"
-	"github.com/operator-framework/api/pkg/operators/v1alpha1"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -32,17 +29,16 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/dependency"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/gc"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/render/kustomize"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/status/deployments"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/status/releases"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/handlers"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/component"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/dependent"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/hash"
@@ -52,7 +48,7 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
 )
 
-// NewComponentReconciler creates a ComponentReconciler for the Dashboard API.
+// NewComponentReconciler creates a ComponentReconciler for the Kserve API.
 func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.Manager) error {
 	versionPrefix := strings.ReplaceAll("v"+cluster.GetRelease().Version.String(), ".", "-")
 
@@ -66,24 +62,27 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 		Owns(&rbacv1.RoleBinding{}).
 		Owns(&rbacv1.ClusterRole{}).
 		Owns(&rbacv1.ClusterRoleBinding{}).
-		// The ovms template gets a new resourceVersion periodically without any other
-		// changes. The compareHashPredicate ensures that we don't needlessly enqueue
-		// requests if there are no changes that we don't care about.
-		Owns(&templatev1.Template{}, reconciler.WithPredicates(hash.Updated())).
 		Owns(&networkingv1.NetworkPolicy{}).
-		Owns(&monitoringv1.ServiceMonitor{}).
 		Owns(&admissionregistrationv1.MutatingWebhookConfiguration{}).
 		Owns(&admissionregistrationv1.ValidatingWebhookConfiguration{}).
 		Owns(&admissionregistrationv1.ValidatingAdmissionPolicy{}).
 		Owns(&admissionregistrationv1.ValidatingAdmissionPolicyBinding{}).
-		Owns(&appsv1.Deployment{}, reconciler.WithPredicates(resources.NewDeploymentPredicate())).
+		Owns(&appsv1.Deployment{}, reconciler.WithPredicates(predicates.DefaultDeploymentPredicate)).
+
+		// The ovms template gets a new resourceVersion periodically without any other
+		// changes. The compareHashPredicate ensures that we don't needlessly enqueue
+		// requests if there are no changes that we don't care about.
+		OwnsGVK(gvk.OpenshiftTemplate, reconciler.WithPredicates(hash.Updated()), reconciler.Dynamic(reconciler.ClusterIsOpenShift())).
+		OwnsGVK(gvk.CoreosServiceMonitor, reconciler.Dynamic(reconciler.CrdExists(gvk.CoreosServiceMonitor))).
 
 		// operands - dynamically owned
 		OwnsGVK(gvk.InferencePoolV1alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.InferencePoolV1alpha2))).
 		OwnsGVK(gvk.InferencePoolV1, reconciler.Dynamic(reconciler.CrdExists(gvk.InferencePoolV1))).
 		OwnsGVK(gvk.InferenceModelV1alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.InferenceModelV1alpha2))).
 		OwnsGVK(gvk.LLMInferenceServiceConfigV1Alpha1, reconciler.Dynamic(reconciler.CrdExists(gvk.LLMInferenceServiceConfigV1Alpha1))).
+		OwnsGVK(gvk.LLMInferenceServiceConfigV1Alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.LLMInferenceServiceConfigV1Alpha2))).
 		OwnsGVK(gvk.LLMInferenceServiceV1Alpha1, reconciler.Dynamic(reconciler.CrdExists(gvk.LLMInferenceServiceV1Alpha1))).
+		OwnsGVK(gvk.LLMInferenceServiceV1Alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.LLMInferenceServiceV1Alpha2))).
 
 		// operands - watched
 		//
@@ -98,10 +97,20 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 			reconciler.WithEventHandler(
 				handlers.ToNamed(componentApi.KserveInstanceName)),
 			reconciler.WithPredicates(
-				component.ForLabel(labels.ODH.Component(LegacyComponentName), labels.True),
+				predicate.Or(
+					component.ForLabel(labels.ODH.Component(LegacyComponentName), labels.True),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".networking.istio.io"),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".security.istio.io"),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".telemetry.istio.io"),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".extensions.istio.io"),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".cert-manager.io"),
+					resources.CreatedOrUpdatedOrDeletedNameSuffixed(".leaderworkerset.x-k8s.io"),
+					resources.CreatedOrUpdatedOrDeletedNamed(gvk.LeaderWorkerSetOperatorCRDname),
+					resources.CreatedOrUpdatedOrDeletedNamed(gvk.SubscriptionCRDname),
+				),
 			),
 		).
-		Watches(&v1alpha1.Subscription{},
+		WatchesGVK(gvk.Subscription,
 			reconciler.WithEventHandler(
 				handlers.ToNamed(componentApi.KserveInstanceName),
 			),
@@ -111,7 +120,7 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 					resources.CreatedOrUpdatedOrDeletedNamed(lwsOperatorSubscription),
 				),
 			),
-		).
+			reconciler.Dynamic(reconciler.CrdExists(gvk.Subscription))).
 		WatchesGVK(gvk.LeaderWorkerSetOperatorV1,
 			reconciler.WithEventHandler(
 				handlers.ToNamed(componentApi.KserveInstanceName),
@@ -120,17 +129,13 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 				dependent.New(dependent.WithWatchStatus(true)),
 			),
 			reconciler.Dynamic(reconciler.CrdExists(gvk.LeaderWorkerSetOperatorV1))).
+		// Watch for dependency CRDs (istio, cert-manager, leaderworkerset)
+		// so the controller re-reconciles when they appear or disappear.
 
 		// actions
-		WithAction(checkPreConditions).
 		WithAction(initialize).
-		WithAction(dependency.NewAction(
-			dependency.MonitorOperator(dependency.OperatorConfig{
-				OperatorGVK: gvk.LeaderWorkerSetOperatorV1,
-				Severity:    common.ConditionSeverityInfo,
-				Filter:      lwsConditionFilter,
-			}),
-		)).
+		WithAction(checkOperatorAndCRDDependencies()).
+		WithAction(checkSubscriptionDependencies()).
 		WithAction(releases.NewAction()).
 		WithAction(removeOwnershipFromUnmanagedResources).
 		WithAction(cleanUpTemplatedResources).
@@ -152,10 +157,11 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 		}).
 		WithAction(deploy.NewAction(
 			deploy.WithCache(),
+			deploy.WithApplyOrder(),
 		)).
 		WithAction(deployments.NewAction()).
 		// must be the final action
-		WithAction(gc.NewAction(gc.WithUnremovables(gvk.LLMInferenceServiceConfigV1Alpha1))).
+		WithAction(gc.NewAction(gc.WithUnremovables(gvk.LLMInferenceServiceConfigV1Alpha1, gvk.LLMInferenceServiceConfigV1Alpha2))).
 		// declares the list of additional, controller specific conditions that are
 		// contributing to the controller readiness status
 		WithConditions(conditionTypes...).

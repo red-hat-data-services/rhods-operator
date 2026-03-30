@@ -35,6 +35,22 @@ Package v1 contains API Schema definitions for the components v1 API group
 
 
 
+#### APIKeysConfig
+
+
+
+APIKeysConfig defines configuration options for API key management.
+
+
+
+_Appears in:_
+- [ModelsAsServiceSpec](#modelsasservicespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `maxExpirationDays` _integer_ | MaxExpirationDays is the maximum allowed expiration in days for API keys.<br />When set, users cannot create API keys with expiration longer than this value.<br />Examples: 30 (one month), 90 (three months), 365 (one year).<br />If not set, no expiration limit is enforced. |  | Minimum: 1 <br />Optional: \{\} <br /> |
+
+
 #### ArgoWorkflowsControllersSpec
 
 
@@ -174,6 +190,7 @@ _Appears in:_
 | `rawDeploymentServiceConfig` _[RawServiceConfig](#rawserviceconfig)_ | Configures the type of service that is created for InferenceServices using RawDeployment.<br />The values for RawDeploymentServiceConfig can be "Headless" (default value) or "Headed".<br />Headless: to set "ServiceClusterIPNone = true" in the 'inferenceservice-config' configmap for Kserve.<br />Headed: to set "ServiceClusterIPNone = false" in the 'inferenceservice-config' configmap for Kserve. | Headless | Enum: [Headless Headed] <br /> |
 | `nim` _[NimSpec](#nimspec)_ | Configures and enables NVIDIA NIM integration |  |  |
 | `modelsAsService` _[DSCModelsAsServiceSpec](#dscmodelsasservicespec)_ | Configures and enables Models as a Service integration |  |  |
+| `wva` _[WVASpec](#wvaspec)_ | Configures and enables workload-variant-autoscaler (WVA) integration |  |  |
 
 
 #### DSCKserveStatus
@@ -868,6 +885,7 @@ _Appears in:_
 | `rawDeploymentServiceConfig` _[RawServiceConfig](#rawserviceconfig)_ | Configures the type of service that is created for InferenceServices using RawDeployment.<br />The values for RawDeploymentServiceConfig can be "Headless" (default value) or "Headed".<br />Headless: to set "ServiceClusterIPNone = true" in the 'inferenceservice-config' configmap for Kserve.<br />Headed: to set "ServiceClusterIPNone = false" in the 'inferenceservice-config' configmap for Kserve. | Headless | Enum: [Headless Headed] <br /> |
 | `nim` _[NimSpec](#nimspec)_ | Configures and enables NVIDIA NIM integration |  |  |
 | `modelsAsService` _[DSCModelsAsServiceSpec](#dscmodelsasservicespec)_ | Configures and enables Models as a Service integration |  |  |
+| `wva` _[WVASpec](#wvaspec)_ | Configures and enables workload-variant-autoscaler (WVA) integration |  |  |
 
 
 #### KserveCommonStatus
@@ -903,6 +921,7 @@ _Appears in:_
 | `rawDeploymentServiceConfig` _[RawServiceConfig](#rawserviceconfig)_ | Configures the type of service that is created for InferenceServices using RawDeployment.<br />The values for RawDeploymentServiceConfig can be "Headless" (default value) or "Headed".<br />Headless: to set "ServiceClusterIPNone = true" in the 'inferenceservice-config' configmap for Kserve.<br />Headed: to set "ServiceClusterIPNone = false" in the 'inferenceservice-config' configmap for Kserve. | Headless | Enum: [Headless Headed] <br /> |
 | `nim` _[NimSpec](#nimspec)_ | Configures and enables NVIDIA NIM integration |  |  |
 | `modelsAsService` _[DSCModelsAsServiceSpec](#dscmodelsasservicespec)_ | Configures and enables Models as a Service integration |  |  |
+| `wva` _[WVASpec](#wvaspec)_ | Configures and enables workload-variant-autoscaler (WVA) integration |  |  |
 
 
 #### KserveStatus
@@ -1219,6 +1238,27 @@ _Appears in:_
 | `releases` _[ComponentRelease](#componentrelease) array_ |  |  |  |
 
 
+#### MetricsConfig
+
+
+
+MetricsConfig defines which dimensions (labels) are captured in telemetry metrics.
+Each dimension can be enabled or disabled to control metric cardinality and storage costs.
+Note: subscription, cost_center, and tier dimensions are always emitted for billing and access control.
+
+
+
+_Appears in:_
+- [TelemetryConfig](#telemetryconfig)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `captureOrganization` _boolean_ | CaptureOrganization enables the organization_id label on metrics. | true | Optional: \{\} <br /> |
+| `captureUser` _boolean_ | CaptureUser enables the user label on metrics.<br />Disabled by default for privacy/GDPR compliance. | false | Optional: \{\} <br /> |
+| `captureGroup` _boolean_ | CaptureGroup enables the group label on metrics for team-based chargeback.<br />Note: This is a high-cardinality dimension and is disabled by default. | false | Optional: \{\} <br /> |
+| `captureModelUsage` _boolean_ | CaptureModelUsage enables the model label on metrics. | true | Optional: \{\} <br /> |
+
+
 #### ModelController
 
 
@@ -1244,7 +1284,7 @@ ModelController is the Schema for the modelcontroller API
 
 
 
-a mini version of the DSCKserve only keeps management and NIM spec
+a mini version of the DSCKserve only keeps management, NIM, and WVA spec
 
 
 
@@ -1255,6 +1295,7 @@ _Appears in:_
 | --- | --- | --- | --- |
 | `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api@v0.0.0-20250812222054-88b2b21555f3/operator/v1#ManagementState)_ |  |  |  |
 | `nim` _[NimSpec](#nimspec)_ |  |  |  |
+| `wva` _[WVASpec](#wvaspec)_ |  |  |  |
 
 
 
@@ -1438,6 +1479,8 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `gatewayRef` _[GatewayRef](#gatewayref)_ | GatewayRef specifies which Gateway (Gateway API) to use for exposing model endpoints.<br />If omitted, defaults to openshift-ingress/maas-default-gateway. |  | Optional: \{\} <br /> |
+| `apiKeys` _[APIKeysConfig](#apikeysconfig)_ | APIKeys contains configuration for API key management. |  | Optional: \{\} <br /> |
+| `telemetry` _[TelemetryConfig](#telemetryconfig)_ | Telemetry contains configuration for telemetry and metrics collection. |  | Optional: \{\} <br /> |
 
 
 #### ModelsAsServiceStatus
@@ -1664,6 +1707,23 @@ _Appears in:_
 | `observedGeneration` _integer_ | The generation observed by the resource controller. |  |  |
 | `conditions` _[Condition](#condition) array_ |  |  |  |
 | `releases` _[ComponentRelease](#componentrelease) array_ |  |  |  |
+
+
+#### TelemetryConfig
+
+
+
+TelemetryConfig defines configuration for telemetry collection.
+Core billing and access control metrics (subscription, cost_center, tier) are always emitted.
+
+
+
+_Appears in:_
+- [ModelsAsServiceSpec](#modelsasservicespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `metrics` _[MetricsConfig](#metricsconfig)_ | Metrics contains configuration for optional metric dimensions/labels. |  | Optional: \{\} <br /> |
 
 
 #### Trainer
@@ -1957,6 +2017,25 @@ _Appears in:_
 | `observedGeneration` _integer_ | The generation observed by the resource controller. |  |  |
 | `conditions` _[Condition](#condition) array_ |  |  |  |
 | `releases` _[ComponentRelease](#componentrelease) array_ |  |  |  |
+
+
+#### WVASpec
+
+
+
+WVASpec enables workload-variant-autoscaler integration
+
+
+
+_Appears in:_
+- [DSCKserve](#dsckserve)
+- [KserveCommonSpec](#kservecommonspec)
+- [KserveSpec](#kservespec)
+- [ModelControllerKerveSpec](#modelcontrollerkervespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api@v0.0.0-20250812222054-88b2b21555f3/operator/v1#ManagementState)_ |  | Removed | Enum: [Managed Removed] <br /> |
 
 
 #### Workbenches

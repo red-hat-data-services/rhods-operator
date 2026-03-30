@@ -56,6 +56,13 @@ spec:
   # For high-traffic deployments, scaling replicas is recommended over increasing workers
   workers: 2
 
+  # Extra CORS allowed origins (Optional)
+  # The operator preconfigures safe defaults (Kubernetes service names, gateway domain, localhost).
+  # Use this to allow additional origins for cross-origin requests to the MLflow API.
+  # extraAllowedOrigins:
+  #   - "https://my-app.example.com"
+  #   - "https://jupyter.example.com:8888"
+
   # AWS credentials for S3 access
   envFrom:
     - secretRef:

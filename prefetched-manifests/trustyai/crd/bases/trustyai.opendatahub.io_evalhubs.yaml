@@ -49,26 +49,45 @@ spec:
           spec:
             description: EvalHubSpec defines the desired state of EvalHub
             properties:
+              collections:
+                description: |-
+                  Collections is the list of OOTB collection names to mount into the deployment.
+                  Each name must match a collection-name label on a ConfigMap in the operator namespace.
+                items:
+                  type: string
+                type: array
               database:
                 description: |-
                   Database configuration for persistent storage.
-                  When set, the operator configures PostgreSQL via the referenced secret.
-                  When omitted, the service uses its default (in-memory SQLite).
+                  This field is required: the operator will not start the service without
+                  an explicit database configuration.
+                  Set type to "postgresql" with a secret reference, or "sqlite" for
+                  lightweight/development deployments.
                 properties:
                   maxIdleConns:
                     default: 5
-                    description: Maximum number of idle database connections
+                    description: Maximum number of idle database connections (postgresql
+                      only)
                     type: integer
                   maxOpenConns:
                     default: 25
-                    description: Maximum number of open database connections
+                    description: Maximum number of open database connections (postgresql
+                      only)
                     type: integer
                   secret:
-                    description: Name of the K8s Secret containing a pre-composed
-                      db-url key
+                    description: |-
+                      Name of the K8s Secret containing a pre-composed db-url key.
+                      Required when type is "postgresql"; ignored for "sqlite".
+                    type: string
+                  type:
+                    description: Type of the database backend. Must be explicitly
+                      set.
+                    enum:
+                    - sqlite
+                    - postgresql
                     type: string
                 required:
-                - secret
+                - type
                 type: object
               env:
                 description: Environment variables for the eval-hub container
@@ -180,6 +199,50 @@ spec:
                   - name
                   type: object
                 type: array
+              otel:
+                description: |-
+                  OpenTelemetry configuration for observability.
+                  When set, the operator includes OTEL settings in the generated config.
+                  When omitted, the service uses its defaults (OTEL disabled).
+                properties:
+                  enableLogs:
+                    type: boolean
+                  enableMetrics:
+                    type: boolean
+                  enableTracing:
+                    default: true
+                    type: boolean
+                  exporterEndpoint:
+                    type: string
+                  exporterInsecure:
+                    default: false
+                    type: boolean
+                  exporterType:
+                    default: otlp-grpc
+                    enum:
+                    - otlp-grpc
+                    - otlp-http
+                    - stdout
+                    type: string
+                  samplingRatio:
+                    default: "1.0"
+                    description: |-
+                      Trace sampling ratio as a string-encoded float between "0" and "1" (e.g. "0.5").
+                      Defaults to "1.0" (sample everything) when omitted.
+                    type: string
+                type: object
+              providers:
+                default:
+                - garak
+                - guidellm
+                - lighteval
+                - lm-evaluation-harness
+                description: |-
+                  Providers is the list of OOTB provider names to mount into the deployment.
+                  Each name must match a provider-name label on a ConfigMap in the operator namespace.
+                items:
+                  type: string
+                type: array
               replicas:
                 default: 1
                 description: Number of replicas for the eval-hub deployment
@@ -190,6 +253,11 @@ spec:
           status:
             description: EvalHubStatus defines the observed state of EvalHub
             properties:
+              activeCollections:
+                description: List of active collections
+                items:
+                  type: string
+                type: array
               activeProviders:
                 description: List of active providers
                 items:

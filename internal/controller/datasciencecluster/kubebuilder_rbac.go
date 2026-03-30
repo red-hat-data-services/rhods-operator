@@ -232,10 +232,14 @@ package datasciencecluster
 // +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterservingruntimes/status,verbs=update;patch;delete;get
 // +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterservingruntimes/finalizers,verbs=create;delete;list;update;watch;patch;get
 // +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterservingruntimes,verbs=create;delete;list;update;watch;patch;get
+// +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterstoragecontainers/status,verbs=update;patch;delete;get
+// +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterstoragecontainers/finalizers,verbs=create;delete;list;update;watch;patch;get
+// +kubebuilder:rbac:groups="serving.kserve.io",resources=clusterstoragecontainers,verbs=create;delete;list;update;watch;patch;get
 // OpenShift templates for workbenches
 // +kubebuilder:rbac:groups="template.openshift.io",resources=templates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="config.openshift.io",resources=ingresses,verbs=get
 /* KEDA (CMA) InferenceService autoscaling */
+// +kubebuilder:rbac:groups=keda.sh,resources=kedacontrollers,verbs=get;list;watch
 // +kubebuilder:rbac:groups=keda.sh,resources=triggerauthentications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=metrics.k8s.io,resources=pods;nodes,verbs=get;list;watch
 /* LLM-d */

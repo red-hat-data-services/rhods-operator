@@ -26,6 +26,12 @@ import (
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
 )
 
+const (
+	LeaderWorkerSetOperatorCRDname = "leaderworkersetoperators.operator.openshift.io"
+	SubscriptionCRDname            = "subscriptions.operators.coreos.com"
+	VariantAutoscalingCRDname      = "variantautoscalings.llmd.ai"
+)
+
 var (
 	Namespace = schema.GroupVersionKind{
 		Group:   "",
@@ -363,6 +369,8 @@ var (
 		Kind:    "Lease",
 	}
 
+	// networking.istio.io.
+
 	DestinationRule = schema.GroupVersionKind{
 		Group:   "networking.istio.io",
 		Version: "v1",
@@ -375,6 +383,44 @@ var (
 		Kind:    "EnvoyFilter",
 	}
 
+	IstioGateway = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "Gateway",
+	}
+
+	ProxyConfig = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1beta1",
+		Kind:    "ProxyConfig",
+	}
+
+	ServiceEntry = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "ServiceEntry",
+	}
+
+	Sidecar = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "Sidecar",
+	}
+
+	WorkloadEntry = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "WorkloadEntry",
+	}
+
+	WorkloadGroup = schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "WorkloadGroup",
+	}
+
+	// security.istio.io.
+
 	AuthorizationPolicy = schema.GroupVersionKind{
 		Group:   "security.istio.io",
 		Version: "v1",
@@ -385,6 +431,42 @@ var (
 		Group:   "security.istio.io",
 		Version: "v1beta1",
 		Kind:    "AuthorizationPolicy",
+	}
+
+	PeerAuthentication = schema.GroupVersionKind{
+		Group:   "security.istio.io",
+		Version: "v1",
+		Kind:    "PeerAuthentication",
+	}
+
+	RequestAuthentication = schema.GroupVersionKind{
+		Group:   "security.istio.io",
+		Version: "v1",
+		Kind:    "RequestAuthentication",
+	}
+
+	// telemetry.istio.io.
+
+	Telemetry = schema.GroupVersionKind{
+		Group:   "telemetry.istio.io",
+		Version: "v1",
+		Kind:    "Telemetry",
+	}
+
+	// extensions.istio.io.
+
+	WasmPlugin = schema.GroupVersionKind{
+		Group:   "extensions.istio.io",
+		Version: "v1alpha1",
+		Kind:    "WasmPlugin",
+	}
+
+	// sailoperator.io.
+
+	Istio = schema.GroupVersionKind{
+		Group:   "sailoperator.io",
+		Version: "v1",
+		Kind:    "Istio",
 	}
 
 	GatewayConfig = schema.GroupVersionKind{
@@ -423,35 +505,15 @@ var (
 		Kind:    serviceApi.AuthKind,
 	}
 
-	MultiKueueConfigV1Alpha1 = schema.GroupVersionKind{
-		Group:   "kueue.x-k8s.io",
-		Version: "v1alpha1",
-		Kind:    "MultiKueueConfig",
-	}
+	// leaderworkerset.x-k8s.io.
 
-	MultikueueClusterV1Alpha1 = schema.GroupVersionKind{
-		Group:   "kueue.x-k8s.io",
-		Version: "v1alpha1",
-		Kind:    "MultiKueueCluster",
-	}
-
-	KueueConfigV1 = schema.GroupVersionKind{
-		Group:   "kueue.openshift.io",
+	LeaderWorkerSetV1 = schema.GroupVersionKind{
+		Group:   "leaderworkerset.x-k8s.io",
 		Version: "v1",
-		Kind:    "Kueue",
+		Kind:    "LeaderWorkerSet",
 	}
 
-	LeaderWorkerSetOperatorV1 = schema.GroupVersionKind{
-		Group:   "operator.openshift.io",
-		Version: "v1",
-		Kind:    "LeaderWorkerSetOperator",
-	}
-
-	JobSetOperatorV1 = schema.GroupVersionKind{
-		Group:   "operator.openshift.io",
-		Version: "v1",
-		Kind:    "JobSetOperator",
-	}
+	// kueue.x-k8s.io.
 
 	LocalQueue = schema.GroupVersionKind{
 		Group:   "kueue.x-k8s.io",
@@ -469,6 +531,26 @@ var (
 		Group:   "kueue.x-k8s.io",
 		Version: "v1beta1",
 		Kind:    "ResourceFlavor",
+	}
+
+	KueueConfigV1 = schema.GroupVersionKind{
+		Group:   "kueue.openshift.io",
+		Version: "v1",
+		Kind:    "Kueue",
+	}
+
+	// operator.openshift.io.
+
+	LeaderWorkerSetOperatorV1 = schema.GroupVersionKind{
+		Group:   "operator.openshift.io",
+		Version: "v1",
+		Kind:    "LeaderWorkerSetOperator",
+	}
+
+	JobSetOperatorV1 = schema.GroupVersionKind{
+		Group:   "operator.openshift.io",
+		Version: "v1",
+		Kind:    "JobSetOperator",
 	}
 
 	InferenceServices = schema.GroupVersionKind{
@@ -495,9 +577,21 @@ var (
 		Kind:    "LLMInferenceServiceConfig",
 	}
 
+	LLMInferenceServiceConfigV1Alpha2 = schema.GroupVersionKind{
+		Group:   "serving.kserve.io",
+		Version: "v1alpha2",
+		Kind:    "LLMInferenceServiceConfig",
+	}
+
 	LLMInferenceServiceV1Alpha1 = schema.GroupVersionKind{
 		Group:   "serving.kserve.io",
 		Version: "v1alpha1",
+		Kind:    "LLMInferenceService",
+	}
+
+	LLMInferenceServiceV1Alpha2 = schema.GroupVersionKind{
+		Group:   "serving.kserve.io",
+		Version: "v1alpha2",
 		Kind:    "LLMInferenceService",
 	}
 
@@ -517,6 +611,12 @@ var (
 		Group:   "inference.networking.x-k8s.io",
 		Version: "v1alpha2",
 		Kind:    "InferenceModel",
+	}
+
+	VariantAutoscaling = schema.GroupVersionKind{
+		Group:   "llmd.ai",
+		Version: "v1alpha1",
+		Kind:    "VariantAutoscaling",
 	}
 
 	OperatorCondition = schema.GroupVersionKind{
@@ -597,6 +697,12 @@ var (
 		Kind:    "Instrumentation",
 	}
 
+	OpenshiftTemplate = schema.GroupVersionKind{
+		Group:   "template.openshift.io",
+		Version: "v1",
+		Kind:    "Template",
+	}
+
 	ServiceMonitor = schema.GroupVersionKind{
 		Group:   "monitoring.rhobs",
 		Version: "v1",
@@ -621,11 +727,17 @@ var (
 		Kind:    "PrometheusRule",
 	}
 
-	Perses = schema.GroupVersionKind{
+	PersesV1Alpha1 = schema.GroupVersionKind{
 		Group:   "perses.dev",
 		Version: "v1alpha1",
 		Kind:    "Perses",
 	}
+	PersesV1Alpha2 = schema.GroupVersionKind{
+		Group:   "perses.dev",
+		Version: "v1alpha2",
+		Kind:    "Perses",
+	}
+	Perses = PersesV1Alpha2
 
 	ServiceMesh = schema.GroupVersionKind{
 		Group:   serviceApi.GroupVersion.Group,
@@ -639,17 +751,29 @@ var (
 		Kind:    "ThanosQuerier",
 	}
 
-	PersesDatasource = schema.GroupVersionKind{
+	PersesDatasourceV1Alpha1 = schema.GroupVersionKind{
 		Group:   "perses.dev",
 		Version: "v1alpha1",
 		Kind:    "PersesDatasource",
 	}
+	PersesDatasourceV1Alpha2 = schema.GroupVersionKind{
+		Group:   "perses.dev",
+		Version: "v1alpha2",
+		Kind:    "PersesDatasource",
+	}
+	PersesDatasource = PersesDatasourceV1Alpha2
 
-	PersesDashboard = schema.GroupVersionKind{
+	PersesDashboardV1Alpha1 = schema.GroupVersionKind{
 		Group:   "perses.dev",
 		Version: "v1alpha1",
 		Kind:    "PersesDashboard",
 	}
+	PersesDashboardV1Alpha2 = schema.GroupVersionKind{
+		Group:   "perses.dev",
+		Version: "v1alpha2",
+		Kind:    "PersesDashboard",
+	}
+	PersesDashboard = PersesDashboardV1Alpha2
 
 	ValidatingAdmissionPolicy = schema.GroupVersionKind{
 		Group:   "admissionregistration.k8s.io",
@@ -673,6 +797,12 @@ var (
 		Group:   "kuadrant.io",
 		Version: "v1",
 		Kind:    "RateLimitPolicy",
+	}
+
+	TelemetryPolicyv1alpha1 = schema.GroupVersionKind{
+		Group:   "extensions.kuadrant.io",
+		Version: "v1alpha1",
+		Kind:    "TelemetryPolicy",
 	}
 
 	AuthConfigv1beta3 = schema.GroupVersionKind{
@@ -705,10 +835,18 @@ var (
 		Kind:    "PersistentVolumeClaim",
 	}
 
+	// cert-manager.io.
+
 	CertManagerCertificate = schema.GroupVersionKind{
 		Group:   "cert-manager.io",
 		Version: "v1",
 		Kind:    "Certificate",
+	}
+
+	CertManagerCertificateRequest = schema.GroupVersionKind{
+		Group:   "cert-manager.io",
+		Version: "v1",
+		Kind:    "CertificateRequest",
 	}
 
 	CertManagerIssuer = schema.GroupVersionKind{
@@ -721,5 +859,23 @@ var (
 		Group:   "cert-manager.io",
 		Version: "v1",
 		Kind:    "ClusterIssuer",
+	}
+
+	AzureKubernetesEngine = schema.GroupVersionKind{
+		Group:   "infrastructure.opendatahub.io",
+		Version: "v1alpha1",
+		Kind:    "AzureKubernetesEngine",
+	}
+
+	CoreWeaveKubernetesEngine = schema.GroupVersionKind{
+		Group:   "infrastructure.opendatahub.io",
+		Version: "v1alpha1",
+		Kind:    "CoreWeaveKubernetesEngine",
+	}
+
+	SparkApplication = schema.GroupVersionKind{
+		Group:   "sparkoperator.k8s.io",
+		Version: "v1beta2",
+		Kind:    "SparkApplication",
 	}
 )

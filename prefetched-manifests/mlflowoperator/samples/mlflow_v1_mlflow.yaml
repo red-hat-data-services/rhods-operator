@@ -20,6 +20,11 @@ spec:
       cpu: "4"
       memory: "3Gi"
 
+  # Pod-specific annotations
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8443"
+
   # ========================================
   # Storage Configuration
   # ========================================

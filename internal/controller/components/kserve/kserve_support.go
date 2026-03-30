@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
+	"os"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,6 +19,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/dependency/certmanager"
 	odhtypes "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
 	odhdeploy "github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
@@ -24,19 +28,56 @@ import (
 )
 
 var (
+	ErrResourceNotFound = errors.New("resource not found")
+
 	imageParamMap = map[string]string{
 		"kserve-agent":                     "RELATED_IMAGE_ODH_KSERVE_AGENT_IMAGE",
 		"kserve-controller":                "RELATED_IMAGE_ODH_KSERVE_CONTROLLER_IMAGE",
+		"llmisvc-controller":               "RELATED_IMAGE_ODH_KSERVE_LLMISVC_CONTROLLER_IMAGE",
 		"kserve-router":                    "RELATED_IMAGE_ODH_KSERVE_ROUTER_IMAGE",
 		"kserve-storage-initializer":       "RELATED_IMAGE_ODH_KSERVE_STORAGE_INITIALIZER_IMAGE",
 		"kserve-llm-d":                     "RELATED_IMAGE_RHAIIS_VLLM_CUDA_IMAGE", // Default image (Nvidia CUDA)
 		"kserve-llm-d-nvidia-cuda":         "RELATED_IMAGE_RHAIIS_VLLM_CUDA_IMAGE",
 		"kserve-llm-d-amd-rocm":            "RELATED_IMAGE_RHAIIS_VLLM_ROCM_IMAGE",
+		"kserve-llm-d-ibm-spyre":           "RELATED_IMAGE_RHAIIS_VLLM_SPYRE_IMAGE",
 		"kserve-llm-d-inference-scheduler": "RELATED_IMAGE_ODH_LLM_D_INFERENCE_SCHEDULER_IMAGE",
 		"kserve-llm-d-routing-sidecar":     "RELATED_IMAGE_ODH_LLM_D_ROUTING_SIDECAR_IMAGE",
 		"kube-rbac-proxy":                  "RELATED_IMAGE_OSE_KUBE_RBAC_PROXY_IMAGE",
+		"kserve-llm-d-uds-tokenizer":       "RELATED_IMAGE_ODH_LLM_D_KV_CACHE_IMAGE",
 	}
 )
+
+// buildCertManagerParams returns the cert-manager configuration to inject into the
+// xKS overlay params.env. Defaults come from certmanager.DefaultBootstrapConfig();
+// each RHAI_* env var, when set, overrides the corresponding default.
+// NAMESPACE uses cluster.GetApplicationNamespace() for platform-aware resolution.
+// ISTIO_CA_CERTIFICATE_PATH is only injected when its env var is set.
+func buildCertManagerParams() map[string]string {
+	bc := certmanager.DefaultBootstrapConfig()
+
+	params := map[string]string{
+		"ISSUER_REF_NAME":     bc.CAIssuerName,
+		"ISSUER_REF_KIND":     certmanager.DefaultIssuerRefKind,
+		"CA_SECRET_NAME":      bc.CertName,
+		"CA_SECRET_NAMESPACE": bc.CertManagerNamespace,
+		"NAMESPACE":           cluster.GetApplicationNamespace(),
+	}
+
+	// Env var overrides: written only when the env var is set.
+	for key, envVar := range map[string]string{
+		"ISSUER_REF_NAME":           certmanager.EnvCAIssuerName,
+		"ISSUER_REF_KIND":           certmanager.EnvIssuerRefKind,
+		"CA_SECRET_NAME":            certmanager.EnvCertName,
+		"CA_SECRET_NAMESPACE":       certmanager.EnvCertManagerNS,
+		"ISTIO_CA_CERTIFICATE_PATH": certmanager.EnvIstioCACertPath,
+	} {
+		if v := os.Getenv(envVar); v != "" {
+			params[key] = v
+		}
+	}
+
+	return params
+}
 
 const (
 	lwsConditionDegraded                       = "Degraded"
@@ -90,7 +131,7 @@ func getIndexedResource(rs []unstructured.Unstructured, obj any, g schema.GroupV
 	}
 
 	if idx == -1 {
-		return -1, fmt.Errorf("could not find %T with name %v in resources list", obj, name)
+		return -1, fmt.Errorf("could not find %T with name %v in resources list: %w", obj, name, ErrResourceNotFound)
 	}
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(rs[idx].Object, obj)
@@ -142,7 +183,7 @@ func getAndRemoveOwnerReferences(
 	current := resources.GvkToUnstructured(res.GroupVersionKind())
 
 	lookupErr := cli.Get(ctx, client.ObjectKeyFromObject(&res), current)
-	if errors.IsNotFound(lookupErr) {
+	if k8serr.IsNotFound(lookupErr) {
 		return nil
 	}
 	if lookupErr != nil {

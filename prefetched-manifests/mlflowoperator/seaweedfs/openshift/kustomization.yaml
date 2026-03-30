@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+patches:
+  - path: deployment-secctx-patch.yaml
+    target:
+      kind: Deployment
+      name: seaweedfs
+  - path: job-secctx-patch.yaml
+    target:
+      kind: Job
+      name: init-seaweedfs

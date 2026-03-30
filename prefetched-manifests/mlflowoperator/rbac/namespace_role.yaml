@@ -1,7 +1,11 @@
 ---
-# Role for namespace-scoped resources
-# This role grants permissions for namespace-level resources that the MLflow operator needs to manage
-# in the target deployment namespace
+# Namespace-scoped permissions for the MLflow operator.
+# Scoped to the target deployment namespace.
+#
+# - configmaps, secrets, serviceaccounts, services, persistentvolumeclaims: managing MLflow deployment resources
+# - deployments: managing the MLflow Deployment
+# - networkpolicies: managing network access to MLflow pods
+# - servicemonitors: Prometheus monitoring integration
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -11,6 +15,7 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - configmaps
   - persistentvolumeclaims
   - secrets
   - serviceaccounts
@@ -39,6 +44,18 @@ rules:
   - networking.k8s.io
   resources:
   - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
   verbs:
   - create
   - delete

@@ -1,6 +1,6 @@
 ---
-# Aggregate role for viewing MLflow resources
-# This will be automatically aggregated into the "view" ClusterRole
+# Aggregate role for viewing MLflow resources.
+# Excludes gateway secrets, aligning with how Kubernetes "view" excludes Secrets.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -34,21 +34,24 @@ rules:
       - get
       - list
       - watch
+  # Pseudo-resources used by the MLflow Kubernetes authorization plugin for
+  # SelfSubjectAccessReview checks; not actual CRDs.
   - apiGroups:
       - mlflow.kubeflow.org
     resources:
       - datasets
       - experiments
       - registeredmodels
-      - gatewaysecrets
       - gatewayendpoints
       - gatewaymodeldefinitions
     verbs:
       - get
       - list
 ---
-# Aggregate role for editing MLflow resources
-# This will be automatically aggregated into the "edit" and "admin" ClusterRoles
+# Aggregate role for editing MLflow resources.
+# Grants full CRUD on all MLflow resources including the cluster-scoped
+# operator CR, gateway invocation via /use subresources, and mlflowconfigs
+# management.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -61,11 +64,22 @@ rules:
       - mlflow.opendatahub.io
     resources:
       - mlflows
-      - mlflows/finalizers
     verbs:
+      - get
+      - list
+      - watch
       - create
       - delete
       - deletecollection
+      - patch
+      - update
+  # Included so admins can remove stuck finalizers; only effective via
+  # ClusterRoleBinding since mlflows is cluster-scoped.
+  - apiGroups:
+      - mlflow.opendatahub.io
+    resources:
+      - mlflows/finalizers
+    verbs:
       - patch
       - update
   - apiGroups:
@@ -78,6 +92,15 @@ rules:
       - deletecollection
       - patch
       - update
+  - apiGroups:
+      - mlflow.kubeflow.org
+    resources:
+      - gatewaysecrets
+    verbs:
+      - get
+      - list
+  # Pseudo-resources used by the MLflow Kubernetes authorization plugin for
+  # SelfSubjectAccessReview checks; not actual CRDs.
   - apiGroups:
       - mlflow.kubeflow.org
     resources:

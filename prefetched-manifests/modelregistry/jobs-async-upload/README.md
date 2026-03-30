@@ -123,15 +123,34 @@ oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
   -p MODEL_SYNC_MODEL_ARTIFACT_ID="$MODEL_ARTIFACT_ID" \
   -p MODEL_SYNC_REGISTRY_SERVER_ADDRESS="$MR_BASE_URL" \
   -p MODEL_SYNC_REGISTRY_PORT="443" \
-  -p MODEL_SYNC_SOURCE_URI="https://huggingface.co/RedHatAI/granite-3.1-8b-instruct-quantized.w4a16/resolve/main/model.safetensors" \
-  -p MODEL_SYNC_DESTINATION_OCI_URI="default-route-openshift-image-registry.apps.rosa.CLUSTER-NAME.d4bs.p3.openshiftapps.com/minio-manual/model2:latest" \
+  -p MODEL_SYNC_SOURCE_URI="https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx" \
   -p DESTINATION_CONNECTION=my-oci-credentials \
   -p MODEL_SYNC_DESTINATION_OCI_URI="oci-route.openshiftapps.com/project/model:latest" \
   -o yaml \
   > job.yaml
 ```
 
-### More configmap examples
+## Using hf:// URIs
+
+The `hf://` URI scheme downloads an entire Hugging Face repository (via `snapshot_download`), unlike `https://` which downloads a single file. The format is `hf://org/repo` with an optional `:revision` suffix.
+
+```sh
+oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
+  -p MODEL_SYNC_MODEL_UPLOAD_INTENT=create_model \
+  -p MODEL_SYNC_REGISTRY_SERVER_ADDRESS="$MR_BASE_URL" \
+  -p MODEL_SYNC_REGISTRY_PORT="443" \
+  -p MODEL_SYNC_SOURCE_URI="hf://RedHatAI/granite-3.1-8b-instruct-quantized.w4a16" \
+  -p MODEL_SYNC_DESTINATION_OCI_URI="oci-route.openshiftapps.com/project/granite:latest" \
+  -p DESTINATION_CONNECTION=oci-credentials \
+  -o yaml \
+  > job.yaml
+```
+
+**Note**: If the Hugging Face repository requires authentication, provide a `SOURCE_CONNECTION` secret containing the HF token.
+
+See also [gen-create-model-hf.sh](./examples/gen-create-model-hf.sh) for a complete example script.
+
+## More configmap examples
 
 ```bash
 # Basic usage with minimal required fields
@@ -167,7 +186,7 @@ oc process --local -f configmap-create-model-template.yaml \
   > model-metadata.yaml
 ```
 
-### Generate ConfigMap for create_version Intent
+### ConfigMap for create_version intent
 
 ```bash
 # Basic usage for adding a new version to an existing model

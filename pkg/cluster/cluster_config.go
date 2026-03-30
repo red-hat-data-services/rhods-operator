@@ -143,6 +143,12 @@ func GetClusterInfo() ClusterInfo {
 	return clusterConfig.ClusterInfo
 }
 
+// SetClusterInfo overrides the cluster information. Intended for use in tests
+// to control the cluster type without requiring a live cluster.
+func SetClusterInfo(info ClusterInfo) {
+	clusterConfig.ClusterInfo = info
+}
+
 func GetDomain(ctx context.Context, c client.Client) (string, error) {
 	ingress := &unstructured.Unstructured{}
 	ingress.SetGroupVersionKind(gvk.OpenshiftIngress)
@@ -180,11 +186,11 @@ func getOCPVersion(ctx context.Context, c client.Client) (version.OperatorVersio
 	if err := c.Get(ctx, client.ObjectKey{
 		Name: OpenShiftVersionObj,
 	}, clusterVersion); err != nil {
-		return version.OperatorVersion{}, errors.New("unable to get OCP version")
+		return version.OperatorVersion{}, fmt.Errorf("unable to get OCP version: %w", err)
 	}
 	v, err := semver.ParseTolerant(clusterVersion.Status.History[0].Version)
 	if err != nil {
-		return version.OperatorVersion{}, errors.New("unable to parse OCP version")
+		return version.OperatorVersion{}, fmt.Errorf("unable to parse OCP version: %w", err)
 	}
 	return version.OperatorVersion{Version: v}, nil
 }
@@ -221,16 +227,39 @@ func IsActiveNamespace(ns *corev1.Namespace) bool {
 	return ns.Status.Phase == corev1.NamespaceActive
 }
 
-// IsSingleNodeCluster determines if the cluster is a single-node cluster by checking the ControlPlaneTopology.
+// IsSingleNodeCluster determines if the cluster is a single-node cluster.
+// It first checks the OpenShift Infrastructure resource's ControlPlaneTopology.
+// If that resource is unavailable (e.g. on non-OpenShift clusters like Kind),
+// it falls back to counting the number of schedulable nodes.
 func IsSingleNodeCluster(ctx context.Context, cli client.Client) bool {
+	log := logf.FromContext(ctx)
+
 	infra := &configv1.Infrastructure{}
-	if err := cli.Get(ctx, types.NamespacedName{Name: "cluster"}, infra); err != nil {
-		logf.FromContext(ctx).Info("could not get infrastructure, defaulting to multi-node behavior", "error", err)
+	if err := cli.Get(ctx, types.NamespacedName{Name: "cluster"}, infra); err == nil {
+		isSNO := infra.Status.ControlPlaneTopology == configv1.SingleReplicaTopologyMode
+		log.V(1).Info("detected cluster topology from Infrastructure resource", "controlPlaneTopology", infra.Status.ControlPlaneTopology, "isSNO", isSNO)
+		return isSNO
+	} else if !k8serr.IsNotFound(err) && !meta.IsNoMatchError(err) {
+		log.Info("could not get Infrastructure resource, defaulting to multi-node behavior", "error", err)
 		return false
 	}
 
-	isSNO := infra.Status.ControlPlaneTopology == configv1.SingleReplicaTopologyMode
-	logf.FromContext(ctx).V(1).Info("detected cluster topology", "controlPlaneTopology", infra.Status.ControlPlaneTopology, "isSNO", isSNO)
+	// Fallback for non-OpenShift clusters (CRD absent or resource not found): count schedulable nodes
+	nodeList := &corev1.NodeList{}
+	if err := cli.List(ctx, nodeList); err != nil {
+		log.Info("could not list nodes, defaulting to multi-node behavior", "error", err)
+		return false
+	}
+
+	schedulableNodes := 0
+	for i := range nodeList.Items {
+		if !nodeList.Items[i].Spec.Unschedulable {
+			schedulableNodes++
+		}
+	}
+
+	isSNO := schedulableNodes == 1
+	log.V(1).Info("detected cluster topology from node count", "schedulableNodes", schedulableNodes, "isSNO", isSNO)
 	return isSNO
 }
 
@@ -287,6 +316,9 @@ func getPlatform(ctx context.Context, cli client.Client) (common.Platform, error
 		return ManagedRhoai, nil
 	case "SelfManagedRHOAI":
 		return SelfManagedRhoai, nil
+	case string(XKS):
+		// Non-OpenShift Kubernetes deployment (AKS, CoreWeave, EKS, …).
+		return XKS, nil
 	default:
 		// fall back to detect platform if ODH_PLATFORM_TYPE env is not provided in CSV or set to ""
 		platform, err := detectManagedRhoai(ctx, cli)
@@ -328,8 +360,8 @@ func getRelease(ctx context.Context, cli client.Client) (common.Release, error) 
 		return initRelease, err
 	}
 	csv, err := GetClusterServiceVersion(ctx, cli, operatorNamespace)
-	if k8serr.IsNotFound(err) {
-		// hide not found, return default
+	if k8serr.IsNotFound(err) || meta.IsNoMatchError(err) {
+		// CSV not found or OLM CRDs absent (no OLM installed) — not an error condition
 		return initRelease, nil
 	}
 	if err != nil {
@@ -344,12 +376,24 @@ func getClusterInfo(ctx context.Context, cli client.Client) (ClusterInfo, error)
 		Version: version.OperatorVersion{
 			Version: semver.Version{},
 		},
-		Type:        "OpenShift",
+		Type:        ClusterTypeOpenShift, // default; overridden below if needed
 		FipsEnabled: false,
 	}
-	// Set OCP
+
+	// XKS platform (set by the CCM Helm chart) means a non-OpenShift Kubernetes
+	// deployment (AKS, CoreWeave, EKS, …).  Skip OCP API detection immediately.
+	if clusterConfig.Release.Name == XKS {
+		c.Type = ClusterTypeKubernetes
+		return c, nil
+	}
+
+	// Auto-detect: if the ClusterVersion CRD is absent this is not OpenShift.
 	ocpVersion, err := getOCPVersion(ctx, cli)
 	if err != nil {
+		if meta.IsNoMatchError(err) {
+			c.Type = ClusterTypeKubernetes
+			return c, nil
+		}
 		return c, err
 	}
 	c.Version = ocpVersion
@@ -400,7 +444,7 @@ func setManagedMonitoringNamespace(ctx context.Context, cli client.Client) error
 	switch platform {
 	case ManagedRhoai, SelfManagedRhoai:
 		viper.SetDefault("dsc-monitoring-namespace", DefaultMonitoringNamespaceRHOAI)
-	case OpenDataHub:
+	case OpenDataHub, XKS:
 		viper.SetDefault("dsc-monitoring-namespace", DefaultMonitoringNamespaceODH)
 	}
 	return nil
@@ -440,6 +484,23 @@ func setApplicationNamespace(ctx context.Context, cli client.Client) error {
 	}
 
 	return nil
+}
+
+// SetRHAIApplicationNamespace explicitly sets the application namespace, overriding any
+// platform-detected value. Called from main with the value loaded via Viper
+// (RHAI_APPLICATIONS_NAMESPACE env var or CLI flag). A non-empty value always wins.
+func SetRHAIApplicationNamespace(ns string) {
+	if ns != "" {
+		clusterConfig.ApplicationNamespace = ns
+	}
+}
+
+// GetRHAIApplicationsNamespace returns the value of RHAI_APPLICATIONS_NAMESPACE if
+// explicitly configured, or empty string if not set.
+// Used by ApplicationNamespace() to short-circuit DSCI queries when the namespace
+// is injected externally (e.g. on vanilla Kubernetes via the CCM Helm chart).
+func GetRHAIApplicationsNamespace() string {
+	return viper.GetString("rhai-applications-namespace")
 }
 
 // GetApplicationNamespace returns the application namespace for the platform.

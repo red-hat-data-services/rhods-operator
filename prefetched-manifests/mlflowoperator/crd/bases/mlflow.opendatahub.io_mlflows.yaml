@@ -323,7 +323,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                     Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -338,7 +337,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                     Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -504,7 +502,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                 Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -519,7 +516,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                 Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -612,8 +608,8 @@ spec:
                           most preferred is the one with the greatest sum of weights, i.e.
                           for each node that meets all of the scheduling requirements (resource
                           request, requiredDuringScheduling anti-affinity expressions, etc.),
-                          compute a sum by iterating through the elements of this field and adding
-                          "weight" to the sum if the node has pods which matches the corresponding podAffinityTerm; the
+                          compute a sum by iterating through the elements of this field and subtracting
+                          "weight" from the sum if the node has pods which matches the corresponding podAffinityTerm; the
                           node(s) with the highest sum are the most preferred.
                         items:
                           description: The weights of all of the matched WeightedPodAffinityTerm
@@ -682,7 +678,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                     Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -697,7 +692,6 @@ spec:
                                     pod labels will be ignored. The default value is empty.
                                     The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                     Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                    This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                                   items:
                                     type: string
                                   type: array
@@ -863,7 +857,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both matchLabelKeys and labelSelector.
                                 Also, matchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -878,7 +871,6 @@ spec:
                                 pod labels will be ignored. The default value is empty.
                                 The same key is forbidden to exist in both mismatchLabelKeys and labelSelector.
                                 Also, mismatchLabelKeys cannot be set when labelSelector isn't set.
-                                This is a beta field and requires enabling MatchLabelKeysInPodAffinity feature gate (enabled by default).
                               items:
                                 type: string
                               type: array
@@ -988,13 +980,13 @@ spec:
                   Examples:
                     - "sqlite:////mlflow/mlflow.db" (requires Storage to be configured)
                   Note: For URIs containing credentials, prefer using BackendStoreURIFrom for security.
-                  If not specified, defaults to "sqlite:////mlflow/mlflow.db"
+                  This must be set explicitly unless BackendStoreURIFrom is provided.
                 type: string
               backendStoreUriFrom:
                 description: |-
                   BackendStoreURIFrom is a reference to a secret containing the backend store URI.
                   Use this instead of BackendStoreURI when the URI contains credentials.
-                  Takes precedence over BackendStoreURI if both are specified.
+                  Mutually exclusive with BackendStoreURI - the API rejects specs that set both.
                 properties:
                   key:
                     description: The key of the secret to select from.  Must be a
@@ -1047,7 +1039,9 @@ spec:
                     a Container.
                   properties:
                     name:
-                      description: Name of the environment variable. Must be a C_IDENTIFIER.
+                      description: |-
+                        Name of the environment variable.
+                        May consist of any printable ASCII characters except '='.
                       type: string
                     value:
                       description: |-
@@ -1103,6 +1097,43 @@ spec:
                               type: string
                           required:
                           - fieldPath
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        fileKeyRef:
+                          description: |-
+                            FileKeyRef selects a key of the env file.
+                            Requires the EnvFiles feature gate to be enabled.
+                          properties:
+                            key:
+                              description: |-
+                                The key within the env file. An invalid key will prevent the pod from starting.
+                                The keys defined within a source may consist of any printable ASCII characters except '='.
+                                During Alpha stage of the EnvFiles feature gate, the key size is limited to 128 characters.
+                              type: string
+                            optional:
+                              default: false
+                              description: |-
+                                Specify whether the file or its key must be defined. If the file or key
+                                does not exist, then the env var is not published.
+                                If optional is set to true and the specified key does not exist,
+                                the environment variable will not be set in the Pod's containers.
+
+                                If optional is set to false and the specified key does not exist,
+                                an error will be returned during Pod creation.
+                              type: boolean
+                            path:
+                              description: |-
+                                The path within the volume from which to select the file.
+                                Must be relative and may not contain the '..' path or start with '..'.
+                              type: string
+                            volumeName:
+                              description: The name of the volume mount containing
+                                the env file.
+                              type: string
+                          required:
+                          - key
+                          - path
+                          - volumeName
                           type: object
                           x-kubernetes-map-type: atomic
                         resourceFieldRef:
@@ -1163,6 +1194,7 @@ spec:
                   variables in the MLflow container
                 items:
                   description: EnvFromSource represents the source of a set of ConfigMaps
+                    or Secrets
                   properties:
                     configMapRef:
                       description: The ConfigMap to select from
@@ -1182,8 +1214,9 @@ spec:
                       type: object
                       x-kubernetes-map-type: atomic
                     prefix:
-                      description: An optional identifier to prepend to each key in
-                        the ConfigMap. Must be a C_IDENTIFIER.
+                      description: |-
+                        Optional text to prepend to the name of each environment variable.
+                        May consist of any printable ASCII characters except '='.
                       type: string
                     secretRef:
                       description: The Secret to select from
@@ -1204,6 +1237,17 @@ spec:
                       x-kubernetes-map-type: atomic
                   type: object
                 type: array
+              extraAllowedOrigins:
+                description: |-
+                  ExtraAllowedOrigins is a list of additional origins to allow for CORS requests.
+                  The operator preconfigures safe defaults including Kubernetes service names,
+                  the data science gateway domain, and localhost.
+                  Use this field to add additional origins beyond the defaults.
+                  Each entry should be a full origin (scheme://host[:port]), e.g. "https://my-app.example.com".
+                items:
+                  type: string
+                maxItems: 64
+                type: array
               image:
                 description: |-
                   Image specifies the MLflow container image.
@@ -1223,11 +1267,215 @@ spec:
                     - Never
                     type: string
                 type: object
+              networkPolicyAdditionalEgressRules:
+                description: |-
+                  NetworkPolicyAdditionalEgressRules specifies additional egress rules to append to the
+                  default NetworkPolicy. The default policy permits DNS (53), HTTPS (443),
+                  Kubernetes API (6443), PostgreSQL (5432), MySQL (3306), and S3-compatible storage
+                  (MinIO 9000, SeaweedFS 8333). Use this field when connecting to services on
+                  non-standard ports or when destination restrictions are needed.
+                items:
+                  description: |-
+                    NetworkPolicyEgressRule describes a particular set of traffic that is allowed out of pods
+                    matched by a NetworkPolicySpec's podSelector. The traffic must match both ports and to.
+                    This type is beta-level in 1.8
+                  properties:
+                    ports:
+                      description: |-
+                        ports is a list of destination ports for outgoing traffic.
+                        Each item in this list is combined using a logical OR. If this field is
+                        empty or missing, this rule matches all ports (traffic not restricted by port).
+                        If this field is present and contains at least one item, then this rule allows
+                        traffic only if the traffic matches at least one port in the list.
+                      items:
+                        description: NetworkPolicyPort describes a port to allow traffic
+                          on
+                        properties:
+                          endPort:
+                            description: |-
+                              endPort indicates that the range of ports from port to endPort if set, inclusive,
+                              should be allowed by the policy. This field cannot be defined if the port field
+                              is not defined or if the port field is defined as a named (string) port.
+                              The endPort must be equal or greater than port.
+                            format: int32
+                            type: integer
+                          port:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            description: |-
+                              port represents the port on the given protocol. This can either be a numerical or named
+                              port on a pod. If this field is not provided, this matches all port names and
+                              numbers.
+                              If present, only traffic on the specified protocol AND port will be matched.
+                            x-kubernetes-int-or-string: true
+                          protocol:
+                            description: |-
+                              protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
+                              If not specified, this field defaults to TCP.
+                            type: string
+                        type: object
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    to:
+                      description: |-
+                        to is a list of destinations for outgoing traffic of pods selected for this rule.
+                        Items in this list are combined using a logical OR operation. If this field is
+                        empty or missing, this rule matches all destinations (traffic not restricted by
+                        destination). If this field is present and contains at least one item, this rule
+                        allows traffic only if the traffic matches at least one item in the to list.
+                      items:
+                        description: |-
+                          NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of
+                          fields are allowed
+                        properties:
+                          ipBlock:
+                            description: |-
+                              ipBlock defines policy on a particular IPBlock. If this field is set then
+                              neither of the other fields can be.
+                            properties:
+                              cidr:
+                                description: |-
+                                  cidr is a string representing the IPBlock
+                                  Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                type: string
+                              except:
+                                description: |-
+                                  except is a slice of CIDRs that should not be included within an IPBlock
+                                  Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                  Except values will be rejected if they are outside the cidr range
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: atomic
+                            required:
+                            - cidr
+                            type: object
+                          namespaceSelector:
+                            description: |-
+                              namespaceSelector selects namespaces using cluster-scoped labels. This field follows
+                              standard label selector semantics; if present but empty, it selects all namespaces.
+
+                              If podSelector is also set, then the NetworkPolicyPeer as a whole selects
+                              the pods matching podSelector in the namespaces selected by namespaceSelector.
+                              Otherwise it selects all pods in the namespaces selected by namespaceSelector.
+                            properties:
+                              matchExpressions:
+                                description: matchExpressions is a list of label selector
+                                  requirements. The requirements are ANDed.
+                                items:
+                                  description: |-
+                                    A label selector requirement is a selector that contains values, a key, and an operator that
+                                    relates the key and values.
+                                  properties:
+                                    key:
+                                      description: key is the label key that the selector
+                                        applies to.
+                                      type: string
+                                    operator:
+                                      description: |-
+                                        operator represents a key's relationship to a set of values.
+                                        Valid operators are In, NotIn, Exists and DoesNotExist.
+                                      type: string
+                                    values:
+                                      description: |-
+                                        values is an array of string values. If the operator is In or NotIn,
+                                        the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                        the values array must be empty. This array is replaced during a strategic
+                                        merge patch.
+                                      items:
+                                        type: string
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                  required:
+                                  - key
+                                  - operator
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              matchLabels:
+                                additionalProperties:
+                                  type: string
+                                description: |-
+                                  matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                  map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                  operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                type: object
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          podSelector:
+                            description: |-
+                              podSelector is a label selector which selects pods. This field follows standard label
+                              selector semantics; if present but empty, it selects all pods.
+
+                              If namespaceSelector is also set, then the NetworkPolicyPeer as a whole selects
+                              the pods matching podSelector in the Namespaces selected by NamespaceSelector.
+                              Otherwise it selects the pods matching podSelector in the policy's own namespace.
+                            properties:
+                              matchExpressions:
+                                description: matchExpressions is a list of label selector
+                                  requirements. The requirements are ANDed.
+                                items:
+                                  description: |-
+                                    A label selector requirement is a selector that contains values, a key, and an operator that
+                                    relates the key and values.
+                                  properties:
+                                    key:
+                                      description: key is the label key that the selector
+                                        applies to.
+                                      type: string
+                                    operator:
+                                      description: |-
+                                        operator represents a key's relationship to a set of values.
+                                        Valid operators are In, NotIn, Exists and DoesNotExist.
+                                      type: string
+                                    values:
+                                      description: |-
+                                        values is an array of string values. If the operator is In or NotIn,
+                                        the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                        the values array must be empty. This array is replaced during a strategic
+                                        merge patch.
+                                      items:
+                                        type: string
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                  required:
+                                  - key
+                                  - operator
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              matchLabels:
+                                additionalProperties:
+                                  type: string
+                                description: |-
+                                  matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                  map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                  operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                type: object
+                            type: object
+                            x-kubernetes-map-type: atomic
+                        type: object
+                      type: array
+                      x-kubernetes-list-type: atomic
+                  type: object
+                maxItems: 32
+                type: array
               nodeSelector:
                 additionalProperties:
                   type: string
                 description: NodeSelector is a selector which must be true for the
                   pod to fit on a node
+                type: object
+                x-kubernetes-validations:
+                - message: label values must be 63 characters or less
+                  rule: self.all(key, size(self[key]) <= 63)
+              podAnnotations:
+                additionalProperties:
+                  type: string
+                description: |-
+                  PodAnnotations are annotations to add only to the MLflow pod, not to other resources.
+                  Use this for pod-specific annotations like Prometheus scraping or sidecar configuration.
                 type: object
               podLabels:
                 additionalProperties:
@@ -1237,6 +1485,9 @@ spec:
                   Use this for pod-specific labels like version, component-specific metadata, etc.
                   For labels that should be applied to all resources (Service, Deployment, etc.), use commonLabels in values.yaml.
                 type: object
+                x-kubernetes-validations:
+                - message: label values must be 63 characters or less
+                  rule: self.all(key, size(self[key]) <= 63)
               podSecurityContext:
                 description: PodSecurityContext specifies the security context for
                   the MLflow pod
@@ -1483,7 +1734,7 @@ spec:
                 description: |-
                   RegistryStoreURIFrom is a reference to a secret containing the registry store URI.
                   Use this instead of RegistryStoreURI when the URI contains credentials.
-                  Takes precedence over RegistryStoreURI if both are specified.
+                  Mutually exclusive with RegistryStoreURI - the API rejects specs that set both.
                 properties:
                   key:
                     description: The key of the secret to select from.  Must be a
@@ -1520,7 +1771,7 @@ spec:
                       Claims lists the names of resources, defined in spec.resourceClaims,
                       that are used by this container.
 
-                      This is an alpha field and requires enabling the
+                      This field depends on the
                       DynamicResourceAllocation feature gate.
 
                       This field is immutable. It can only be set for containers.
@@ -1966,15 +2217,13 @@ spec:
                       volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.
                       If specified, the CSI driver will create or update the volume with the attributes defined
                       in the corresponding VolumeAttributesClass. This has a different purpose than storageClassName,
-                      it can be changed after the claim is created. An empty string value means that no VolumeAttributesClass
-                      will be applied to the claim but it's not allowed to reset this field to empty string once it is set.
-                      If unspecified and the PersistentVolumeClaim is unbound, the default VolumeAttributesClass
-                      will be set by the persistentvolume controller if it exists.
+                      it can be changed after the claim is created. An empty string or nil value indicates that no
+                      VolumeAttributesClass will be applied to the claim. If the claim enters an Infeasible error state,
+                      this field can be reset to its previous value (including nil) to cancel the modification.
                       If the resource referred to by volumeAttributesClass does not exist, this PersistentVolumeClaim will be
                       set to a Pending state, as reflected by the modifyVolumeStatus field, until such as a resource
                       exists.
                       More info: https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
-                      (Beta) Using this field requires the VolumeAttributesClass feature gate to be enabled (off by default).
                     type: string
                   volumeMode:
                     description: |-
@@ -2044,10 +2293,18 @@ spec:
                 file-based storage (file:// prefix)
               rule: '!has(self.defaultArtifactRoot) || !self.defaultArtifactRoot.startsWith(''file://'')
                 || (has(self.serveArtifacts) && self.serveArtifacts)'
+            - message: backendStoreUri or backendStoreUriFrom must be set
+              rule: (has(self.backendStoreUri) && size(self.backendStoreUri) > 0)
+                || (has(self.backendStoreUriFrom) && size(self.backendStoreUriFrom.name)
+                > 0 && size(self.backendStoreUriFrom.key) > 0)
             - message: backendStoreUri and backendStoreUriFrom are mutually exclusive
               rule: '!(has(self.backendStoreUri) && has(self.backendStoreUriFrom))'
             - message: registryStoreUri and registryStoreUriFrom are mutually exclusive
               rule: '!(has(self.registryStoreUri) && has(self.registryStoreUriFrom))'
+            - message: registryStoreUriFrom.name and registryStoreUriFrom.key must
+                be non-empty when registryStoreUriFrom is set
+              rule: '!has(self.registryStoreUriFrom) || (size(self.registryStoreUriFrom.name)
+                > 0 && size(self.registryStoreUriFrom.key) > 0)'
             - message: storage must be configured when using file-based backend store
                 (sqlite:// or file:// prefix)
               rule: '!has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
@@ -2064,9 +2321,27 @@ spec:
                 file-based storage (file:// prefix)
               rule: '!has(self.artifactsDestination) || !self.artifactsDestination.startsWith(''file://'')
                 || (has(self.serveArtifacts) && self.serveArtifacts)'
+            - message: setting the MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE environment
+                variable is not allowed
+              rule: '!has(self.env) || self.env.all(e, e.name != ''MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE'')'
+            - message: each networkPolicyAdditionalEgressRules entry must specify
+                at least one port or one destination
+              rule: '!has(self.networkPolicyAdditionalEgressRules) || self.networkPolicyAdditionalEgressRules.all(r,
+                (has(r.ports) && size(r.ports) > 0) || (has(r.to) && size(r.to) >
+                0))'
           status:
             description: status defines the observed state of MLflow
             properties:
+              address:
+                description: address holds the internal addressable endpoint for the
+                  managed MLflow Service.
+                properties:
+                  url:
+                    description: url is the in-cluster HTTPS URL for the managed MLflow
+                      Service.
+                    maxLength: 2048
+                    type: string
+                type: object
               conditions:
                 description: |-
                   conditions represent the current state of the MLflow resource.
@@ -2136,6 +2411,11 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              url:
+                description: url is the externally reachable MLflow URL exposed through
+                  the data science gateway.
+                maxLength: 2048
+                type: string
             type: object
         required:
         - spec

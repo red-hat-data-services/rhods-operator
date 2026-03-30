@@ -1,20 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Both odh and test overlays refer to default, so we cannot just include them both.
-# It's important to align the content of test/kustomization.yaml by:
-# - copying files referred in test/kustomization.yaml (that are not removed in odh overlay; symlink does not work due to security boundaries)
-# - ensuring we have resources and other pieces in sync with test/kustomization
-# Hopefully this won't be much as it seems to be stable.
+namespace: kserve
 
 resources:
-- ../../crd/external/opendatahub-operator
+- ../../crd/external
 - ../odh
-- ../test/minio
+- ../test/s3-local-backend
 
-namespace: opendatahub
-
-# cp ../test/manager_image_patch.yaml manager_image_patch.yaml
 patches:
-  - path: manager_image_patch.yaml
- 
+- path: configmap/inferenceservice.yaml
+- path: manager_image_patch.yaml
+# - path: localmodel_manager_image_patch.yaml
+# - path: localmodelnode_agent_image_patch.yaml

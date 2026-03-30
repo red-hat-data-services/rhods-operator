@@ -22,8 +22,36 @@ patches:
       kind: ServiceMonitor
       name: controller-manager-metrics-monitor
 
-# Kustomize replacements to populate resources from params.env
+# Kustomize replacements
 replacements:
+  # Derive serverName in ServiceMonitor from the actual Service name and namespace
+  - source:
+      kind: Service
+      name: controller-manager-metrics-service
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: ServiceMonitor
+          name: controller-manager-metrics-monitor
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 0
+  - source:
+      kind: Service
+      name: controller-manager-metrics-service
+      fieldPath: metadata.namespace
+    targets:
+      - select:
+          kind: ServiceMonitor
+          name: controller-manager-metrics-monitor
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 1
+
   # Replace controller-manager image for production deployments
   - source:
       kind: ConfigMap

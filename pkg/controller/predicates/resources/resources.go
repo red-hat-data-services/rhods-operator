@@ -34,8 +34,10 @@ type DeploymentPredicate struct {
 	predicate.Funcs
 }
 
-// Update implements default UpdateEvent filter for validating generation change.
+// Update implements default UpdateEvent filter for Deployment changes.
 // Works with both typed *appsv1.Deployment and *unstructured.Unstructured objects.
+// Triggers reconciliation on generation, replicas, or readyReplicas changes.
+// Note: Label and annotation changes are handled by DefaultDeploymentPredicate.
 func (DeploymentPredicate) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
@@ -275,6 +277,23 @@ func CreatedOrUpdatedOrDeletedNamePrefixed(namePrefix string) predicate.Predicat
 		},
 		DeleteFunc: func(e event.TypedDeleteEvent[client.Object]) bool {
 			return strings.HasPrefix(e.Object.GetName(), namePrefix)
+		},
+		GenericFunc: func(e event.TypedGenericEvent[client.Object]) bool {
+			return false
+		},
+	}
+}
+
+func CreatedOrUpdatedOrDeletedNameSuffixed(nameSuffix string) predicate.Predicate {
+	return predicate.Funcs{
+		CreateFunc: func(e event.TypedCreateEvent[client.Object]) bool {
+			return strings.HasSuffix(e.Object.GetName(), nameSuffix)
+		},
+		UpdateFunc: func(e event.TypedUpdateEvent[client.Object]) bool {
+			return strings.HasSuffix(e.ObjectNew.GetName(), nameSuffix)
+		},
+		DeleteFunc: func(e event.TypedDeleteEvent[client.Object]) bool {
+			return strings.HasSuffix(e.Object.GetName(), nameSuffix)
 		},
 	}
 }

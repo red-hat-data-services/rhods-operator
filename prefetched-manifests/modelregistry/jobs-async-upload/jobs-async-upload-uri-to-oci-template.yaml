@@ -32,6 +32,7 @@ parameters:
   - name: SOURCE_CONNECTION
     description: "Name of the Connection resource for the Source (e.g.: S3, URI ('https://', 'hf://', 'http://'))"
     required: false
+    value: "source-credentials"
   - name: DESTINATION_CONNECTION
     description: "Name of the Connection resource for the Sink destination (e.g.: OCI)"
     required: true
@@ -92,6 +93,7 @@ objects:
             - name: source-credentials
               secret:
                 secretName: ${SOURCE_CONNECTION}
+                optional: true
             - name: destination-credentials
               secret:
                 secretName: ${DESTINATION_CONNECTION}

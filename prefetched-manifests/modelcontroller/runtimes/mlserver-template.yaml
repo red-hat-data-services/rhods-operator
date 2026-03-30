@@ -38,8 +38,34 @@ objects:
               value: '{{.Name}}'
             - name: MLSERVER_HTTP_PORT
               value: '8080'
-            - name: MODELS_DIR
+            - name: MLSERVER_MODELS_DIR
               value: /mnt/models
+          startupProbe:
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            failureThreshold: 1
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  [ -n "$(ls -A /mnt/models 2>/dev/null)" ]
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 5
+            httpGet:
+              path: /v2/models/{{.Name}}/ready
+              port: 8080
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+            timeoutSeconds: 5
+            httpGet:
+              path: /v2/models/{{.Name}}/ready
+              port: 8080
           ports:
             - containerPort: 8080
               protocol: TCP

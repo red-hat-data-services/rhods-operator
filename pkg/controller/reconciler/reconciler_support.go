@@ -21,6 +21,7 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/dynamicownership"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/handlers"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/component"
@@ -74,7 +75,7 @@ func Dynamic(predicates ...DynamicPredicate) WatchOpts {
 	}
 }
 
-// crdExists is a DynamicPredicate that cheks if a given crd identified by its gvk exists.
+// crdExists is a DynamicPredicate that checks if a given crd identified by its gvk exists.
 func CrdExists(crdGvk schema.GroupVersionKind) DynamicPredicate {
 	return func(ctx context.Context, request *types.ReconciliationRequest) bool {
 		if hasCrd, err := cluster.HasCRD(ctx, request.Client, crdGvk); err != nil {
@@ -85,17 +86,40 @@ func CrdExists(crdGvk schema.GroupVersionKind) DynamicPredicate {
 	}
 }
 
+// CrdExistsWithoutPreferred returns a DynamicPredicate for whatever version is being served,
+// avoiding redundant watches and API deprecation warnings.
+func CrdExistsWithoutPreferred(fallbackGVK, preferredGVK schema.GroupVersionKind) DynamicPredicate {
+	return func(ctx context.Context, request *types.ReconciliationRequest) bool {
+		if preferred, _ := cluster.HasCRD(ctx, request.Client, preferredGVK); preferred {
+			return false
+		}
+		fallback, _ := cluster.HasCRD(ctx, request.Client, fallbackGVK)
+		return fallback
+	}
+}
+
+// ClusterIsOpenShift is a DynamicPredicate that returns true when the operator
+// is running on an OpenShift cluster.
+func ClusterIsOpenShift() DynamicPredicate {
+	return func(_ context.Context, _ *types.ReconciliationRequest) bool {
+		return cluster.GetClusterInfo().Type == cluster.ClusterTypeOpenShift
+	}
+}
+
 type ReconcilerBuilder[T common.PlatformObject] struct {
-	mgr                 ctrl.Manager
-	input               forInput
-	watches             []watchInput
-	predicates          []predicate.Predicate
-	instanceName        string
-	actions             []actions.Fn
-	finalizers          []actions.Fn
-	errors              error
-	happyCondition      string
-	dependentConditions []string
+	mgr                      ctrl.Manager
+	input                    forInput
+	watches                  []watchInput
+	predicates               []predicate.Predicate
+	instanceName             string
+	actions                  []actions.Fn
+	finalizers               []actions.Fn
+	errors                   error
+	happyCondition           string
+	dependentConditions      []string
+	dynamicOwnership         bool
+	excludeFromOwnership     []schema.GroupVersionKind
+	dynamicOwnershipGVKPreds map[schema.GroupVersionKind][]predicate.Predicate
 }
 
 func ReconcilerFor[T common.PlatformObject](mgr ctrl.Manager, object T, opts ...builder.ForOption) *ReconcilerBuilder[T] {
@@ -141,8 +165,104 @@ func (b *ReconcilerBuilder[T]) WithAction(value actions.Fn) *ReconcilerBuilder[T
 	return b
 }
 
+// WithActionE is like WithAction but accepts a (Fn, error) pair from action
+// constructors. If err is non-nil, the error is collected and surfaced by Build().
+func (b *ReconcilerBuilder[T]) WithActionE(value actions.Fn, err error) *ReconcilerBuilder[T] {
+	if err != nil {
+		b.errors = multierror.Append(b.errors, err)
+		return b
+	}
+	if value == nil {
+		b.errors = multierror.Append(b.errors, errors.New("WithActionE: action must not be nil"))
+		return b
+	}
+	b.actions = append(b.actions, value)
+	return b
+}
+
 func (b *ReconcilerBuilder[T]) WithFinalizer(value actions.Fn) *ReconcilerBuilder[T] {
 	b.finalizers = append(b.finalizers, value)
+	return b
+}
+
+// DynamicOwnershipOption configures dynamic ownership behavior.
+type DynamicOwnershipOption func(*dynamicOwnershipConfig)
+
+type dynamicOwnershipConfig struct {
+	excludeGVKs   []schema.GroupVersionKind
+	gvkPredicates map[schema.GroupVersionKind][]predicate.Predicate
+}
+
+// ExcludeGVKs excludes GVKs from dynamic ownership. Excluded GVKs will not get
+// owner references or watches from the dynamic ownership action. They will still
+// be deployed, but the user is responsible for managing watches explicitly
+// (e.g., via .Watches()/.WatchesGVK() for non-owned resources, or .Owns()/.OwnsGVK()
+// for owned resources).
+// Static ownership via .Owns()/.OwnsGVK() takes precedence over this exclusion.
+//
+// Example:
+//
+//	.WithDynamicOwnership(
+//	    reconciler.ExcludeGVKs(gvk.Secret),
+//	)
+func ExcludeGVKs(gvks ...schema.GroupVersionKind) DynamicOwnershipOption {
+	return func(c *dynamicOwnershipConfig) {
+		c.excludeGVKs = append(c.excludeGVKs, gvks...)
+	}
+}
+
+// WithGVKPredicates sets custom predicates for specific GVKs.
+// These predicates will be used instead of the default predicates for the specified GVKs.
+// This is useful for resources like Deployments that need special predicates
+// to react to status changes.
+//
+// Example:
+//
+//	.WithDynamicOwnership(
+//	    reconciler.WithGVKPredicates(map[schema.GroupVersionKind][]predicate.Predicate{
+//	        gvk.Deployment: {resources.NewDeploymentPredicate()},
+//	    }),
+//	)
+func WithGVKPredicates(gvkPredicates map[schema.GroupVersionKind][]predicate.Predicate) DynamicOwnershipOption {
+	return func(c *dynamicOwnershipConfig) {
+		c.gvkPredicates = gvkPredicates
+	}
+}
+
+// WithDynamicOwnership enables dynamic ownership mode for the reconciler.
+// When enabled, the controller will automatically track ownership of resources
+// that are deployed, without requiring explicit .Owns() declarations.
+// This also enables watch registration for dynamically owned resources.
+//
+// Use ExcludeGVKs to exclude GVKs from dynamic ownership. Static ownership
+// via .Owns()/.OwnsGVK() takes precedence over exclusion:
+//
+//	.WithDynamicOwnership(
+//	    reconciler.ExcludeGVKs(gvk.Secret),
+//	)
+//
+// Use WithGVKPredicates to specify custom predicates for specific GVKs:
+//
+//	.WithDynamicOwnership(
+//	    reconciler.WithGVKPredicates(map[schema.GroupVersionKind][]predicate.Predicate{
+//	        gvk.Deployment: {resources.NewDeploymentPredicate()},
+//	    }),
+//	)
+//
+// Note: CRDs are handled explicitly by both the deploy action (which never sets
+// owner references on CRDs) and the dynamicownership action (which registers
+// watches for CRDs by name rather than by owner reference).
+// TODO: add support for custom managedByFalseMatcher from reconciler builder.
+func (b *ReconcilerBuilder[T]) WithDynamicOwnership(opts ...DynamicOwnershipOption) *ReconcilerBuilder[T] {
+	b.dynamicOwnership = true
+
+	cfg := &dynamicOwnershipConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	b.excludeFromOwnership = append(b.excludeFromOwnership, cfg.excludeGVKs...)
+	b.dynamicOwnershipGVKPreds = cfg.gvkPredicates
+
 	return b
 }
 
@@ -239,6 +359,19 @@ func (b *ReconcilerBuilder[T]) WithEventFilter(p predicate.Predicate) *Reconcile
 	return b
 }
 
+// ComposeWith composes the builder with the provided configuration function.
+// fn receives the builder and may call any builder method on it — actions,
+// watches, conditions, and finalizers registered inside fn are all applied.
+// Actions land at this call position in the pipeline; watches, conditions,
+// and other registrations are position-independent.
+//
+// fn runs immediately when ComposeWith is called, not when Build() is called.
+// Passing a nil fn panics immediately.
+func (b *ReconcilerBuilder[T]) ComposeWith(fn func(*ReconcilerBuilder[T])) *ReconcilerBuilder[T] {
+	fn(b)
+	return b
+}
+
 // OwnsGVK registers a watch for owned resources identified by GVK.
 func (b *ReconcilerBuilder[T]) OwnsGVK(gvk schema.GroupVersionKind, opts ...WatchOpts) *ReconcilerBuilder[T] {
 	return b.Owns(resources.GvkToUnstructured(gvk), opts...)
@@ -258,7 +391,14 @@ func (b *ReconcilerBuilder[T]) Build(_ context.Context) (*Reconciler, error) {
 		return nil, errors.New("invalid type for object")
 	}
 
-	r, err := NewReconciler(b.mgr, name, obj, WithConditionsManagerFactory(b.happyCondition, b.dependentConditions...))
+	opts := []ReconcilerOpt{
+		WithConditionsManagerFactory(b.happyCondition, b.dependentConditions...),
+	}
+	if b.dynamicOwnership {
+		opts = append(opts, withDynamicOwnership(ExcludeGVKs(b.excludeFromOwnership...)))
+	}
+
+	r, err := NewReconciler(b.mgr, name, obj, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create reconciler for component %s: %w", name, err)
 	}
@@ -278,6 +418,8 @@ func (b *ReconcilerBuilder[T]) Build(_ context.Context) (*Reconciler, error) {
 
 	c = c.For(resources.GvkToUnstructured(b.input.gvk), forOpts...)
 
+	var staticOwnedGVKs []schema.GroupVersionKind
+
 	for i := range b.watches {
 		if b.watches[i].owned {
 			kinds, _, err := b.mgr.GetScheme().ObjectKinds(b.watches[i].object)
@@ -288,6 +430,8 @@ func (b *ReconcilerBuilder[T]) Build(_ context.Context) (*Reconciler, error) {
 			for i := range kinds {
 				r.AddOwnedType(kinds[i])
 			}
+
+			staticOwnedGVKs = append(staticOwnedGVKs, kinds...)
 		}
 
 		// if the watch is dynamic, then the watcher will be registered
@@ -319,7 +463,7 @@ func (b *ReconcilerBuilder[T]) Build(_ context.Context) (*Reconciler, error) {
 		return nil, err
 	}
 
-	// internal action
+	// internal action for existing dynamic watches (OwnsGVK with Dynamic())
 	r.AddAction(
 		newDynamicWatchAction(
 			func(obj client.Object, eventHandler handler.EventHandler, predicates ...predicate.Predicate) error {
@@ -328,6 +472,29 @@ func (b *ReconcilerBuilder[T]) Build(_ context.Context) (*Reconciler, error) {
 			b.watches,
 		),
 	)
+
+	// internal action for dynamic ownership watch registration
+	if b.dynamicOwnership {
+		dynamicOpts := []dynamicownership.Option{}
+		if b.dynamicOwnershipGVKPreds != nil {
+			dynamicOpts = append(dynamicOpts, dynamicownership.WithGVKPredicates(b.dynamicOwnershipGVKPreds))
+		}
+
+		// Pre-register statically owned GVKs to prevent duplicate watch registration
+		if len(staticOwnedGVKs) > 0 {
+			dynamicOpts = append(dynamicOpts, dynamicownership.WithPreRegistered(staticOwnedGVKs...))
+		}
+
+		r.AddAction(
+			dynamicownership.NewAction(
+				func(obj client.Object, eventHandler handler.EventHandler, predicates ...predicate.Predicate) error {
+					return cc.Watch(source.Kind(b.mgr.GetCache(), obj, eventHandler, predicates...))
+				},
+				b.input.gvk,
+				dynamicOpts...,
+			),
+		)
+	}
 
 	return r, nil
 }

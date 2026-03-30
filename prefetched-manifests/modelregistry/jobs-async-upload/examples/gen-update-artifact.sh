@@ -15,7 +15,7 @@ oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
   -p MODEL_SYNC_MODEL_ARTIFACT_ID="$MODEL_ARTIFACT_ID" \
   -p MODEL_SYNC_REGISTRY_SERVER_ADDRESS="$MR_BASE_URL" \
   -p MODEL_SYNC_REGISTRY_PORT="443" \
-  -p MODEL_SYNC_SOURCE_URI="https://huggingface.co/RedHatAI/granite-3.1-8b-instruct-quantized.w4a16/resolve/main/model.safetensors" \
-  -p MODEL_SYNC_DESTINATION_OCI_URI="default-route-openshift-image-registry.apps.rosa.my-cluster.019m.p3.openshiftapps.com/project3/mnist3:latest" \
+  -p MODEL_SYNC_SOURCE_URI="https://github.com/onnx/models/raw/refs/heads/main/validated/vision/classification/mnist/model/mnist-8.onnx" \
+  -p MODEL_SYNC_DESTINATION_OCI_URI="default-route-openshift-image-registry.apps.rosa.my-cluster.019m.p3.openshiftapps.com/project3/mnist-v3:latest" \
   -p DESTINATION_CONNECTION=oci-credentials \
   -o yaml > job.yaml

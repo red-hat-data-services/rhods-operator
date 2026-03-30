@@ -5,13 +5,16 @@ metadata:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" && target_branch == "rhoai-3.4" && !"bundle/**".pathChanged()
-      && !"Dockerfiles/bundle.Dockerfile".pathChanged() && (!"build/**".pathChanged()
-      || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v3-4-push.yaml".pathChanged()
-      ) && !".github/workflows/**".pathChanged()
+      event == "push"
+      && target_branch == "rhoai-3.4"
+      && !"bundle/**".pathChanged()
+      && !"Dockerfiles/bundle.Dockerfile".pathChanged()
+      && (!"build/**".pathChanged() || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v3-4-push.yaml".pathChanged() )
+      && !".github/workflows/**".pathChanged()
   labels:
     appstudio.openshift.io/application: rhoai-v3-4
     appstudio.openshift.io/component: odh-operator-v3-4
@@ -33,12 +36,6 @@ spec:
     value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
   - name: rhoai-version
     value: "3.4.0"
-  - name: build-platforms
-    value:
-    - linux/x86_64
-    - linux/ppc64le
-    - linux/s390x
-    - linux-m2xlarge/arm64
   - name: dockerfile
     value: Dockerfiles/Dockerfile.konflux
   - name: path-context
@@ -47,9 +44,26 @@ spec:
     value: true
   - name: prefetch-input
     value: |
-      [{"type": "gomod", "path": "."}, {"type": "rpm", "path": "."}]
+      [
+        {
+          "type": "gomod",
+          "path": "."
+        },
+        {
+          "type": "rpm",
+          "path": "."
+        }
+      ]
+  - name: build-source-image
+    value: true
   - name: build-image-index
     value: true
+  - name: build-platforms
+    value:
+    - linux/x86_64
+    - linux/ppc64le
+    - linux/s390x
+    - linux-m2xlarge/arm64
   pipelineRef:
     resolver: git
     params:

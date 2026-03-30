@@ -57,6 +57,60 @@ type ModelsAsServiceSpec struct {
 	// If omitted, defaults to openshift-ingress/maas-default-gateway.
 	// +kubebuilder:validation:Optional
 	GatewayRef GatewayRef `json:"gatewayRef,omitempty"`
+
+	// APIKeys contains configuration for API key management.
+	// +kubebuilder:validation:Optional
+	APIKeys *APIKeysConfig `json:"apiKeys,omitempty"`
+
+	// Telemetry contains configuration for telemetry and metrics collection.
+	// +kubebuilder:validation:Optional
+	Telemetry *TelemetryConfig `json:"telemetry,omitempty"`
+}
+
+// TelemetryConfig defines configuration for telemetry collection.
+// Core billing and access control metrics (subscription, cost_center, tier) are always emitted.
+type TelemetryConfig struct {
+	// Metrics contains configuration for optional metric dimensions/labels.
+	// +kubebuilder:validation:Optional
+	Metrics *MetricsConfig `json:"metrics,omitempty"`
+}
+
+// MetricsConfig defines which dimensions (labels) are captured in telemetry metrics.
+// Each dimension can be enabled or disabled to control metric cardinality and storage costs.
+// Note: subscription, cost_center, and tier dimensions are always emitted for billing and access control.
+type MetricsConfig struct {
+	// CaptureOrganization enables the organization_id label on metrics.
+	// +kubebuilder:default=true
+	// +kubebuilder:validation:Optional
+	CaptureOrganization *bool `json:"captureOrganization,omitempty"`
+
+	// CaptureUser enables the user label on metrics.
+	// Disabled by default for privacy/GDPR compliance.
+	// +kubebuilder:default=false
+	// +kubebuilder:validation:Optional
+	CaptureUser *bool `json:"captureUser,omitempty"`
+
+	// CaptureGroup enables the group label on metrics for team-based chargeback.
+	// Note: This is a high-cardinality dimension and is disabled by default.
+	// +kubebuilder:default=false
+	// +kubebuilder:validation:Optional
+	CaptureGroup *bool `json:"captureGroup,omitempty"`
+
+	// CaptureModelUsage enables the model label on metrics.
+	// +kubebuilder:default=true
+	// +kubebuilder:validation:Optional
+	CaptureModelUsage *bool `json:"captureModelUsage,omitempty"`
+}
+
+// APIKeysConfig defines configuration options for API key management.
+type APIKeysConfig struct {
+	// MaxExpirationDays is the maximum allowed expiration in days for API keys.
+	// When set, users cannot create API keys with expiration longer than this value.
+	// Examples: 30 (one month), 90 (three months), 365 (one year).
+	// If not set, no expiration limit is enforced.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=1
+	MaxExpirationDays *int32 `json:"maxExpirationDays,omitempty"`
 }
 
 // GatewayRef defines the reference to the global Gateway (Gw API) where

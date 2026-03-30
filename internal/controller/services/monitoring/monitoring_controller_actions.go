@@ -25,6 +25,7 @@ import (
 const (
 	// Template files.
 	MonitoringStackTemplate                       = "resources/monitoring-stack.tmpl.yaml"
+	MonitoringAdmissionPoliciesTemplate           = "resources/monitoring-admission-policies.tmpl.yaml"
 	MonitoringStackAlertmanagerRBACTemplate       = "resources/monitoringstack-alertmanager-rbac.tmpl.yaml"
 	TempoMonolithicTemplate                       = "resources/tempo-monolithic.tmpl.yaml"
 	TempoStackTemplate                            = "resources/tempo-stack.tmpl.yaml"
@@ -44,12 +45,16 @@ const (
 	ThanosQuerierRouteTemplate                    = "resources/thanos-querier-route.tmpl.yaml"
 	PersesTemplate                                = "resources/perses.tmpl.yaml"
 	PersesTempoDatasourceTemplate                 = "resources/perses-tempo-datasource.tmpl.yaml"
-	PersesTempoDashboardTemplate                  = "resources/perses-tempo-dashboard.tmpl.yaml"
+	PersesTempoDashboardV1Alpha1Template          = "resources/perses-tempo-dashboard-v1alpha1.tmpl.yaml"
+	PersesTempoDashboardV1Alpha2Template          = "resources/perses-tempo-dashboard-v1alpha2.tmpl.yaml"
 	PersesDatasourcePrometheusTemplate            = "resources/perses-datasource-prometheus.tmpl.yaml"
 	PersesDatasourceClusterPrometheusTemplate     = "resources/perses-datasource-cluster-prometheus.tmpl.yaml"
 	PrometheusClusterProxyTemplate                = "resources/data-science-prometheus-cluster-proxy.tmpl.yaml"
 	TempoServiceCAConfigMapTemplate               = "resources/tempo-service-ca-configmap.tmpl.yaml"
 	PersesOperatorAccessNetworkPolicyTemplate     = "resources/perses-operator-access-network-policy.tmpl.yaml"
+
+	// API versions.
+	persesV1Alpha2 = "v1alpha2"
 
 	// Resource names.
 	PersesTempoDatasourceName = "tempo-datasource"
@@ -84,7 +89,7 @@ var componentRules = map[string]string{
 var resourcesFS embed.FS
 
 // initialize handles all pre-deployment configurations.
-func initialize(_ context.Context, rr *odhtypes.ReconciliationRequest) error {
+func initialize(_ context.Context, rr *odhtypes.ReconciliationRequest) error { //nolint:unparam
 	// Only set prometheus configmap path
 	rr.Manifests = []odhtypes.ManifestInfo{
 		{
@@ -182,8 +187,20 @@ func updatePrometheusConfigMap(ctx context.Context, rr *odhtypes.ReconciliationR
 // Note: ValidatingAdmissionPolicy is a built-in Kubernetes API resource (not a CRD) available in K8s 1.26+.
 // If the API is not available, the controller setup will fail when trying to create the watch, providing
 // a clear error message to the user that their cluster doesn't support this feature.
-func deployMonitoringAdmissionPolicies(ctx context.Context, rr *odhtypes.ReconciliationRequest) error {
-	// TODO: Implement admission policies deployment logic
+func deployMonitoringAdmissionPolicies(_ context.Context, rr *odhtypes.ReconciliationRequest) error {
+	if _, ok := rr.Instance.(*serviceApi.Monitoring); !ok {
+		return errors.New("instance is not of type *services.Monitoring")
+	}
+
+	// no need to validate gvk of validation policy and binding because its a builtin type not a crd
+
+	// Deploy admission policy templates
+	// If the ValidatingAdmissionPolicy API doesn't exist, deployment will fail with a clear error
+	templates := []odhtypes.TemplateInfo{
+		{FS: resourcesFS, Path: MonitoringAdmissionPoliciesTemplate},
+	}
+
+	rr.Templates = append(rr.Templates, templates...)
 	return nil
 }
 
@@ -481,9 +498,20 @@ func deployPerses(ctx context.Context, rr *odhtypes.ReconciliationRequest) error
 		return nil
 	}
 
-	// Check for required CRDs
+	version, found, err := resolvePersesAPIVersion(ctx, rr.Client)
+	if err != nil {
+		return fmt.Errorf("failed to resolve Perses API version: %w", err)
+	}
+	if !found {
+		setConditionFalse(rr, status.ConditionPersesAvailable,
+			"PersesCRDNotFoundReason",
+			"Perses CRD not found in any supported version (v1alpha2, v1alpha1)")
+		return nil
+	}
+
+	persesGVK, _, _ := persesGVKs(version)
 	requirements := []CRDRequirement{
-		{GVK: gvk.Perses, ConditionType: status.ConditionPersesAvailable},
+		{GVK: persesGVK, ConditionType: status.ConditionPersesAvailable},
 	}
 
 	if !validateRequiredCRDs(ctx, rr, requirements) {
@@ -513,25 +541,32 @@ func deployPersesTempoIntegration(ctx context.Context, rr *odhtypes.Reconciliati
 		return errors.New("instance is not of type *services.Monitoring")
 	}
 
-	// Check if PersesDatasource CRD exists first
-	persesDatasourceExists, err := cluster.HasCRD(ctx, rr.Client, gvk.PersesDatasource)
+	version, versionFound, err := resolvePersesAPIVersion(ctx, rr.Client)
 	if err != nil {
-		return fmt.Errorf("failed to check if PersesDatasource CRD exists: %w", err)
+		return fmt.Errorf("failed to resolve Perses API version: %w", err)
 	}
 
-	// Check if PersesDashboard CRD exists
-	persesDashboardExists, err := cluster.HasCRD(ctx, rr.Client, gvk.PersesDashboard)
-	if err != nil {
-		return fmt.Errorf("failed to check if PersesDashboard CRD exists: %w", err)
+	_, datasourceGVK, dashboardGVK := persesGVKs(version)
+
+	persesDatasourceExists := false
+	persesDashboardExists := false
+
+	if versionFound {
+		persesDatasourceExists, err = cluster.HasCRD(ctx, rr.Client, datasourceGVK)
+		if err != nil {
+			return fmt.Errorf("failed to check if PersesDatasource CRD exists: %w", err)
+		}
+
+		persesDashboardExists, err = cluster.HasCRD(ctx, rr.Client, dashboardGVK)
+		if err != nil {
+			return fmt.Errorf("failed to check if PersesDashboard CRD exists: %w", err)
+		}
 	}
 
-	// Only create Perses datasource if traces are configured
 	if monitoring.Spec.Traces == nil {
-		// Clean up existing datasource if its CRD exists
 		if persesDatasourceExists {
-			// Delete datasource
 			datasource := &unstructured.Unstructured{}
-			datasource.SetGroupVersionKind(gvk.PersesDatasource)
+			datasource.SetGroupVersionKind(datasourceGVK)
 			datasource.SetName(PersesTempoDatasourceName)
 			datasource.SetNamespace(monitoring.Spec.Namespace)
 
@@ -542,11 +577,9 @@ func deployPersesTempoIntegration(ctx context.Context, rr *odhtypes.Reconciliati
 			}
 		}
 
-		// Clean up existing dashboard if its CRD exists
 		if persesDashboardExists {
-			// Delete dashboard
 			dashboard := &unstructured.Unstructured{}
-			dashboard.SetGroupVersionKind(gvk.PersesDashboard)
+			dashboard.SetGroupVersionKind(dashboardGVK)
 			dashboard.SetName(PersesTempoDashboardName)
 			dashboard.SetNamespace(monitoring.Spec.Namespace)
 
@@ -568,15 +601,14 @@ func deployPersesTempoIntegration(ctx context.Context, rr *odhtypes.Reconciliati
 	if !persesDatasourceExists {
 		rr.Conditions.MarkFalse(
 			status.ConditionPersesTempoDataSourceAvailable,
-			conditions.WithReason(gvk.PersesDatasource.Kind+"CRDNotFoundReason"),
-			conditions.WithMessage("%s CRD Not Found", gvk.PersesDatasource.Kind),
+			conditions.WithReason(datasourceGVK.Kind+"CRDNotFoundReason"),
+			conditions.WithMessage("%s CRD Not Found", datasourceGVK.Kind),
 		)
 		return nil
 	}
 
 	rr.Conditions.MarkTrue(status.ConditionPersesTempoDataSourceAvailable)
 
-	// Deploy datasource template (always deploy if CRD exists)
 	templates := []odhtypes.TemplateInfo{
 		{
 			FS:   resourcesFS,
@@ -588,11 +620,14 @@ func deployPersesTempoIntegration(ctx context.Context, rr *odhtypes.Reconciliati
 		},
 	}
 
-	// Only deploy dashboard template if its CRD exists
 	if persesDashboardExists {
+		dashboardTemplate := PersesTempoDashboardV1Alpha1Template
+		if version == persesV1Alpha2 {
+			dashboardTemplate = PersesTempoDashboardV1Alpha2Template
+		}
 		templates = append(templates, odhtypes.TemplateInfo{
 			FS:   resourcesFS,
-			Path: PersesTempoDashboardTemplate,
+			Path: dashboardTemplate,
 		})
 	}
 
@@ -614,14 +649,27 @@ func deployPersesPrometheusIntegration(ctx context.Context, rr *odhtypes.Reconci
 		return nil
 	}
 
-	datasourceExists, err := cluster.HasCRD(ctx, rr.Client, gvk.PersesDatasource)
+	version, versionFound, err := resolvePersesAPIVersion(ctx, rr.Client)
+	if err != nil {
+		return fmt.Errorf("failed to resolve Perses API version: %w", err)
+	}
+	if !versionFound {
+		setConditionFalse(rr, status.ConditionPersesPrometheusDataSourceAvailable,
+			"PersesDatasourceCRDNotFoundReason",
+			"PersesDatasource CRD not found in any supported version")
+		return nil
+	}
+
+	_, datasourceGVK, _ := persesGVKs(version)
+
+	datasourceExists, err := cluster.HasCRD(ctx, rr.Client, datasourceGVK)
 	if err != nil {
 		return fmt.Errorf("failed to check if CRD PersesDatasource exists: %w", err)
 	}
 	if !datasourceExists {
 		setConditionFalse(rr, status.ConditionPersesPrometheusDataSourceAvailable,
-			gvk.PersesDatasource.Kind+"CRDNotFoundReason",
-			fmt.Sprintf("%s CRD Not Found", gvk.PersesDatasource.Kind))
+			datasourceGVK.Kind+"CRDNotFoundReason",
+			fmt.Sprintf("%s CRD Not Found", datasourceGVK.Kind))
 		return nil
 	}
 
@@ -632,8 +680,6 @@ func deployPersesPrometheusIntegration(ctx context.Context, rr *odhtypes.Reconci
 			FS:   resourcesFS,
 			Path: PersesDatasourcePrometheusTemplate,
 		},
-		// Cluster-wide metrics datasource (from OpenShift Monitoring Thanos Querier)
-		// This is the default datasource until decentralized collection is implemented
 		{
 			FS:   resourcesFS,
 			Path: PersesDatasourceClusterPrometheusTemplate,
@@ -644,7 +690,7 @@ func deployPersesPrometheusIntegration(ctx context.Context, rr *odhtypes.Reconci
 	return nil
 }
 
-func deployNodeMetricsEndpoint(ctx context.Context, rr *odhtypes.ReconciliationRequest) error {
+func deployNodeMetricsEndpoint(_ context.Context, rr *odhtypes.ReconciliationRequest) error {
 	monitoring, ok := rr.Instance.(*serviceApi.Monitoring)
 	if !ok {
 		return errors.New("instance is not of type *services.Monitoring")

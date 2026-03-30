@@ -34,8 +34,8 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/status/deployments"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/status/releases"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/handlers"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/component"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/resources"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/reconciler"
 	odhdeploy "github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
@@ -53,7 +53,7 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&corev1.Service{}).
 		Owns(&admissionregistrationv1.MutatingWebhookConfiguration{}).
-		Owns(&appsv1.Deployment{}, reconciler.WithPredicates(resources.NewDeploymentPredicate())).
+		Owns(&appsv1.Deployment{}, reconciler.WithPredicates(predicates.DefaultDeploymentPredicate)).
 		Watches(
 			&extv1.CustomResourceDefinition{},
 			reconciler.WithEventHandler(
@@ -62,12 +62,18 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 				component.ForLabel(labels.ODH.Component(LegacyComponentName), labels.True)),
 		).
 		Watches(&corev1.Namespace{}).
+		Watches(
+			&componentApi.MLflowOperator{},
+			reconciler.WithEventHandler(handlers.ToNamed(componentApi.WorkbenchesInstanceName)),
+		).
 		WithAction(initialize).
 		WithAction(releases.NewAction(
 			releases.WithMetadataFilePath(
 				path.Join(odhdeploy.DefaultManifestPath, ComponentName, kfNotebookControllerPath, releases.ComponentMetadataFilename)))).
 		WithAction(configureDependencies).
+		WithAction(setKustomizedParams).
 		WithAction(kustomize.NewAction(
+			kustomize.WithCache(false),
 			kustomize.WithLabel(labels.ODH.Component(LegacyComponentName), labels.True),
 			kustomize.WithLabel(labels.K8SCommon.PartOf, LegacyComponentName),
 		)).

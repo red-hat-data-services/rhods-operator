@@ -15,5 +15,5 @@ spec:
           configMap:
             name: openshift-service-ca.crt
             key: service-ca.crt
-        # Verify the server name matches the service
-        serverName: controller-manager-metrics-service.opendatahub.svc
+        # serverName is derived via kustomize replacements (service name + namespace)
+        serverName: controller-manager-metrics-service.NAMESPACE.svc

@@ -9,15 +9,6 @@ metadata:
     app.kubernetes.io/instance: spark-operator
     app.kubernetes.io/component: webhook
 rules:
-  # Events - for recording webhook activity
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - update
-      - patch
   # Webhook configurations - webhook needs to list/watch all, but only update its own
   - apiGroups:
       - admissionregistration.k8s.io
@@ -46,5 +37,13 @@ rules:
       - scheduledsparkapplications
     verbs:
       - get
+      - list
+      - watch
+  # Pods - read-only permissions for informer cache sync
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
       - list
       - watch

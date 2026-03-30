@@ -13,6 +13,7 @@ namespace: redhat-ods-applications
 # 2. Import base configuration
 resources:
   - ../../default   # Inherits everything from config/default/
+  - networkpolicy.yaml
 
 # 3. Delete the Namespace resource (RHOAI operator manages it)
 patches:
@@ -26,7 +27,7 @@ labels:
 
 # Image substitution is handled by RHOAI operator's ApplyParams function
 # which replaces $(SPARK_OPERATOR_CONTROLLER_IMAGE) and $(SPARK_OPERATOR_WEBHOOK_IMAGE)
-# with values from RELATED_IMAGE_SPARK_OPERATOR_IMAGE environment variable.
+# with values from RELATED_IMAGE_ODH_SPARK_OPERATOR_IMAGE environment variable.
 # For standalone kustomize usage, use: --set-image to override images.
 # TODO: Update image refs after Konflux onboarding
 
@@ -38,7 +39,7 @@ configMapGenerator:
       - params.env      # ◄── Use RHOAI-specific params
 
 # 6. Inject images into deployments
-# ApplyParams updates params.env with RELATED_IMAGE_SPARK_OPERATOR_IMAGE,
+# ApplyParams updates params.env with RELATED_IMAGE_ODH_SPARK_OPERATOR_IMAGE,
 # and these replacements inject those values into the deployment YAMLs
 replacements:
   - source:

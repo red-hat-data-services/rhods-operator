@@ -4,10 +4,6 @@ kind: ClusterRole
 metadata:
   name: kserve-manager-role
 rules:
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
 - apiGroups:
   - ""
   resources:
@@ -20,8 +16,6 @@ rules:
   - ""
   resources:
   - events
-  - secrets
-  - serviceaccounts
   - services
   verbs:
   - create
@@ -40,6 +34,21 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
 - apiGroups:
   - admissionregistration.k8s.io
   resources:
@@ -66,13 +75,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - authentication.k8s.io
-  resources:
-  - subjectaccessreviews
-  - tokenreviews
-  verbs:
-  - create
-- apiGroups:
   - autoscaling
   resources:
   - horizontalpodautoscalers
@@ -85,45 +87,9 @@ rules:
   - update
   - watch
 - apiGroups:
-  - discovery.k8s.io
-  resources:
-  - endpointslices
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
   - gateway.networking.k8s.io
   resources:
-  - gatewayclasses
-  - gateways
   - httproutes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - inference.networking.k8s.io
-  resources:
-  - inferencepools
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - inference.networking.x-k8s.io
-  resources:
-  - inferencemodels
-  - inferenceobjectives
-  - inferencepools
   verbs:
   - create
   - delete
@@ -154,34 +120,8 @@ rules:
   - patch
   - update
 - apiGroups:
-  - leaderworkerset.x-k8s.io
-  resources:
-  - leaderworkersets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - podmonitors
-  - servicemonitors
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - networking.istio.io
   resources:
-  - destinationrules
   - virtualservices
   - virtualservices/finalizers
   verbs:
@@ -245,20 +185,6 @@ rules:
   - patch
   - update
 - apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - clusterrolebindings
-  - rolebindings
-  - roles
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - route.openshift.io
   resources:
   - routes
@@ -276,14 +202,6 @@ rules:
   - routes/status
   verbs:
   - get
-- apiGroups:
-  - security.openshift.io
-  resourceNames:
-  - openshift-ai-llminferenceservice-scc
-  resources:
-  - securitycontextconstraints
-  verbs:
-  - use
 - apiGroups:
   - serving.knative.dev
   resources:
@@ -315,8 +233,6 @@ rules:
   - inferencegraphs/finalizers
   - inferenceservices
   - inferenceservices/finalizers
-  - llminferenceserviceconfigs
-  - llminferenceservices
   - servingruntimes
   - servingruntimes/finalizers
   - trainedmodels
@@ -334,7 +250,6 @@ rules:
   - clusterservingruntimes/status
   - inferencegraphs/status
   - inferenceservices/status
-  - llminferenceservices/status
   - servingruntimes/status
   - trainedmodels/status
   verbs:
@@ -344,14 +259,8 @@ rules:
 - apiGroups:
   - serving.kserve.io
   resources:
-  - llminferenceserviceconfigs/finalizers
-  - llminferenceservices/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - serving.kserve.io
-  resources:
   - localmodelcaches
+  - localmodelnamespacecaches
   verbs:
   - get
   - list

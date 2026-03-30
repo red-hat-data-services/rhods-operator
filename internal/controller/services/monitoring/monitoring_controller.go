@@ -35,7 +35,6 @@ import (
 	dscv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v2"
 	dsciv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/dscinitialization/v2"
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
-	sr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/services/registry"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/deploy"
@@ -48,10 +47,7 @@ import (
 	odhtypes "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
 )
 
-//nolint:gochecknoinits
-func init() {
-	sr.Add(&serviceHandler{})
-}
+func NewHandler() *serviceHandler { return &serviceHandler{} }
 
 type serviceHandler struct {
 }
@@ -113,9 +109,12 @@ func (h *serviceHandler) NewReconciler(ctx context.Context, mgr ctrl.Manager) er
 		OwnsGVK(gvk.ServiceMonitor, reconciler.Dynamic(reconciler.CrdExists(gvk.ServiceMonitor))).
 		OwnsGVK(gvk.PrometheusRule, reconciler.Dynamic(reconciler.CrdExists(gvk.PrometheusRule))).
 		OwnsGVK(gvk.ThanosQuerier, reconciler.Dynamic(reconciler.CrdExists(gvk.ThanosQuerier))).
-		OwnsGVK(gvk.Perses, reconciler.Dynamic(reconciler.CrdExists(gvk.Perses))).
-		OwnsGVK(gvk.PersesDatasource, reconciler.Dynamic(reconciler.CrdExists(gvk.PersesDatasource))).
-		OwnsGVK(gvk.PersesDashboard, reconciler.Dynamic(reconciler.CrdExists(gvk.PersesDashboard))).
+		OwnsGVK(gvk.PersesV1Alpha1, reconciler.Dynamic(reconciler.CrdExistsWithoutPreferred(gvk.PersesV1Alpha1, gvk.PersesV1Alpha2))).
+		OwnsGVK(gvk.PersesV1Alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.PersesV1Alpha2))).
+		OwnsGVK(gvk.PersesDatasourceV1Alpha1, reconciler.Dynamic(reconciler.CrdExistsWithoutPreferred(gvk.PersesDatasourceV1Alpha1, gvk.PersesDatasourceV1Alpha2))).
+		OwnsGVK(gvk.PersesDatasourceV1Alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.PersesDatasourceV1Alpha2))).
+		OwnsGVK(gvk.PersesDashboardV1Alpha1, reconciler.Dynamic(reconciler.CrdExistsWithoutPreferred(gvk.PersesDashboardV1Alpha1, gvk.PersesDashboardV1Alpha2))).
+		OwnsGVK(gvk.PersesDashboardV1Alpha2, reconciler.Dynamic(reconciler.CrdExists(gvk.PersesDashboardV1Alpha2))).
 		// Cluster-scoped validation policies
 		OwnsGVK(gvk.ValidatingAdmissionPolicy).
 		OwnsGVK(gvk.ValidatingAdmissionPolicyBinding).

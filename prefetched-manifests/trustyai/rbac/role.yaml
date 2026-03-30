@@ -33,6 +33,13 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - namespaces
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - persistentvolumes
   verbs:
   - get
@@ -264,3 +271,9 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - trustyai.opendatahub.io
+  resources:
+  - status-events
+  verbs:
+  - create

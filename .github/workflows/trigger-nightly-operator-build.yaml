@@ -48,6 +48,7 @@ jobs:
           sparse-checkout: |
             build
             prefetched-manifests
+            prefetched-charts
             .tekton
           sparse-checkout-cone-mode: false
       - name: Install dependencies
@@ -178,6 +179,86 @@ jobs:
 
           # Update the schedule file to trigger the nightly build 
           echo $(date +'%d-%m-%Y %H:%M:%S:%3N') > ${{ github.workspace }}/rhods-operator/build/schedule/operator-tekton-trigger.txt
+
+      - name: Fetch all charts
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          #!/bin/bash
+          set -e
+          echo "current dir = $(pwd)"
+          CHARTS_CONFIG_PATH=${{ github.workspace }}/rhods-operator/build/charts-config.yaml
+          PREFETCHED_CHARTS_DIR_PATH="rhods-operator/prefetched-charts"
+
+          # Clean up old prefetched charts
+          if [ -d "$PREFETCHED_CHARTS_DIR_PATH" ]; then
+              echo "Cleaning up old prefetched charts..."
+              rm -rf "$PREFETCHED_CHARTS_DIR_PATH"
+          fi
+
+          # Create fresh directories
+          mkdir -p "$PREFETCHED_CHARTS_DIR_PATH"
+          mkdir -p charts
+          cd charts
+          while IFS= read -r value;
+          do
+              value=${value/- /}
+              component=$value
+
+              # Skip empty keys
+              [[ -z "$component" ]] && continue
+               
+              echo "=============================================================="
+              echo "Fetching Chart for component: $component"
+              echo "=============================================================="
+              if [[ -n $component ]]
+              then	
+                  git_url=$(value="$value" yq '.map[strenv(value)]["git.url"]' ${CHARTS_CONFIG_PATH})
+                  git_commit=$(value="$value" yq '.map[strenv(value)]["git.commit"]' ${CHARTS_CONFIG_PATH})
+                  ref_type=$(value="$value" yq '.map[strenv(value)]["ref_type"]' ${CHARTS_CONFIG_PATH})
+
+                  if [[ "$ref_type" == "branch" ]]; then
+                    git_commit=$(git ls-remote "$git_url" "refs/heads/$BRANCH" | awk '{print $1}')
+                    echo "Resolved git.commit for branch '$BRANCH' to commit SHA $git_commit"
+
+                    value="$value" git_commit="$git_commit" yq -i eval '.map[strenv(value)]["git.commit"] = strenv(git_commit)' ${CHARTS_CONFIG_PATH}
+                  fi
+
+                  src=$(value="$value" yq '.map[strenv(value)]["src"]' ${CHARTS_CONFIG_PATH})
+                  dest=$(value="$value" yq '.map[strenv(value)]["dest"]' ${CHARTS_CONFIG_PATH})
+                  
+                  echo "component = $component"
+                  echo "git_url = $git_url"
+                  echo "git_commit = $git_commit"
+                  echo "src = $src"
+                  echo "dest = $dest"
+          
+                  mkdir -p $component
+                  cd $component
+          
+                  git config --global init.defaultBranch ${BRANCH}
+                  git init
+                  git remote add origin $git_url
+                  git config core.sparseCheckout true
+                  git config core.sparseCheckoutCone false
+                  echo "$src" >> .git/info/sparse-checkout
+                  git fetch --depth=1 origin $git_commit
+                  git checkout $git_commit
+          
+                  cd ../
+                  echo "current dir = $(pwd)"
+                  
+                  dest_dir_path=${{ github.workspace }}/${PREFETCHED_CHARTS_DIR_PATH}/$dest
+                  mkdir -p ${dest_dir_path}
+
+                  cp -r $component/$src/* ${dest_dir_path}
+                  echo ""
+              fi
+          done < <(yq e '.map | keys' ${CHARTS_CONFIG_PATH} )
+          
+          cd ${{ github.workspace }}/${PREFETCHED_CHARTS_DIR_PATH}
+          tree
+
       - name: Commit and push the changes to release branch
         uses: actions-js/push@master
         with:

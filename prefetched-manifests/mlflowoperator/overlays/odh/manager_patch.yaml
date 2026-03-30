@@ -11,4 +11,6 @@ spec:
         args:
         - --leader-elect
         - --health-probe-bind-address=:8081
+        - --metrics-bind-address=:8443
+        - --metrics-cert-path=/etc/metrics-certs
         - --namespace=opendatahub
