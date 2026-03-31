@@ -8,6 +8,21 @@ data:
     metadata:
       annotations:
         service.beta.openshift.io/serving-cert-secret-name: "autoscaling-example-gateway-tls"
+    spec:
+      type: ClusterIP
+  deployment: |
+    spec:
+      template:
+        spec:
+          containers:
+            - name: istio-proxy
+              resources:
+                limits:
+                  cpu: "16"
+                  memory: 16Gi
+                requests:
+                  cpu: "4"
+                  memory: 4Gi
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway

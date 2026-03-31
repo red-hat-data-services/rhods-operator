@@ -14,7 +14,7 @@ type: kubernetes.io/service-account-token
 apiVersion: keda.sh/v1alpha1
 kind: ClusterTriggerAuthentication
 metadata:
-  name: keda-thanos-token
+  name: ai-inference-keda-thanos
 spec:
   secretTargetRef:
     - parameter: bearerToken

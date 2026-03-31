@@ -2,6 +2,6 @@
   {
     "op": "replace",
     "path": "/data/autoscaling-wva-controller-config",
-    "value": "{\"prometheus\":{\"url\":\"https://thanos-querier.openshift-monitoring.svc.cluster.local:9091\",\"authModes\":\"bearer\",\"triggerAuthName\":\"keda-thanos-token\",\"triggerAuthKind\":\"ClusterTriggerAuthentication\"}}"
+    "value": "{\"prometheus\":{\"url\":\"https://thanos-querier.openshift-monitoring.svc.cluster.local:9091\",\"authModes\":\"bearer\",\"triggerAuthName\":\"ai-inference-keda-thanos\",\"triggerAuthKind\":\"ClusterTriggerAuthentication\"}}"
   }
 ]

@@ -29,11 +29,11 @@ done
 oc patch sa autoscaling-example-llama-epp-sa -n autoscaling-example \
     -p '{"imagePullSecrets": [{"name": "rhoai-operator-pull-secret"}]}' --type=merge
 sleep 10
-kubectl delete pods -l serving.kserve.io/llminferenceservice=autoscaling-example-llama -n autoscaling-example --ignore-not-found
+kubectl delete pods -l app.kubernetes.io/component=llminferenceservice-workload-n autoscaling-example --ignore-not-found
 kubectl delete pods -l kubernetes.io/component=llminferenceservice-router-scheduler -n autoscaling-example --ignore-not-found
 
 # Create recording rules that alias kserve_vllm:* metrics to vllm:* so WVA
 # can find them. The LLMInferenceService PodMonitor relabels vllm:* to
 # kserve_vllm:*, but WVA queries for the unprefixed names.
-kubectl apply -f "$DIR/08d-vllm-metrics-recording-rule.yaml"
-echo "Applied vllm metrics recording rule"
+# kubectl apply -f "$DIR/08d-vllm-metrics-recording-rule.yaml"
+# echo "Applied vllm metrics recording rule"

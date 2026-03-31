@@ -19,7 +19,7 @@ Everything should work with the standup script, but in case anything gets stuck 
 2. Run the 04-rhods-operator/04-deploy-and-patch-odh-operator-with-sa.sh script. This will deploy the ODH operator with my manifest changes. These changes should be accounted for by the time we go to release, so don't worry that its my custom image and different manfiests. Wait for that to complete.
 3. Run the 05-dsc/apply.sh script to create the DSC which will enable WVA, kserve, and llmisvc controllers
 4. If testing on clusterbot, you have to run 06-scale-down-non-essential.sh. This will free up space on the cluster so that you can deploy everything else in the demo. Ignore this if you are testing on a real cluster.
-5. Run the 07-auth/apply.sh script to create the authentication and authorization for KEDA to see stuff from openshift monitoring. Customers will have to do this for DP, documented in the procedure docs
+5. Run the 07-auth/apply.sh script to create the authentication and authorization for KEDA to see stuff from OpenShift monitoring. Customers will have to do this for DP, documented in the procedure docs
 6. Run the 08-llmisvc/apply.sh. Creates the LLMISVC, gateway, and namespace. It will also create recording rules account for the inference-sim image we have in that demo to map `vllm` --> `kserve_vllm` metrics, the latter of which is what WVA will operate on. This is basically a unique workaround for CPU only clusters, any official RHAIIS image will not have to do this
 7. Run the verification scripts. We have 3 separate ones:
     - 09-verification/09a-check-inference-metrics.sh - checks if `kserve_vllm:` metrics show up in prometheus

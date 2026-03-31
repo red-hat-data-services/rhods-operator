@@ -13,14 +13,14 @@ cd "$REPO_ROOT"
 # 3. Build and push the image
 # RHOAI is the Makefile value (selects rhoai.Dockerfile, config/rhoai/ overlay).
 # SelfManagedRHOAI is the runtime env var for the pod (see oc set env below).
-# ODH_PLATFORM_TYPE=RHOAI make get-manifests
-# cp -rf prefetched-manifests/* opt/manifests/
-# ODH_PLATFORM_TYPE=RHOAI make image-build image-push IMG=$IMG PLATFORM=linux/amd64 IMAGE_BUILD_FLAGS="--build-arg USE_LOCAL=true --build-arg CGO_ENABLED=1 --build-arg BUILDPLATFORM=linux/amd64 --build-arg TARGETPLATFORM=linux/amd64 --platform linux/amd64"
-# ODH_PLATFORM_TYPE=RHOAI make deploy IMG=$IMG
+ODH_PLATFORM_TYPE=SelfManagedRHOAI make get-manifests
+cp -rf prefetched-manifests/* opt/manifests/
+ODH_PLATFORM_TYPE=SelfManagedRHOAI make image-build image-push IMG=$IMG PLATFORM=linux/amd64 IMAGE_BUILD_FLAGS="--build-arg USE_LOCAL=true --build-arg CGO_ENABLED=1 --build-arg BUILDPLATFORM=linux/amd64 --build-arg TARGETPLATFORM=linux/amd64 --platform linux/amd64"
+ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy IMG=$IMG
 
 ### Use the prebuilt image:
 # IMG=quay.io/rhoai/odh-rhel9-operator:rhoai-3.4-ea.2 ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy
-IMG=quay.io/grpereir/odh-rhel9-operator:rhoai-3.4-ea.2-fixes ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy
+# IMG=quay.io/grpereir/odh-rhel9-operator:rhoai-3.4-ea.2-fixes ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy
 
 # The RHOAI manager.yaml comments out ODH_PLATFORM_TYPE, so the operator falls
 # back to auto-detection which fails without a CatalogSource or rhods-operator CSV.
