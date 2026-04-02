@@ -180,33 +180,6 @@ clustertriggerauthentication.keda.sh/ai-inference-keda-thanos created
 
 Now KEDA will be able pull metrics from the OpenShift User Workload Monitoring stack.
 
-#### Patching the `inferenceservice-config` to use OpenShift User Workload Monitoring
-
-In the previous steps we gave KEDA the authorization and authentication it needs to query Thanos Querier in OpenShift User Workload Monitoring. But KEDA doesn't know where to find those metrics or which credentials to use — that information comes from the llmisvc controller, which reads its autoscaling configuration from the `inferenceservice-config` ConfigMap.
-
-By default, this ConfigMap has no autoscaling configuration set. We need to patch it to tell the llmisvc controller:
-
-  1. **Where** to query metrics — the Thanos Querier URL
-  2. **How** to authenticate — using the `ClusterTriggerAuthentication` resource
-     (`ai-inference-keda-thanos`) we created in the previous step
-
-To do this, we can run the a `kubectl patch` command, and then we need to cycle our `llmisvc-controller-manager` deployment, so that it can pickup our configuration changes. You can do so with the following:
-
-```bash
-oc patch configmap inferenceservice-config -n redhat-ods-applications \
-    --type=json -p '[{"op":"replace","path":"/data/autoscaling-wva-controller-config","value":"{\"prometheus\":{\"url\":\"https://thanos-querier.OpenShift-monitoring.svc.cluster.local:9091\",\"authModes\":\"bearer\",\"triggerAuthName\":\"ai-inference-keda-thanos\",\"triggerAuthKind\":\"ClusterTriggerAuthentication\"}}"}]'
-oc rollout restart deployment llmisvc-controller-manager -n redhat-ods-applications
-```
-
-This should result in the following logs:
-
-```console
-configmap/inferenceservice-config patched
-deployment.apps/llmisvc-controller-manager restarted
-```
-
-Now, when the `LLMISVC` gets created with autoscaling configurations, the `llmisvc-controller-manager` will create a KEDA `ScaledObject` with these settings embedded so KEDA knows how to connect to Thanos and authenticate its metric queries.
-
 ### Creating an Inference Stack with Autoscaling enabled
 
 Now we are ready to start applying all of our resources related to our `LLMInferenceService`. 
