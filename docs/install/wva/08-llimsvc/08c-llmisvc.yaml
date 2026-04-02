@@ -10,7 +10,15 @@ metadata:
     security.opendatahub.io/enable-auth: 'false'
 spec:
   router:
-    scheduler: {}
+    scheduler: # {}
+      template:
+        imagePullSecrets:
+          - name: rhoai-operator-pull-secret
+        containers:
+          - name: main
+            # image: quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9@sha256:9ec7153a4f17156e12810e02c6f50e8d2e9ccefa893150187b4cf3f1d1112d6e # quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9:rhoai-3.4-ea.2
+            image: quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9:rhoai-3.4-ea.2
+            imagePullPolicy: Always
     route: {}
     gateway:
       refs: # Reference the gateway we created
