@@ -16,6 +16,4 @@ while ! kubectl get crd opentelemetrycollectors.opentelemetry.io &>/dev/null; do
     sleep 10
     elapsed=$((elapsed + 10))
 done
-
-echo "==> Deploying OpenTelemetryCollector instance..."
-kubectl apply -f "$DIR/01b-collector.yaml"
+echo "==> OpenTelemetry operator is ready."

@@ -8,6 +8,9 @@ data:
     metadata:
       annotations:
         service.beta.openshift.io/serving-cert-secret-name: "distributed-tracing-gateway-tls"
+    spec: # NOTE: TEMPORARY. Product does not support anything but LoadBalancer integration but it doesnt work on some envs
+      type: ClusterIP
+      # TODO - figure out setting up metallb
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Stands up the full WVA stack on an OpenShift cluster.
+# Stands up the distributed tracing demo stack on an OpenShift cluster.
 # Usage: ./standup.sh
 set -euo pipefail
 
@@ -45,20 +45,21 @@ wait_for_crd() {
   done
 }
 
-# ── Step 1: Prerequisites (parallel) ─────────────────────────────────────────
-info "Step 1: Creating UWM config, Custom Metrics Autoscaler, and Connectivity Link..."
-kubectl apply -f "$DIR/00-uwm-cm.yaml"
-kubectl apply -f "$DIR/01-custom-metrics-autoscaler.yaml"
-kubectl apply -f "$DIR/02-connectivity-link.yaml"
+# ── Step 0: Create namespace ────────────────────────────────────────────────
+info "Step 0: Creating namespace..."
+kubectl apply -f "$DIR/00-namespace.yaml"
 
-# ── Step 2: Wait for KEDA operator ───────────────────────────────────────────
-info "Step 2: Waiting for KEDA operator..."
-wait_for_crd "kedacontrollers.keda.sh"
-wait_for_pods "openshift-keda" "name=custom-metrics-autoscaler-operator" 1
+# ── Step 1: Install OpenTelemetry operator ──────────────────────────────────
+info "Step 1: Installing OpenTelemetry operator..."
+bash "$DIR/01-otel/apply.sh"
 
-# ── Step 3: Patch KedaController ─────────────────────────────────────────────
-info "Step 3: Applying KedaController (watchNamespace='')..."
-kubectl apply -f "$DIR/03-keda-controller.yaml"
+# ── Step 2: Install Connectivity Link operator ──────────────────────────────
+info "Step 2: Installing Connectivity Link operator..."
+bash "$DIR/02-connectivity-link/apply.sh"
+
+# ── Step 3: Install Tempo operator, instance, and OTel collector ────────────
+info "Step 3: Installing Tempo operator, instance, and OTel collector..."
+bash "$DIR/03-tempo/apply.sh"
 
 # ── Step 4: Deploy RHODS operator ────────────────────────────────────────────
 info "Step 4: Deploying RHODS operator..."
@@ -68,8 +69,7 @@ bash "$DIR/04-rhods-operator/04-deploy-and-patch-odh-operator-with-sa.sh"
 info "Step 5: Waiting for RHODS operator pods..."
 wait_for_pods "redhat-ods-operator" "name=rhods-operator" 1
 
-# ── Step 6: Create DSCI and DSC ──────────────────────────────────────────────
-info "Step 6: Waiting for RHODS webhook to become ready..."
+info "Waiting for RHODS webhook to become ready..."
 timeout=120; elapsed=0
 while ! kubectl get endpoints rhods-operator-webhook-service -n redhat-ods-operator -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null | grep -q .; do
   if [ "$elapsed" -ge "$timeout" ]; then
@@ -79,7 +79,10 @@ while ! kubectl get endpoints rhods-operator-webhook-service -n redhat-ods-opera
   sleep 5
   elapsed=$((elapsed + 5))
 done
-info "RHODS webhook is ready. Applying DSC and patching controller SAs..."
+info "RHODS webhook is ready."
+
+# ── Step 5b: Create DSC ─────────────────────────────────────────────────────
+info "Step 5b: Applying DSC..."
 bash "$DIR/05-dsc/apply.sh"
 
 info "Waiting for DSC 'default-dsc' to be ready (timeout 300s)..."
@@ -99,29 +102,12 @@ while true; do
   elapsed=$((elapsed + 10))
 done
 
-# ── Step 7: Scale down non-essential components ──────────────────────────────
-info "Step 7: Scaling down non-essential components..."
+# ── Step 6: Scale down non-essential components ──────────────────────────────
+info "Step 6: Scaling down non-essential components..."
 bash "$DIR/06-scale-down-non-essential.sh"
 
-# ── Step 8: KEDA auth setup ──────────────────────────────────────────────────
-info "Step 8: Setting up KEDA auth for Thanos..."
-kubectl apply -f "$DIR/07-auth/07a-service-account.yaml"
-kubectl apply -f "$DIR/07-auth/07b-cluster-role-binding.yaml"
-kubectl apply -f "$DIR/07-auth/07c-trigger-authentication.yaml"
-info "Waiting for inferenceservice-config to exist..."
-timeout=120; elapsed=0
-while ! kubectl get configmap inferenceservice-config -n redhat-ods-applications &>/dev/null; do
-  if [ "$elapsed" -ge "$timeout" ]; then
-    echo "ERROR: timed out waiting for inferenceservice-config ConfigMap"
-    exit 1
-  fi
-  sleep 5
-  elapsed=$((elapsed + 5))
-done
-cd "$DIR/07-auth" && bash 07d-run-patch.sh && cd "$DIR"
-
-# ── Step 9: Deploy LLMInferenceService ───────────────────────────────────────
-info "Step 9: Waiting for llmisvc webhook to become ready..."
+# ── Step 7: Deploy LLMInferenceService ───────────────────────────────────────
+info "Step 7: Waiting for llmisvc webhook to become ready..."
 timeout=120; elapsed=0
 while ! kubectl get endpoints llmisvc-webhook-server-service -n redhat-ods-applications -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null | grep -q .; do
   if [ "$elapsed" -ge "$timeout" ]; then
@@ -132,7 +118,7 @@ while ! kubectl get endpoints llmisvc-webhook-server-service -n redhat-ods-appli
   elapsed=$((elapsed + 5))
 done
 info "llmisvc webhook is ready. Deploying LLMInferenceService..."
-bash "$DIR/08-llimsvc/apply.sh"
+bash "$DIR/07-llmisvc/apply.sh"
 
 info "Waiting for LLMInferenceService distributed-tracing-llama to be ready..."
 timeout=600; elapsed=0
@@ -151,4 +137,4 @@ while true; do
   elapsed=$((elapsed + 10))
 done
 
-info "Stack is up! Run the verification scripts in 09-verification/ to check."
+info "Stack is up! Run 08-verification/generate-traffic.sh to generate traces, then check the Jaeger UI."
