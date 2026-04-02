@@ -116,7 +116,7 @@ deploy the kserve controller, llmisvc controller, and WVA controller.
 > with sensible defaults — you do not need to create one manually.
 
 ```bash
-oc apply -f docs/install/wva/05-wva-dsc.yaml
+oc apply -f docs/install/wva/05-dsc/05a-wva-dsc.yaml
 ```
 
 Wait for the controllers to come up:
