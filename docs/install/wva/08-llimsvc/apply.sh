@@ -29,7 +29,7 @@ done
 oc patch sa autoscaling-example-llama-epp-sa -n autoscaling-example \
     -p '{"imagePullSecrets": [{"name": "rhoai-operator-pull-secret"}]}' --type=merge
 sleep 10
-kubectl delete pods -l app.kubernetes.io/component=llminferenceservice-workload-n autoscaling-example --ignore-not-found
+kubectl delete pods -l app.kubernetes.io/component=llminferenceservice-workload -n autoscaling-example --ignore-not-found
 kubectl delete pods -l kubernetes.io/component=llminferenceservice-router-scheduler -n autoscaling-example --ignore-not-found
 
 # Create recording rules that alias kserve_vllm:* metrics to vllm:* so WVA
