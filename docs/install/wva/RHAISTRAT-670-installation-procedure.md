@@ -360,6 +360,17 @@ env:
     - **NOTE:** The same thing (adding device requests to the `resources` and `limits` sections) applies for accelerated networking devices like RoCE, or Infiniband, although autoscaling internode workloads through `LeaderWorkerSet` falls outside support at this time.
 8. `.spec.template.containers[0]` Probe schemes (`startupProbe`, `readinessProbe`, and `livenessProbe`) - As describe above this example uses TLS end to end, if you do not ensure you checks use the TLS scheme it will fail to hit the endpoints, and thus declare the pods ready or health.
 
+#### Verify LLMISVC, ScaledObject
+```bash
+oc get llmisvc -n autoscaling-example
+NAME                        URL   READY   REASON   AGE
+autoscaling-example-llama         True             102s
+
+oc get scaledobject -n autoscaling-example
+NAME                                    SCALETARGETKIND      SCALETARGETNAME                    MIN   MAX   READY   ACTIVE   FALLBACK   PAUSED   TRIGGERS     AUTHENTICATIONS            AGE
+autoscaling-example-llama-kserve-keda   apps/v1.Deployment   autoscaling-example-llama-kserve   1     5     True    True     False      False    prometheus   ai-inference-keda-thanos   119s
+```
+
 #### Metric relabelling mapping
 
 By default vLLM exposes metrics to the `vllm` namespace, but in Red Hat OpenShift AI (RHOAI), we re-map these to the `kserve_vllm` namespace. This means the Workload Variant Autoscaler will only be looking for the kserve namespace instances of these metrics. To enable the WVA to pick up these metrics we create a `PrometheusRule` responsible for creating aliases for them. You will need to create the following manifest:
