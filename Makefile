@@ -239,13 +239,16 @@ $(KUSTOMIZE) create --autodetect && \
 cd -
 endef
 
+# Dynamically compute paths for main operator manifests, excluding cloud manager packages
+manifests-paths := {$(shell go list ./... | grep -v /cloudmanager | tr '\n' ',')}
+
 .PHONY: manifests
 manifests: controller-gen kustomize ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 ifneq ($(ODH_PLATFORM_TYPE), OpenDataHub)
-	$(CONTROLLER_GEN) rbac:roleName=controller-manager-role paths="./..." output:rbac:artifacts:config=config/rbac
+	@$(CONTROLLER_GEN) rbac:roleName=controller-manager-role paths="$(manifests-paths)" output:rbac:artifacts:config=config/rbac
 endif
-	$(CONTROLLER_GEN) $(CONTROLLER_GEN_TAGS) rbac:roleName=$(ROLE_NAME) crd:ignoreUnexportedFields=true webhook paths="./..." output:crd:artifacts:config=$(CONFIG_DIR)/crd/bases output:rbac:artifacts:config=$(CONFIG_DIR)/rbac output:webhook:artifacts:config=$(CONFIG_DIR)/webhook
-	@$(call add-crd-to-kustomization)
+	@$(CONTROLLER_GEN) $(CONTROLLER_GEN_TAGS) rbac:roleName=$(ROLE_NAME) crd:ignoreUnexportedFields=true webhook paths="$(manifests-paths)" output:crd:artifacts:config=$(CONFIG_DIR)/crd/bases output:rbac:artifacts:config=$(CONFIG_DIR)/rbac output:webhook:artifacts:config=$(CONFIG_DIR)/webhook
+	@$(call add-crd-to-kustomization,$(CONFIG_DIR)/crd/bases)
 	@$(call fetch-external-crds,github.com/openshift/api,route/v1)
 	@$(call fetch-external-crds,github.com/openshift/api,user/v1)
 	@$(call fetch-external-crds,github.com/openshift/api,config/v1,authentications ingresses)
@@ -699,7 +702,7 @@ CCM_PROVIDERS := azure coreweave
 
 # Helper functions
 ccm-config-dir = config/cloudmanager/$(1)
-ccm-paths = ./api/cloudmanager/$(1)/...;./internal/controller/cloudmanager/$(1)/...;./internal/controller/cloudmanager/common/...
+ccm-paths = {./api/cloudmanager/$(1)/...,./internal/controller/cloudmanager/$(1)/...,./internal/controller/cloudmanager/common/...}
 
 ##@ CCM Code Generation
 
