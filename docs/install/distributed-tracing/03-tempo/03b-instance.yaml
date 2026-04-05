@@ -1,0 +1,36 @@
+# TempoMonolithic instance — the tracing backend.
+#
+# Receives OTLP traces from the OTel Collector (step 01b) and stores them
+# in-memory. Exposes Jaeger UI on port 16686 for trace visualization.
+#
+# The operator creates a service named "tempo-<name>", so name "tracing"
+# produces "tempo-tracing" with:
+#   - 4317: OTLP gRPC  (collector writes here)
+#   - 3200: Tempo HTTP API
+#   - 16686: Jaeger UI  (when jaegerui is enabled)
+---
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoMonolithic
+metadata:
+  name: tracing
+  namespace: distributed-tracing
+spec:
+  storage:
+    traces:
+      backend: memory
+  jaegerui:
+    enabled: true
+    route:
+      enabled: true
+  # TODO: enable multi-tenancy to suppress the "not supported on OpenShift" warning.
+  # Currently disabled because the Jaeger UI route doesn't send X-Scope-OrgID,
+  # resulting in "missing tenant header" errors when accessing the UI.
+  # multitenancy:
+  #   enabled: true
+  #   mode: openshift
+  ingestion:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
