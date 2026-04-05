@@ -45,6 +45,9 @@ func (e *Engine) Render(path string, opts ...RenderOptsFn) ([]unstructured.Unstr
 		if err := plugin.Transform(resMap); err != nil {
 			return nil, fmt.Errorf("failed applying namespace plugin when preparing Kustomize resources. %w", err)
 		}
+		if err := plugins.UpdateServiceMonitorNamespaceSelector(resMap, ro.ns); err != nil {
+			return nil, fmt.Errorf("failed updating ServiceMonitor namespaceSelector: %w", err)
+		}
 	}
 
 	if len(ro.labels) != 0 {
