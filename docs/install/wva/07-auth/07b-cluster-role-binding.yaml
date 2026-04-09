@@ -1,0 +1,15 @@
+# Grants the keda-metrics-reader ServiceAccount permission to
+# query the cluster monitoring stack (Thanos Querier).
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: keda-metrics-reader-monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+  - kind: ServiceAccount
+    name: keda-metrics-reader
+    namespace: openshift-keda

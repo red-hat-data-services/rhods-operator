@@ -1,0 +1,10 @@
+resources:
+- manager.yaml
+- configmap.yaml
+- configmap-saturation-scaling.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: controller
+  newName: quay.io/rhoai/odh-workload-variant-autoscaler-controller-rhel9
+  newTag: rhoai-3.4-ea.2

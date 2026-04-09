@@ -1,0 +1,16 @@
+# Grant GET /metrics permission to the controller-manager SA whose token is
+# used by Prometheus (via authorization.credentials) to scrape the WVA
+# metrics endpoint. The WVA metrics endpoint performs a SubjectAccessReview
+# checking this permission.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workload-variant-autoscaler-ocp-prometheus-metrics-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workload-variant-autoscaler-metrics-reader
+subjects:
+- kind: ServiceAccount
+  name: workload-variant-autoscaler-controller-manager
+  namespace: redhat-ods-applications

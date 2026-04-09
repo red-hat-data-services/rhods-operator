@@ -3,25 +3,35 @@ ARG GOLANG_VERSION=1.25
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
+ARG BUILD_TYPE
 
 ################################################################################
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi9/toolbox as manifests
 ARG USE_LOCAL=false
+ARG BUILD_TYPE=RELEASE
+#Possible values of BUILD_TYPE: LOCAL - for playpen builds, RELEASE - for ODH release builds, CI - for ODH CI/Nightlies
 ARG OVERWRITE_MANIFESTS=""
 USER root
 WORKDIR /
 COPY opt/manifests/ /opt/manifests/
 COPY opt/charts/ /opt/charts/
 COPY get_all_manifests.sh get_all_manifests.sh
-RUN if [ "${USE_LOCAL}" != "true" ]; then \
+RUN if [[ "${BUILD_TYPE}" == "RELEASE" && "${USE_LOCAL}" != "true" ]]; then \
         rm -rf /opt/manifests/*; \
-        ./get_all_manifests.sh ${OVERWRITE_MANIFESTS}; \
+        ODH_PLATFORM_TYPE=rhoai ./get_all_manifests.sh ${OVERWRITE_MANIFESTS}; \
+    elif [ "${BUILD_TYPE}" == "CI" ]; then \
+        rm -rf /opt/manifests/*; \
+        ls -la /cachi2/prefetched-manifests; \
+        cp -r /cachi2/prefetched-manifests/* /opt/manifests/; \
     fi
 
 # Clean up unwanted directories and files from manifests
 RUN rm -rf /opt/manifests/*/e2e /opt/manifests/*/scorecard /opt/manifests/*/test /opt/manifests/*/samples /opt/manifests/*/example-* \
     && find /opt/manifests -name "README.md" -delete
 
+# Copy monitoring config removing any possibly pre-existing symlinks
+RUN rm -f /opt/manifests/monitoring
+COPY config/monitoring/ /opt/manifests/monitoring
 # Copy ods-configs removing any possibly pre-existing symlinks
 RUN rm -f /opt/manifests/osd-configs
 COPY config/osd-configs/ /opt/manifests/osd-configs
@@ -53,7 +63,7 @@ COPY cmd/cloudmanager/ cmd/cloudmanager/
 COPY pkg/ pkg/
 
 # Build stripe out debug info to minimize binary size
-RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o manager cmd/main.go
+RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime,rhoai -o manager cmd/main.go
 
 # Build cloudmanager binary
 RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o cloudmanager ./cmd/cloudmanager/
