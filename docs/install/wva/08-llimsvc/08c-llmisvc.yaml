@@ -1,0 +1,71 @@
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  name: autoscaling-example-llama
+  namespace: autoscaling-example
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+    security.opendatahub.io/enable-auth: 'false'
+spec:
+  router:
+    scheduler: # {}
+      template:
+        imagePullSecrets:
+          - name: rhoai-operator-pull-secret
+        containers:
+          - name: main
+            # image: quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9@sha256:9ec7153a4f17156e12810e02c6f50e8d2e9ccefa893150187b4cf3f1d1112d6e # quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9:rhoai-3.4-ea.2
+            image: quay.io/rhoai/odh-llm-d-inference-scheduler-rhel9:rhoai-3.4-ea.2
+            imagePullPolicy: Always
+    route: {}
+    gateway:
+      refs: # Reference the gateway we created
+      - name: autoscaling-example-gateway
+        namespace: autoscaling-example
+  model:
+    uri: hf://Qwen/Qwen2.5-7B-Instruct
+    name: Qwen/Qwen2.5-7B-Instruct
+  labels:
+    inference.optimization/acceleratorName: H100 # If using Accelerators, use the Name of your Accelerator
+  scaling:
+    minReplicas: 1
+    maxReplicas: 5
+    wva:
+      keda:
+        pollingInterval: 5
+        cooldownPeriod: 30
+  template:
+    containers:
+      - name: main
+        image: quay.io/aipcc/rhaiis/cuda-ubi9:3.4.0-ea.2 # If using Accelerators, use the corresponding inference-image
+        env: # DO NOT INCLUDE THIS - for testing only
+          - name: HF_OFFLINE_HUB # DO NOT INCLUDE THIS - for testing only
+            value: "1" # DO NOT INCLUDE THIS - for testing only
+        resources:
+          limits:
+            cpu: '4'
+            memory: 32Gi
+            nvidia.com/gpu: 1
+          requests:
+            cpu: '2'
+            memory: 16Gi
+            nvidia.com/gpu: 1
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTPS
+          failureThreshold: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTPS
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTPS
