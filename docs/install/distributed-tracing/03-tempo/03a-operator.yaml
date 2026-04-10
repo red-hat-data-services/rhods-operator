@@ -1,0 +1,33 @@
+# Red Hat build of Tempo Operator for OpenShift
+# Installs the Tempo operator and creates a TempoMonolithic instance that
+# serves as the tracing backend (replaces Jaeger from the upstream llm-d setup).
+#
+# TempoMonolithic runs Tempo as a single process — suitable for development and
+# demo environments. For production, swap to TempoStack with object storage.
+#
+# Docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/distributed_tracing/distributed-tracing-platform-tempo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-tempo-operator
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-tempo-operator
+  namespace: openshift-tempo-operator
+spec:
+  upgradeStrategy: Default
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: tempo-product
+  namespace: openshift-tempo-operator
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: tempo-product
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

@@ -1,0 +1,33 @@
+# Red Hat build of OpenTelemetry Operator for OpenShift
+# Installs the OpenTelemetry operator from the redhat-operators catalog via OLM.
+#
+# This operator provides the OpenTelemetryCollector CRD which we use to deploy
+# an OTel Collector instance that receives traces from vLLM / llm-d components
+# and forwards them to a Tempo backend.
+#
+# Docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/distributed_tracing/distributed-tracing-platform-otel
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-opentelemetry-operator
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-opentelemetry-operator
+  namespace: openshift-opentelemetry-operator
+spec:
+  upgradeStrategy: Default
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: opentelemetry-product
+  namespace: openshift-opentelemetry-operator
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: opentelemetry-product
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

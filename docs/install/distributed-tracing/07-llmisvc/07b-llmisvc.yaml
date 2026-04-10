@@ -1,0 +1,118 @@
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  name: distributed-tracing-llama
+  namespace: distributed-tracing
+  annotations:
+spec:
+  router:
+    scheduler:
+      template:
+        containers:
+          - name: main
+            args:
+              - --tracing=true
+            env:
+              - name: OTEL_SERVICE_NAME
+                value: "gateway-api-inference-extension"
+              - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                value: "http://otel-collector:4317"
+              - name: OTEL_TRACES_EXPORTER
+                value: "otlp"
+              - name: OTEL_RESOURCE_ATTRIBUTES_NODE_NAME
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: spec.nodeName
+              - name: OTEL_RESOURCE_ATTRIBUTES_POD_NAME
+                valueFrom:
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.name
+              - name: OTEL_RESOURCE_ATTRIBUTES
+                value: "k8s.namespace.name=$(NAMESPACE),k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)"
+              - name: OTEL_TRACES_SAMPLER
+                value: "parentbased_traceidratio"
+              - name: OTEL_TRACES_SAMPLER_ARG
+                value: "0.1"
+    route: {}
+    gateway:
+      refs: # Reference the gateway we created
+      - name: distributed-tracing-gateway
+        namespace: distributed-tracing
+  model:
+    uri: hf://Qwen/Qwen2.5-7B-Instruct
+    name: Qwen/Qwen2.5-7B-Instruct
+  template:
+    # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE ------- BEGIN HACK -------
+    # Install missing OpenTelemetry SDK packages into a shared volume so that
+    # vllm's --collect-detailed-traces flag works (the RHAIIS image ships
+    # opentelemetry-api stubs but not the full SDK).
+    initContainers:
+      - name: install-otel-sdk
+        image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.4.0-ea.2-1774939203
+        command: ["pip", "install", "--target=/otel-packages", "--quiet",
+                  "opentelemetry-sdk", "opentelemetry-exporter-otlp"]
+        volumeMounts:
+          - name: otel-packages
+            mountPath: /otel-packages
+    volumes:
+      - name: otel-packages
+        emptyDir: {}
+    # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE -------  END HACK -------
+    containers:
+      - name: main
+        # image: quay.io/aipcc/rhaiis/cuda-ubi9:3.4.0-ea.2 # If using Accelerators, use the corresponding inference-image, current latest RHAIIS
+        image: registry.redhat.io/rhaii-early-access/vllm-cuda-rhel9:3.4.0-ea.2-1774939203 # Official RHAIIS EA2 image
+        imagePullPolicy: Always
+        args:
+          - --otlp-traces-endpoint
+          - "http://otel-collector:4317"
+          - --collect-detailed-traces
+          - "all"
+        # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE ------- BEGIN HACK -------
+        volumeMounts:
+          - name: otel-packages
+            mountPath: /otel-packages
+        # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE -------  END HACK -------
+        env:
+          # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE ------- BEGIN HACK -------
+          # Prepend the shared volume to PYTHONPATH so the init container's
+          # pip-installed otel packages are visible to vllm at runtime.
+          - name: PYTHONPATH
+            value: "/otel-packages"
+          # WORKAOURND - NOT PART OF PRODUCTION EXAMPLE -------  END HACK -------
+          - name: OTEL_SERVICE_NAME
+            value: "vllm-decode"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-collector:4317"
+          - name: OTEL_TRACES_EXPORTER
+            value: "otlp"
+          - name: OTEL_TRACES_SAMPLER
+            value: "parentbased_traceidratio"
+          - name: OTEL_TRACES_SAMPLER_ARG
+            value: "0.1"
+        resources:
+          limits:
+            cpu: '4'
+            memory: 32Gi
+            nvidia.com/gpu: 1
+          requests:
+            cpu: '2'
+            memory: 16Gi
+            nvidia.com/gpu: 1
+        # startupProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8000
+        #     scheme: HTTPS
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8000
+        #     scheme: HTTPS
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8000
+        #     scheme: HTTPS
