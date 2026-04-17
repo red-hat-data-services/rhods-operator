@@ -104,6 +104,10 @@ func DeployManifestsFromPathWithLabels(
 		return fmt.Errorf("failed applying namespace plugin when preparing Kustomize resources. %w", err)
 	}
 
+	if err := plugins.UpdateServiceMonitorNamespaceSelector(resMap, namespace); err != nil {
+		return fmt.Errorf("failed updating ServiceMonitor namespaceSelector: %w", err)
+	}
+
 	resourceLabels := map[string]string{
 		labels.ODH.Component(componentName): "true",
 		labels.K8SCommon.PartOf:             componentName,
