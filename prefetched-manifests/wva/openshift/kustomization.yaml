@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
 - ../default
 - cluster-monitoring-view-binding.yaml
+- metrics-reader-token.yaml
+- prometheus-metrics-reader-binding.yaml
 
 configMapGenerator:
 - envs:
@@ -29,6 +31,10 @@ patches:
   target:
     kind: Deployment
     name: controller-manager
+- path: monitor-auth-patch.yaml
+  target:
+    kind: ServiceMonitor
+    name: controller-manager-metrics-monitor
 
 replacements:
 - source:

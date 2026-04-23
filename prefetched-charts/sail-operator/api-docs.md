@@ -1,6 +1,6 @@
 # sail-operator
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.2.1](https://img.shields.io/badge/AppVersion-3.2.1-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.2.3](https://img.shields.io/badge/AppVersion-3.2.3-informational?style=flat-square)
 
 Red Hat Sail Operator (OSSM 3.x) for Kubernetes
 
@@ -18,7 +18,7 @@ Red Hat Sail Operator (OSSM 3.x) for Kubernetes
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| bundle.version | string | `"3.2.1"` |  |
-| imagePullSecrets[0].name | string | `"rhaii-pull-secret"` |  |
+| bundle.version | string | `"3.2.3"` |  |
+| imagePullSecrets[0].name | string | `"rhai-pull-secret"` |  |
 | namespace | string | `"istio-system"` |  |
 

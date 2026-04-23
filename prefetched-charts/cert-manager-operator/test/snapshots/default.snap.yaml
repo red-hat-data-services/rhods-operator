@@ -18,7 +18,7 @@ metadata:
   name: cert-manager-operator-controller-manager
   namespace: cert-manager-operator
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: cert-manager-operator/templates/serviceaccount-cert-manager.yaml
 apiVersion: v1
@@ -27,7 +27,7 @@ metadata:
   name: cert-manager
   namespace: cert-manager
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: cert-manager-operator/templates/serviceaccount-cert-manager.yaml
 apiVersion: v1
@@ -36,7 +36,7 @@ metadata:
   name: cert-manager-cainjector
   namespace: cert-manager
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: cert-manager-operator/templates/serviceaccount-cert-manager.yaml
 apiVersion: v1
@@ -45,7 +45,7 @@ metadata:
   name: cert-manager-webhook
   namespace: cert-manager
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: cert-manager-operator/templates/clusterrole-cert-manager-operator-controller-manager-clusterro.yaml
 apiVersion: rbac.authorization.k8s.io/v1

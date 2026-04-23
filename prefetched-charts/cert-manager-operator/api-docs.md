@@ -15,7 +15,7 @@ Red Hat cert-manager Operator for vanilla Kubernetes (without OLM)
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | bundle.version | string | `"v1.18.1"` |  |
-| imagePullSecrets[0].name | string | `"rhaii-pull-secret"` |  |
+| imagePullSecrets[0].name | string | `"rhai-pull-secret"` |  |
 | operandNamespace | string | `"cert-manager"` |  |
 | operatorNamespace | string | `"cert-manager-operator"` |  |
 

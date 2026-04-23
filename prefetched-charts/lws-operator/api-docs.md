@@ -19,6 +19,6 @@ Red Hat Leader Worker Set Operator for Kubernetes
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | bundle.version | string | `"1.0"` |  |
-| imagePullSecrets[0].name | string | `"rhaii-pull-secret"` |  |
+| imagePullSecrets[0].name | string | `"rhai-pull-secret"` |  |
 | namespace | string | `"openshift-lws-operator"` |  |
 

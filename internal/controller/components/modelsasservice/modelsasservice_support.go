@@ -20,7 +20,6 @@ import (
 	componentApi "github.com/opendatahub-io/opendatahub-operator/v2/api/components/v1alpha1"
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	odhtypes "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 )
 
 const (
@@ -82,9 +81,10 @@ const (
 var (
 	// Image parameter mappings for manifest substitution.
 	imagesMap = map[string]string{
-		"maas-api-image":           "RELATED_IMAGE_ODH_MAAS_API_IMAGE",
-		"maas-controller-image":    "RELATED_IMAGE_ODH_MAAS_CONTROLLER_IMAGE",
-		"payload-processing-image": "RELATED_IMAGE_ODH_AI_GATEWAY_PAYLOAD_PROCESSING_IMAGE",
+		"maas-api-image":             "RELATED_IMAGE_ODH_MAAS_API_IMAGE",
+		"maas-controller-image":      "RELATED_IMAGE_ODH_MAAS_CONTROLLER_IMAGE",
+		"payload-processing-image":   "RELATED_IMAGE_ODH_AI_GATEWAY_PAYLOAD_PROCESSING_IMAGE",
+		"maas-api-key-cleanup-image": "RELATED_IMAGE_UBI_MINIMAL_IMAGE",
 	}
 
 	// Additional parameters for manifest customization.
@@ -100,9 +100,9 @@ var (
 	}
 )
 
-func baseManifestInfo(sourcePath string) odhtypes.ManifestInfo {
+func baseManifestInfo(basePath string, sourcePath string) odhtypes.ManifestInfo {
 	return odhtypes.ManifestInfo{
-		Path:       deploy.DefaultManifestPath,
+		Path:       basePath,
 		ContextDir: "maas",
 		SourcePath: sourcePath,
 	}

@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   operator-processor:
-    if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && github.event.commits[0].author.name == 'konflux-internal-p02[bot]' )) }}
+    if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && (github.event.commits[0].author.name == 'konflux-internal-p02[bot]' || github.event.commits[0].author.name == 'Openshift-AI DevOps') )) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout RBC repo

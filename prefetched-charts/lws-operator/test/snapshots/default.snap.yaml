@@ -12,7 +12,7 @@ metadata:
   name: lws-controller-manager
   namespace: openshift-lws-operator
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: lws-operator/templates/serviceaccount-openshift-lws-operator.yaml
 apiVersion: v1
@@ -21,7 +21,7 @@ metadata:
   name: openshift-lws-operator
   namespace: openshift-lws-operator
 imagePullSecrets:
-  - name: rhaii-pull-secret
+  - name: rhai-pull-secret
 ---
 # Source: lws-operator/templates/clusterrole-openshift-lws-operator-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
