@@ -8,6 +8,7 @@ cd "$REPO_ROOT"
 
 ### Use the prebuilt image:
 IMG=quay.io/rhoai/odh-rhel9-operator:rhoai-3.4 ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy # use OOTB manifests from 3.4 Stable
+IMG=quay.io/rhoai/odh-rhel9-operator@sha256:f10c2d3289d6dfddfa972f684b8f77d9b94fcb6ad296c0b684a3f2daab9d029b ODH_PLATFORM_TYPE=SelfManagedRHOAI make deploy # use OOTB manifests from 3.4 Stable
 
 oc set env deployment/rhods-operator -n redhat-ods-operator \
     ODH_PLATFORM_TYPE=SelfManagedRHOAI
