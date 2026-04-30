@@ -20,7 +20,7 @@ spec:
         opendatahub.io/notebook-software: |
           [
             {"name": "Python", "version": "v3.12"},
-            {"name": "PyTorch", "version": "2.9.1"},
+            {"name": "PyTorch", "version": "2.10.0"},
             {"name": "Training Hub", "version": "v0.6.0"}
           ]
         opendatahub.io/notebook-python-dependencies: |
@@ -29,11 +29,11 @@ spec:
             {"name": "accelerate", "version": "1.12.0"},
             {"name": "peft", "version": "0.18.1"},
             {"name": "trl", "version": "0.24.0"},
-            {"name": "triton", "version": "3.5.1"}
+            {"name": "triton", "version": "3.6.0"}
           ]
-        openshift.io/imported-from: quay.io/opendatahub/odh-th06-cpu-torch291-py312
+        openshift.io/imported-from: quay.io/opendatahub/odh-th06-cpu-torch210-py312
       from:
         kind: DockerImage
-        name: quay.io/opendatahub/odh-th06-cpu-torch291-py312:odh-3.4
+        name: quay.io/opendatahub/odh-th06-cpu-torch210-py312:odh-3.4
       referencePolicy:
         type: Source

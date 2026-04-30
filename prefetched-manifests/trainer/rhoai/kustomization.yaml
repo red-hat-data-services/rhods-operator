@@ -59,7 +59,7 @@ replacements:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cuda130-torch291-py312-image
+    fieldPath: data.odh-th06-cuda130-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
@@ -85,7 +85,7 @@ replacements:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cpu-torch291-py312-image
+    fieldPath: data.odh-th06-cpu-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
@@ -93,16 +93,16 @@ replacements:
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
-# Replace image for torch-distributed-cuda130-torch291-py312
+# Replace image for torch-distributed-cuda130-torch210-py312
 - source:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cuda130-torch291-py312-image
+    fieldPath: data.odh-th06-cuda130-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
-      name: torch-distributed-cuda130-torch291-py312
+      name: torch-distributed-cuda130-torch210-py312
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
@@ -119,16 +119,16 @@ replacements:
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
-# Replace image for torch-distributed-cpu-torch291-py312
+# Replace image for torch-distributed-cpu-torch210-py312
 - source:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cpu-torch291-py312-image
+    fieldPath: data.odh-th06-cpu-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
-      name: torch-distributed-cpu-torch291-py312
+      name: torch-distributed-cpu-torch210-py312
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
@@ -137,7 +137,7 @@ replacements:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cuda130-torch291-py312-image
+    fieldPath: data.odh-th06-cuda130-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
@@ -163,7 +163,7 @@ replacements:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cpu-torch291-py312-image
+    fieldPath: data.odh-th06-cpu-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
@@ -184,16 +184,16 @@ replacements:
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
-# Replace image for training-hub-th06-cuda130-torch291-py312
+# Replace image for training-hub-th06-cuda130-torch210-py312
 - source:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cuda130-torch291-py312-image
+    fieldPath: data.odh-th06-cuda130-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
-      name: training-hub-th06-cuda130-torch291-py312
+      name: training-hub-th06-cuda130-torch210-py312
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
@@ -210,16 +210,16 @@ replacements:
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
-# Replace image for training-hub-th06-cpu-torch291-py312
+# Replace image for training-hub-th06-cpu-torch210-py312
 - source:
     kind: ConfigMap
     name: rhoai-config
     version: v1
-    fieldPath: data.odh-th06-cpu-torch291-py312-image
+    fieldPath: data.odh-th06-cpu-torch210-py312-image
   targets:
   - select:
       kind: ClusterTrainingRuntime
-      name: training-hub-th06-cpu-torch291-py312
+      name: training-hub-th06-cpu-torch210-py312
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
