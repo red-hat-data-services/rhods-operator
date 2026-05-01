@@ -57,6 +57,10 @@ spec:
   # backendStoreUri: "postgresql://mlflow:password@postgres.example.com:5432/mlflow"
   # registryStoreUri: "postgresql://mlflow:password@postgres.example.com:5432/mlflow"
   # artifactsDestination: "s3://my-mlflow-bucket/artifacts"
+  # networkPolicyAdditionalEgressRules:
+  #   - ports:
+  #       - protocol: TCP
+  #         port: 443
 
   # Option 3: Hybrid storage (COMMENTED OUT)
   # Use remote DB but local artifacts (or vice versa)

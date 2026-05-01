@@ -43,6 +43,13 @@ spec:
   # Remote S3 storage for artifacts
   artifactsDestination: "s3://my-mlflow-bucket/artifacts"
 
+  # Explicit admin opt-in for external HTTPS egress to the artifact store.
+  # Tighten this rule with `to` peers or CIDRs when your network layout allows it.
+  networkPolicyAdditionalEgressRules:
+    - ports:
+        - protocol: TCP
+          port: 443
+
   # Default artifact root - where MLflow stores artifacts for runs that don't specify a location
   # If not specified, defaults to artifactsDestination value
   # You can set this to a different location or subdirectory for better organization
