@@ -1,0 +1,87 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: init-seaweedfs
+spec:
+  template:
+    metadata:
+      name: init-seaweedfs
+      labels:
+        app: init-seaweedfs
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      restartPolicy: OnFailure
+      containers:
+      - name: init-seaweedfs
+        image: 'chrislusf/seaweedfs:4.07'
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: S3_SCHEME
+          value: "http"
+        command:
+        - "/bin/sh"
+        - "-ec"
+        - |
+          # Fail fast if required binaries are missing from the image.
+          command -v "curl" >/dev/null 2>&1 || { echo "ERROR: curl not found in image"; exit 1; }
+
+          # Wait for SeaweedFS S3 service to be ready.
+          service_url="${S3_SCHEME}://minio-service.$NAMESPACE:9000/"
+          curl_opts="--silent --max-time 10 --output /dev/null --write-out %{http_code}"
+          [ "${S3_SCHEME}" = "https" ] && curl_opts="$curl_opts --cacert /tls/tls.crt"
+          max_attempts=60
+          attempt=1
+
+          echo "Waiting for SeaweedFS S3 service at $service_url..."
+          echo "This may take several minutes as SeaweedFS initializes all components..."
+
+          while [ $attempt -le $max_attempts ]; do
+            # Any HTTP response (including 403) means the service is up.
+            # shellcheck disable=SC2086
+            http_code=$(curl $curl_opts "$service_url" 2>/dev/null) || true
+            if [ -n "$http_code" ] && [ "$http_code" != "000" ]; then
+              echo "Service at $service_url is ready! (HTTP $http_code)"
+              break
+            elif [ $((attempt % 6)) -eq 0 ]; then
+              echo "Still waiting... Attempt $attempt/60 ($(( attempt * 5 / 60 )) minutes elapsed)"
+            fi
+            sleep 5
+            attempt=$((attempt + 1))
+          done
+
+          if [ $attempt -gt $max_attempts ]; then
+            echo "ERROR: Service at $service_url failed to become ready within 5 minutes"
+            echo "Debugging information:"
+            # shellcheck disable=SC2086
+            curl --verbose $curl_opts "$service_url" 2>&1 || true
+            exit 1
+          fi
+          echo "Creating S3 bucket via weed shell..."
+          # Uses the SeaweedFS internal API (master + filer gRPC) to create the
+          # bucket, which properly registers it in both the filer and S3 gateway.
+          # This avoids the unauthenticated filer HTTP API entirely.
+          if echo "s3.bucket.create -name $S3_BUCKET" | \
+              weed shell -master="seaweedfs.$NAMESPACE:9333" \
+                         -filer="seaweedfs.$NAMESPACE:8888" 2>&1; then
+            echo "Bucket '$S3_BUCKET' created via weed shell"
+          else
+            echo "Note: bucket may already exist; continuing"
+          fi
+
+          echo "SeaweedFS S3 initialization completed - service is ready for MLflow"
+        securityContext:  # Using restricted profile
+          allowPrivilegeEscalation: false
+          privileged: false
+          runAsNonRoot: true
+          # image defaults to root user
+          runAsUser: 1001
+          runAsGroup: 1001
+          capabilities:
+            drop:
+            - ALL
+      serviceAccountName: seaweedfs

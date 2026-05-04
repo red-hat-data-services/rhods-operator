@@ -1,0 +1,54 @@
+# ClusterRole for the Spark Operator controller
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spark-operator-controller
+  labels:
+    app.kubernetes.io/name: spark-operator
+    app.kubernetes.io/instance: spark-operator
+    app.kubernetes.io/component: controller
+rules:
+# Core resources - verbs are tailored per resource to follow least privilege
+- apiGroups: [""]
+  resources: [pods]
+  verbs: [create, delete, get, list, update, watch]
+- apiGroups: [""]
+  resources: [configmaps]
+  verbs: [create, get, list, patch, update, watch]
+- apiGroups: [""]
+  resources: [services]
+  verbs: [create, delete, get, list, patch, update, watch]
+- apiGroups: [""]
+  resources: [persistentvolumeclaims]
+  verbs: [list, watch]
+- apiGroups: [""]
+  resources: [events]
+  verbs: [create, patch, update]
+# CRDs
+# Used for the optional Volcano scheduler
+- apiGroups: [apiextensions.k8s.io]
+  resources: [customresourcedefinitions]
+  verbs: [get]
+# Ingresses
+- apiGroups: [extensions, networking.k8s.io]
+  resources: [ingresses]
+  verbs: [create, delete, get, update]
+# SparkApplication CRDs
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [sparkapplications]
+  verbs: [create, delete, get, list, watch]
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [scheduledsparkapplications]
+  verbs: [get, list, watch]
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [scheduledsparkapplications/finalizers]
+  verbs: [update, patch]
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [sparkconnects]
+  verbs: [get, list, watch]
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [sparkapplications/finalizers]
+  verbs: [update]
+- apiGroups: [sparkoperator.k8s.io]
+  resources: [sparkapplications/status, scheduledsparkapplications/status, sparkconnects/status]
+  verbs: [update]

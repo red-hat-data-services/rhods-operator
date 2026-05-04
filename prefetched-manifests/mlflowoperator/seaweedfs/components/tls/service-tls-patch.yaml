@@ -1,0 +1,13 @@
+# Strategic merge patch: retarget minio-service from the plain HTTP port (8333)
+# to the SeaweedFS HTTPS port (8334) added by deployment-tls-patch.yaml.
+# Kustomize merges Service ports by the `port` field, so only the targetPort changes.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+spec:
+  ports:
+    - name: https
+      port: 9000
+      protocol: TCP
+      targetPort: 8334

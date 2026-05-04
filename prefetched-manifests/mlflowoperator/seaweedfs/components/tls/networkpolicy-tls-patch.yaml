@@ -1,0 +1,15 @@
+# JSON 6902 patch: allow ingress on port 8334 (SeaweedFS HTTPS S3) in the three
+# existing ingress rules (from profile namespaces, from istio-system, from same namespace).
+# Rule 3 (filer-only for init job) is not patched — it doesn't need HTTPS S3.
+- op: add
+  path: /spec/ingress/0/ports/-
+  value:
+    port: 8334
+- op: add
+  path: /spec/ingress/1/ports/-
+  value:
+    port: 8334
+- op: add
+  path: /spec/ingress/2/ports/-
+  value:
+    port: 8334

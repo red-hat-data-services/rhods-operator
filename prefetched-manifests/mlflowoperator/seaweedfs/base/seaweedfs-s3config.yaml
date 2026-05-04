@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: seaweedfs-s3config
+stringData:
+  # Loaded at SeaweedFS startup via -s3.config to enforce S3 credential validation.
+  # Credentials must match the aws-credentials Secret consumed by the MLflow pod.
+  # Override this Secret with actual credentials before or after applying the overlay.
+  s3.json: '{"identities":[{"name":"minio","credentials":[{"accessKey":"minio","secretKey":"minio123"}],"actions":["Admin"]}]}'

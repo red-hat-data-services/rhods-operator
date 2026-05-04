@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: postgres
+          # Override the entrypoint to enable SSL using certs from the
+          # postgres-tls-certs Secret.  Detects the image entrypoint
+          # (UBI, upstream, or bare binary) so this works across variants.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -- -c ssl=on -c ssl_cert_file=/ssl/server.crt -c ssl_key_file=/ssl/server.key
+
+              if command -v docker-entrypoint.sh >/dev/null 2>&1; then
+                exec docker-entrypoint.sh postgres "$@"
+              elif [ -x /usr/bin/run-postgresql ]; then
+                exec /usr/bin/run-postgresql "$@"
+              else
+                exec postgres "$@"
+              fi
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /ssl
+              readOnly: true
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: postgres-tls-certs
+            items:
+              - key: server.crt
+                path: server.crt
+                mode: 0644
+              - key: server.key
+                path: server.key
+                mode: 0600

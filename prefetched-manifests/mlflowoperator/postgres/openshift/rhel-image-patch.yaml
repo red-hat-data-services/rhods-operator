@@ -1,0 +1,39 @@
+# RHEL postgresql image (registry.redhat.io/rhel9/postgresql-*) uses different
+# env vars and data paths than upstream postgres. Will NOT work with the
+# upstream image — use INFRASTRUCTURE_PLATFORM=base for that.
+# See https://github.com/sclorg/postgresql-container
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          env:
+            - name: POSTGRES_USER
+              $patch: delete
+            - name: POSTGRES_DB
+              $patch: delete
+            - name: POSTGRES_PASSWORD
+              $patch: delete
+            - name: POSTGRESQL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRESQL_USER
+              value: "mlflow"
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRESQL_DATABASE
+              value: "mydatabase"
+            - name: PGDATA
+              value: /var/lib/pgsql/data/userdata
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/pgsql/data

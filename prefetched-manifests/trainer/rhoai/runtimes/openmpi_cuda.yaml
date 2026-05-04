@@ -1,0 +1,67 @@
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  name: openmpi-cuda
+  labels:
+    trainer.kubeflow.org/framework: openmpi
+spec:
+  mlPolicy:
+    numNodes: 1
+    mpi:
+      numProcPerNode: 1
+      mpiImplementation: OpenMPI
+      sshAuthMountPath: /home/mpiuser/.ssh
+      runLauncherAsNode: true
+  template:
+    spec:
+      network:
+        publishNotReadyAddresses: true
+      successPolicy:
+        operator: All
+        targetReplicatedJobs:
+          - launcher
+      replicatedJobs:
+        - groupName: default
+          name: launcher
+          replicas: 1
+          template:
+            metadata:
+              labels:
+                trainer.kubeflow.org/trainjob-ancestor-step: trainer
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: node
+                      image: quay.io/opendatahub/odh-training-cuda130-torch210-py312-openmpi41:odh-stable
+                      resources:
+                        limits:
+                          nvidia.com/gpu: "1"
+                        requests:
+                          nvidia.com/gpu: "1"
+        - groupName: default
+          name: node
+          replicas: 1
+          template:
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: node
+                      image: quay.io/opendatahub/odh-training-cuda130-torch210-py312-openmpi41:odh-stable
+                      command:
+                        - /usr/local/bin/uid_entrypoint.sh
+                        - /usr/sbin/sshd
+                      args:
+                        - -De
+                        - -f
+                        - /home/mpiuser/.sshd_config
+                      readinessProbe:
+                        initialDelaySeconds: 3
+                        tcpSocket:
+                          port: 2222
+                      resources:
+                        limits:
+                          nvidia.com/gpu: "1"
+                        requests:
+                          nvidia.com/gpu: "1"

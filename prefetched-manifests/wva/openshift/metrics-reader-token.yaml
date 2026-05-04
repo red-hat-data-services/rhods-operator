@@ -1,0 +1,11 @@
+# Long-lived SA token for Prometheus to authenticate to the WVA metrics endpoint.
+# Required on OpenShift because user-workload-monitoring Prometheus rejects
+# bearerTokenFile for security. The ServiceMonitor is patched (via
+# monitor-auth-patch.yaml) to reference this Secret instead.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: workload-variant-autoscaler-metrics-reader-token
+  annotations:
+    kubernetes.io/service-account.name: workload-variant-autoscaler-controller-manager
+type: kubernetes.io/service-account-token

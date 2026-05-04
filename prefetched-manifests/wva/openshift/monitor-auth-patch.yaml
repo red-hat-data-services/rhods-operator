@@ -1,0 +1,20 @@
+# Replace bearerTokenFile with authorization.credentials for OpenShift
+# user-workload-monitoring compatibility. The user-workload Prometheus Operator
+# rejects bearerTokenFile ("it accesses file system via bearer token file which
+# Prometheus specification prohibits").
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: controller-manager-metrics-monitor
+spec:
+  endpoints:
+  - port: https
+    path: /metrics
+    interval: 10s
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+    authorization:
+      credentials:
+        name: workload-variant-autoscaler-metrics-reader-token
+        key: token

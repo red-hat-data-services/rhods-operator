@@ -1,0 +1,21 @@
+# Grant GET /metrics permission to the Prometheus SA so the
+# SubjectAccessReview performed by the WVA metrics endpoint passes.
+# This complements metrics_auth_role_binding.yaml (which grants
+# tokenreview/SAR permissions to the controller-manager) and
+# prometheus_metrics_auth_role_binding.yaml (which grants the
+# Prometheus SA authentication permissions).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metrics-reader-rolebinding
+  labels:
+    app.kubernetes.io/name: workload-variant-autoscaler
+    app.kubernetes.io/managed-by: kustomize
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metrics-reader
+subjects:
+- kind: ServiceAccount
+  name: kube-prometheus-stack-prometheus
+  namespace: workload-variant-autoscaler-monitoring

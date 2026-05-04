@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - secret.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+
+configMapGenerator:
+- name: postgres-params
+  envs:
+  - params.env
+  options:
+    disableNameSuffixHash: true
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: postgres-params
+    fieldPath: data.POSTGRES_IMAGE
+  targets:
+  - select:
+      kind: Deployment
+      name: postgres-deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=postgres].image

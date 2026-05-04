@@ -1,0 +1,16 @@
+# Kustomize configuration for webhook namespace references.
+# This tells Kustomize to transform the namespace field in webhook clientConfig.service.
+# Without this, the namespace remains as "system" instead of being transformed to the target namespace.
+
+namespace:
+  - kind: MutatingWebhookConfiguration
+    group: admissionregistration.k8s.io
+    version: v1
+    path: webhooks/clientConfig/service/namespace
+    create: false
+
+  - kind: ValidatingWebhookConfiguration
+    group: admissionregistration.k8s.io
+    version: v1
+    path: webhooks/clientConfig/service/namespace
+    create: false
