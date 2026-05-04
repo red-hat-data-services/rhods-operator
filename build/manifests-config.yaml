@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 85eaa023b3423c6c76cf9ffc5b95367decc6a35f
+    git.commit: 147b2581152a1eb5d123eeb9c5550b7ce4e5b5f7
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -89,10 +89,10 @@ additional_meta:
     git.commit: bafd75eda219ef76556bdd31511ff8559bfd0a46
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 12a1c9dd73430f6172f8579555fa579a9d9b8248
+    git.commit: df58c9422460aa660c13fd893f960add4f686732
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 12a1c9dd73430f6172f8579555fa579a9d9b8248
+    git.commit: df58c9422460aa660c13fd893f960add4f686732
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 961f01217f4e651ca6fc31d6c9679de2ca048228
@@ -110,7 +110,7 @@ additional_meta:
     git.commit: 3e2d52410668f8895491b199378e6ca2799504ee
   odh-kserve-storage-initializer:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: 9ccba31a081c93498a373e61ea5157d38f3f47b7
+    git.commit: 3e2d52410668f8895491b199378e6ca2799504ee
   odh-kube-auth-proxy:
     git.url: https://github.com/red-hat-data-services/kube-auth-proxy
     git.commit: e9ec34a0a1266d97b78b1483ab81d10eaf74b27a
@@ -176,25 +176,25 @@ additional_meta:
     git.commit: 4851705714a58be6c87e30b9baeb911ceabbc607
   odh-pipeline-runtime-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-pipeline-runtime-minimal-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
   odh-pipeline-runtime-pytorch-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-pipeline-runtime-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
   odh-pipeline-runtime-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-pipeline-runtime-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-pipeline-runtime-tensorflow-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
     git.commit: 8a1347efc67e8a0ca49351279a05211e4754e84e
@@ -245,34 +245,34 @@ additional_meta:
     git.commit: de0113e56dc9ea9594183f7eab4300249c7e5081
   odh-workbench-codeserver-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-minimal-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-minimal-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-minimal-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-pytorch-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-pytorch-llmcompressor-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-tensorflow-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
   odh-workbench-jupyter-trustyai-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 1af27818c8aa30810dc1b93081d26641fa0c6eaa
+    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
