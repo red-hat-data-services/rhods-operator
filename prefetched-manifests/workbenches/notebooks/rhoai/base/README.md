@@ -18,7 +18,6 @@ Listing the order in which each imagestreams are introduced based on the `openda
 12. jupyter-rocm-tensorflow-notebook-imagestream.yaml (Order: 19)
 13. jupyter-trustyai-notebook-imagestream.yaml (Order: 19)
 14. code-server-notebook-imagestream.yaml (Order: 22)
-15. rstudio-gpu-notebook-imagestream.yaml (Order: 25)
 
 ## Runtime Imagestreams (no order annotations):
 

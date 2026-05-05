@@ -61,8 +61,7 @@ from tests.manifests import (  # noqa: E402
 logger = logging.getLogger(__name__)
 
 # Force accelerator flavor when resolving ImageStream paths. ``extract_metadata_from_path`` may
-# infer "cuda" from Dockerfile.cuda even for the CPU ImageStream (same tree builds both), and
-# RStudio ImageStreams are not represented in ``get_source_of_truth_filepath`` (buildconfig-only).
+# infer "cuda" from Dockerfile.cuda even for the CPU ImageStream (same tree builds both).
 _ACCELERATOR_OVERRIDE_FOR_RESOURCE: dict[str, str | None] = {
     "jupyter-minimal-notebook-imagestream.yaml": None,
     "jupyter-minimal-gpu-notebook-imagestream.yaml": "cuda",
@@ -76,13 +75,6 @@ _ACCELERATOR_OVERRIDE_FOR_RESOURCE: dict[str, str | None] = {
     "jupyter-rocm-tensorflow-notebook-imagestream.yaml": "rocm",
     "jupyter-pytorch-llmcompressor-imagestream.yaml": "cuda",
 }
-
-_RSTUDIO_NOTEBOOK_RESOURCES = frozenset(
-    {
-        "rstudio-notebook-imagestream.yaml",
-        "rstudio-gpu-notebook-imagestream.yaml",
-    }
-)
 
 # Canonical Git URLs for ``git fetch`` when the ``-n`` tag commit is not already in the local object DB.
 _CANONICAL_REPO_URL: dict[str, str] = {
@@ -159,7 +151,7 @@ def _discover_candidate_dirs() -> list[Path]:
         "Pipfile.lock.cpu",
         "Pipfile.lock.gpu",
     )
-    roots = ("jupyter", "codeserver", "rstudio")
+    roots = ("jupyter", "codeserver")
     seen: set[Path] = set()
     out: list[Path] = []
     for root in roots:
@@ -178,8 +170,6 @@ def _discover_candidate_dirs() -> list[Path]:
 
 def _dirs_for_workbench(manifests_dir: Path, wb: Workbench, candidate_dirs: list[Path]) -> list[Path]:
     target = (manifests_dir / "base" / wb.resource_file).resolve()
-    if wb.resource_file in _RSTUDIO_NOTEBOOK_RESOURCES:
-        return [d for d in candidate_dirs if "rstudio" in d.parts]
 
     found: list[Path] = []
     for d in candidate_dirs:
@@ -271,10 +261,6 @@ def resolve_notebook_directory(candidates: list[Path], base_key: str) -> Path | 
 def _pylock_kind_from_tag(wb_resource_file: str, base_key: str) -> str:
     if "-rocm-" in base_key or "jupyter-rocm-" in wb_resource_file:
         return "rocm"
-    if wb_resource_file in _RSTUDIO_NOTEBOOK_RESOURCES:
-        if "gpu" in wb_resource_file or "-cuda-" in base_key:
-            return "cuda"
-        return "cpu"
     if "-cuda-" in base_key or "-minimal-cuda-" in base_key:
         return "cuda"
     if wb_resource_file in (
