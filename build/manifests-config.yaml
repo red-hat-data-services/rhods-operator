@@ -49,7 +49,7 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 0006f401852644de14df1f941a569454325a8b69
+    git.commit: fd7cdadad587d8e7b4e39fcf5db3e63685b41cf5
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -63,8 +63,8 @@ map:
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
-    git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: 6734c218546a13f5c41892211a196d24a33fca6d
+    git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
+    git.commit: 626c3261550ee83ab1a61106e51c68e4218c81d0
   odh-trainer:
     src: manifests
     dest: trainer
@@ -164,10 +164,10 @@ additional_meta:
     git.commit: a160e54aaed4a9ba72fac448b36ef485e7a59b20
   odh-mod-arch-maas:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 43324d2853194cc2c310f0dc9b267934c3ccadc5
+    git.commit: fc0cb9b78ef4ce3edfd0cb9a5e608a64a599d015
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 0d634f13fef75c4f8cc68094001f8122161ec98f
+    git.commit: 43324d2853194cc2c310f0dc9b267934c3ccadc5
   odh-must-gather:
     git.url: https://github.com/red-hat-data-services/must-gather
     git.commit: a4ef16509e158a59c05ea87ece6e93f2698ff9f8
