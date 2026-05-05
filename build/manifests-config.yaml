@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 270e8ca0d813e4a02edce64cee948f0187eda2c9
+    git.commit: a96a02dc822802369a0cb63fa4d3fd0bf0e7d926
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 6d44d449c06304efcf48ac4203ccc9ead575a0f5
+    git.commit: abdf4d9e0bdbc18505de4db3b31ab71cdc4103fc
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -63,8 +63,8 @@ map:
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
-    git.url: https://github.com/red-hat-data-services/llama-stack-k8s-operator
-    git.commit: b4f40fe4ed716438d06d4a24d76d14b0db35d397
+    git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
+    git.commit: 3e2e1b98dba61df07137ab7fa18896c5d6d43a78
   odh-trainer:
     src: manifests
     dest: trainer
@@ -240,13 +240,13 @@ additional_meta:
     git.commit: 4b989cac26f540b9b36d931db83e14beb6369810
   odh-ogx-operator:
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: db70cb172970b9819bebfab94eac067e1cb24607
+    git.commit: 3e2e1b98dba61df07137ab7fa18896c5d6d43a78
   odh-openvino-model-server:
     git.url: https://github.com/red-hat-data-services/openvino_model_server
     git.commit: a764ff8c0f526ddf3ff862fdb7b8847a5c9f735b
   odh-pipelines-components:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: e7dfc54221696412c2b3630a1034b4f30a8cd196
+    git.commit: eb92963366751f0fe2723f04c4c5fbe323692fe7
   odh-pipeline-runtime-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 270e8ca0d813e4a02edce64cee948f0187eda2c9
