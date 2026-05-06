@@ -199,7 +199,7 @@ tracing   45s
 Verify the Tempo pod is running:
 
 ```bash
-oc get pods -n distributed-tracing -l app.kubernetes.io/instance=tempo-tracing
+oc get pods -n distributed-tracing -l app.kubernetes.io/instance=tracing
 ```
 
 ```console
@@ -210,7 +210,7 @@ tempo-tracing-0   4/4     Running   0          60s
 Some things to note about this Tempo setup:
 
 1. **In-memory storage** — Traces are stored in memory and will be lost if the pod restarts. For production deployments, use `TempoStack` with object storage (e.g., S3 or ODF) instead.
-2. **Jaeger UI** — The `jaegerui.enabled: true` and `route.enabled: true` settings deploy the Jaeger query UI and create an OpenShift Route. You can find the route with `oc get route -n distributed-tracing`.
+2. **Jaeger UI** — The `jaegerui.enabled: true` and `jaegerui.route.enabled: true` settings deploy the Jaeger query UI and create an OpenShift Route. You can find the route with `oc get route -n distributed-tracing`.
 3. **Multi-tenancy** — By default multi-tenancy is not enabled. OpenShift will emit a warning about this during creation. Enabling multi-tenancy (`multitenancy.enabled: true`, `mode: openshift`) adds auth to the ingest and query paths, but the Jaeger UI currently does not send the required `X-Scope-OrgID` tenant header, making the UI inaccessible. For demo purposes, leaving multi-tenancy disabled is recommended.
 
 ### Step 5 — Deploy the OpenTelemetry Collector
@@ -489,7 +489,7 @@ All requests should return `HTTP 200`.
 Get the Jaeger UI route:
 
 ```bash
-oc get route -n distributed-tracing -l app.kubernetes.io/name=tempo
+oc get route -n distributed-tracing -l app.kubernetes.io/name=tempo-monolithic
 ```
 
 ```console
