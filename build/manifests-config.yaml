@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 728502b14f937e1b0a7ba648a60e1923ade7cb19
+    git.commit: 0d98bba1bb5cd4ea5119e5bfc9052f613243b286
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 728502b14f937e1b0a7ba648a60e1923ade7cb19
+    git.commit: 0d98bba1bb5cd4ea5119e5bfc9052f613243b286
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: e745385505b23b7c4bbe1d9a9eaa1744e03b013f
+    git.commit: 6bdd41ba632686125307a5426dd512db48b7e8ad
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -74,19 +74,19 @@ map:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: 61ab7a0ee337a55f3aaa6b83069cd09b5b508303
+    git.commit: d067265141ff0eae1919171c7b2083e1847ccdcb
   odh-maas-api:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 385a942a706185efa0c2ddb533ea2daeede236ae
+    git.commit: 426e70c863c36d492ce0bd9b13d63dad3a657241
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
     git.commit: 21c370b09764435d9b1000c4e2d141336563e1a6
   odh-cli:
     git.url: https://github.com/red-hat-data-services/odh-cli
-    git.commit: d330baba3e31e6b78b4499e1b423fe4d018899e3
+    git.commit: fbc8dd1b8af885f0701b76520e949c3add8d3dcf
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 599e3049d169c56fcbddbcf6b9e54977f1168eac
@@ -113,7 +113,7 @@ additional_meta:
     git.commit: 1f78fb51617878d2307a04cd40d81d0ae033d192
   odh-kube-auth-proxy:
     git.url: https://github.com/red-hat-data-services/kube-auth-proxy
-    git.commit: 1b1305432ec19f54951f93d15e2c99595b4b521a
+    git.commit: 6462010f2b78656b27b195f696dfd6dcaf56d8f0
   odh-llama-stack-core:
     git.url: https://github.com/red-hat-data-services/llama-stack-distribution
     git.commit: 668bc6c40c336c13928b773cd8e2361013cb45fd
@@ -275,4 +275,4 @@ additional_meta:
     git.commit: b72cfd5c0ea1d10ee17c5f12a27fcbfa6c75f223
   odh-workbench-jupyter-trustyai-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 4c02c94fa7ad056807d4535ed161b7a2b931bed0
+    git.commit: b72cfd5c0ea1d10ee17c5f12a27fcbfa6c75f223
