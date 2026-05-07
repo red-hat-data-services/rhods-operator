@@ -134,7 +134,7 @@ spec:
 EOF
 ```
 
-Wait for the operator to be ready:
+Wait for the Operator to be ready:
 
 ```bash
 oc get csv -n openshift-tempo-operator -w
