@@ -148,7 +148,7 @@ Because we only allow for one inference stack per namespace at this time, we wil
 oc create ns distributed-tracing && oc project distributed-tracing
 ```
 
-`oc` should respond by telling us our namespace was created and we are using that project:
+The `oc` command should output that namespace was created and we are using the intended project:
 
 ```console
 namespace/distributed-tracing created
