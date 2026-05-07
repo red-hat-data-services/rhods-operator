@@ -215,7 +215,7 @@ Some things to note about this Tempo setup:
 
 ### Step 5 — Deploy the OpenTelemetry Collector
 
-The collector must be deployed **after** Tempo is ready, otherwise its gRPC connection to Tempo will fail and traces will be silently dropped.
+The collector must be deployed **after** Tempo is ready, otherwise its gRPC connection to Tempo fails and traces are silently dropped.
 
 Create the `OpenTelemetryCollector` instance:
 
