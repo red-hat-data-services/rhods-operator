@@ -157,7 +157,7 @@ Now using project "distributed-tracing" on server "https://api.example.com:443".
 
 ### Step 4 — Deploy the Tempo instance
 
-Create a `TempoMonolithic` instance in the workload namespace. This stores traces in-memory and exposes a Jaeger UI via an OpenShift Route:
+Create a `TempoMonolithic` instance in the workload namespace. This stores traces in-memory and exposes a Jaeger UI through an OpenShift Route:
 
 ```bash
 oc apply -f - <<'EOF'
