@@ -223,20 +223,6 @@ replacements:
     fieldPaths:
     - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
 
-# Replace image for openmpi-cuda
-- source:
-    kind: ConfigMap
-    name: rhoai-config
-    version: v1
-    fieldPath: data.odh-openmpi-cuda-image
-  targets:
-  - select:
-      kind: ClusterTrainingRuntime
-      name: openmpi-cuda
-    fieldPaths:
-    - spec.template.spec.replicatedJobs.[name=launcher].template.spec.template.spec.containers.[name=node].image
-    - spec.template.spec.replicatedJobs.[name=node].template.spec.template.spec.containers.[name=node].image
-
 # Replace image for training-hub-universal-cpu ImageStream (2026.1)
 - source:
     kind: ConfigMap
