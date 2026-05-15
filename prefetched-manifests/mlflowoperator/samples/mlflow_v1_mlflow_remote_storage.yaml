@@ -21,6 +21,13 @@ spec:
   # Number of replicas - can scale horizontally with remote storage
   replicas: 2
 
+  migration:
+    # Operator-managed database migration mode
+    mode: Automatic
+
+    # Retain finished migration Jobs for 24 hours for debugging/auditing
+    ttlSecondsAfterFinished: 86400
+
   # Compute resources
   resources:
     requests:
@@ -42,6 +49,13 @@ spec:
 
   # Remote S3 storage for artifacts
   artifactsDestination: "s3://my-mlflow-bucket/artifacts"
+
+  # Optional explicit rule for destination-specific control over artifact-store egress.
+  # Tighten this with `to` peers or CIDRs when your network layout allows it.
+  networkPolicyAdditionalEgressRules:
+    - ports:
+        - protocol: TCP
+          port: 443
 
   # Default artifact root - where MLflow stores artifacts for runs that don't specify a location
   # If not specified, defaults to artifactsDestination value
@@ -75,8 +89,12 @@ spec:
     - name: AWS_DEFAULT_REGION
       value: us-east-1
 
+  # Garbage collection
+  garbageCollection:
+    schedule: "0 2 * * 0"
+    olderThan: "30d"
+
   # Custom CA Bundle (Optional)
   # For connecting to services with self-signed certificates or private CAs
   # caBundleConfigMap:
   #   name: mlflow-ca-bundle
-  #   key: ca-bundle.crt

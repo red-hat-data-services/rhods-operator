@@ -6,6 +6,8 @@ metadata:
     app: mlflow-postgres
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: mlflow-postgres

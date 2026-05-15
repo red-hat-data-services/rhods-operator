@@ -14,7 +14,21 @@ spec:
     singular: mlflow
   scope: Cluster
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=='Available')].status
+      name: Available
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Progressing')].status
+      name: Progressing
+      type: string
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    - jsonPath: .status.url
+      name: URL
+      priority: 1
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: MLflow is the Schema for the mlflows API
@@ -976,9 +990,11 @@ spec:
               backendStoreUri:
                 description: |-
                   BackendStoreURI is the URI for the MLflow backend store (metadata).
-                  Supported schemes: file://, sqlite://, mysql://, postgresql://, etc.
+                  Inline backendStoreUri values intentionally support only sqlite:// and
+                  postgresql://.
                   Examples:
                     - "sqlite:////mlflow/mlflow.db" (requires Storage to be configured)
+                  Operator-managed migration only supports SQL backend store URIs.
                   Note: For URIs containing credentials, prefer using BackendStoreURIFrom for security.
                   This must be set explicitly unless BackendStoreURIFrom is provided.
                 type: string
@@ -1248,6 +1264,90 @@ spec:
                   type: string
                 maxItems: 64
                 type: array
+              garbageCollection:
+                description: |-
+                  GarbageCollection configures a CronJob that permanently deletes soft-deleted
+                  MLflow resources (runs, experiments, and logged models) along with their artifacts.
+                  Resources must be soft-deleted first (e.g. via the UI or API) before garbage
+                  collection will remove them. Use OlderThan to restrict deletion to resources
+                  that have been in the deleted state for a minimum duration.
+                properties:
+                  olderThan:
+                    description: |-
+                      OlderThan restricts garbage collection to resources that have been in the
+                      deleted state for at least this duration (e.g., "30d", "7d12h").
+                      If not specified, all soft-deleted resources are permanently removed regardless of age.
+                    minLength: 1
+                    pattern: ^(\d+(\.\d+)?d)?(\d+(\.\d+)?h)?(\d+(\.\d+)?m)?(\d+(\.\d+)?s)?$
+                    type: string
+                  resources:
+                    description: Resources for the garbage collection Job container.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
+                  schedule:
+                    description: |-
+                      Schedule is the cron expression for when garbage collection runs
+                      (e.g., "0 2 * * 0" for weekly at 2 AM on Sunday).
+                    minLength: 1
+                    type: string
+                required:
+                - schedule
+                type: object
               image:
                 description: |-
                   Image specifies the MLflow container image.
@@ -1267,13 +1367,52 @@ spec:
                     - Never
                     type: string
                 type: object
+              migration:
+                default:
+                  mode: Automatic
+                description: |-
+                  Migration controls operator-managed database migration orchestration.
+                  Add the presence-based mlflow.opendatahub.io/force-migrate annotation to
+                  trigger a one-shot rerun; the annotation value is ignored. If a finished
+                  Job already exists for the current desired generation, the operator deletes
+                  it before creating the replacement Job for that forced rerun.
+                properties:
+                  mode:
+                    default: Automatic
+                    description: |-
+                      Mode controls how the operator runs database migration orchestration.
+                      Automatic runs the operator-managed migration flow when bootstrap or
+                      version detection indicates it is needed. Always forces the
+                      operator-managed migration flow for each new desired generation, meaning
+                      each new revision of the MLflow resource after the desired state changes,
+                      before the MLflow Deployment is scaled back up.
+                    enum:
+                    - Automatic
+                    - Always
+                    type: string
+                  ttlSecondsAfterFinished:
+                    description: |-
+                      TTLSecondsAfterFinished controls how long Kubernetes retains finished
+                      operator-managed migration Jobs before TTL cleanup may delete them. When
+                      omitted, the operator defaults this to 86400 seconds (24 hours) so admins
+                      have time to inspect migration logs after upgrades, including in shared
+                      namespaces such as redhat-ods-applications. Values below 3600 seconds are
+                      rejected so the controller has time to observe terminal Job state before
+                      TTL cleanup can remove the Job.
+                    format: int32
+                    minimum: 3600
+                    type: integer
+                type: object
               networkPolicyAdditionalEgressRules:
                 description: |-
                   NetworkPolicyAdditionalEgressRules specifies additional egress rules to append to the
-                  default NetworkPolicy. The default policy permits DNS (53), HTTPS (443),
-                  Kubernetes API (6443), PostgreSQL (5432), MySQL (3306), and S3-compatible storage
-                  (MinIO 9000, SeaweedFS 8333). Use this field when connecting to services on
-                  non-standard ports or when destination restrictions are needed.
+                  default NetworkPolicy. The default policy permits DNS (53 and 5353),
+                  in-cluster HTTPS (443 and 8443 to cluster-internal pods and Services),
+                  Kubernetes API (6443 by default), PostgreSQL (5432), MySQL (3306), and
+                  S3-compatible storage (MinIO 9000, SeaweedFS 8333 and 8334). Use this
+                  field when connecting to services on non-standard ports, when a cluster
+                  exposes the Kubernetes API on 443, or when destination restrictions are
+                  needed.
                 items:
                   description: |-
                     NetworkPolicyEgressRule describes a particular set of traffic that is allowed out of pods
@@ -1724,10 +1863,12 @@ spec:
               registryStoreUri:
                 description: |-
                   RegistryStoreURI is the URI for the MLflow registry store (model registry metadata).
-                  Supported schemes: file://, sqlite://, mysql://, postgresql://, etc.
+                  Inline registryStoreUri values intentionally support only sqlite:// and
+                  postgresql://.
                   Examples:
                     - "sqlite:////mlflow/mlflow.db" (requires Storage to be configured)
                   If omitted, defaults to the same value as backendStoreUri.
+                  Operator-managed migration only supports SQL registry store URIs.
                   Note: For URIs containing credentials, prefer using RegistryStoreURIFrom for security.
                 type: string
               registryStoreUriFrom:
@@ -2353,6 +2494,18 @@ spec:
                 be non-empty when registryStoreUriFrom is set
               rule: '!has(self.registryStoreUriFrom) || (size(self.registryStoreUriFrom.name)
                 > 0 && size(self.registryStoreUriFrom.key) > 0)'
+            - message: backendStoreUri must use a supported SQL metadata store URI
+                scheme
+              rule: '!has(self.backendStoreUri) || self.backendStoreUri.startsWith(''sqlite://'')
+                || self.backendStoreUri.startsWith(''sqlite+'') || self.backendStoreUri.startsWith(''postgresql://'')
+                || self.backendStoreUri.startsWith(''postgresql+'') || self.backendStoreUri.startsWith(''mysql://'')
+                || self.backendStoreUri.startsWith(''mysql+'')'
+            - message: registryStoreUri must use a supported SQL metadata store URI
+                scheme
+              rule: '!has(self.registryStoreUri) || self.registryStoreUri.startsWith(''sqlite://'')
+                || self.registryStoreUri.startsWith(''sqlite+'') || self.registryStoreUri.startsWith(''postgresql://'')
+                || self.registryStoreUri.startsWith(''postgresql+'') || self.registryStoreUri.startsWith(''mysql://'')
+                || self.registryStoreUri.startsWith(''mysql+'')'
             - message: storage must be configured when using file-based backend store
                 (sqlite:// or file:// prefix)
               rule: '!has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
@@ -2399,6 +2552,7 @@ spec:
                   - "Available": the resource is fully functional
                   - "Progressing": the resource is being created or updated
                   - "Degraded": the resource failed to reach or maintain its desired state
+                  - "Migration": the operator-managed migration state for the current observed generation
 
                   The status of each condition is one of True, False, or Unknown.
                 items:
@@ -2463,6 +2617,10 @@ spec:
                 description: url is the externally reachable MLflow URL exposed through
                   the data science gateway.
                 maxLength: 2048
+                type: string
+              version:
+                description: version records the installed MLflow version.
+                maxLength: 64
                 type: string
             type: object
         required:
