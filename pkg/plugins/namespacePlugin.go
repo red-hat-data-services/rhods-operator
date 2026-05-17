@@ -1,10 +1,14 @@
 package plugins
 
 import (
+	"fmt"
+
 	"sigs.k8s.io/kustomize/api/builtins" //nolint:staticcheck // Remove after package update
 	"sigs.k8s.io/kustomize/api/filters/namespace"
+	"sigs.k8s.io/kustomize/api/resmap"
 	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/resid"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 // CreateNamespaceApplierPlugin creates a plugin to ensure resources have the specified target namespace.
@@ -64,4 +68,31 @@ func CreateNamespaceApplierPlugin(targetNamespace string) *builtins.NamespaceTra
 		UnsetOnly:              false,
 		SetRoleBindingSubjects: namespace.AllServiceAccountSubjects,
 	}
+}
+
+// UpdateServiceMonitorNamespaceSelector updates spec.namespaceSelector.matchNames
+// on all ServiceMonitor resources to use the target namespace. The kustomize
+// NamespaceTransformerPlugin only handles scalar fields, but matchNames is a
+// list of strings, so it must be handled separately.
+func UpdateServiceMonitorNamespaceSelector(resMap resmap.ResMap, targetNamespace string) error {
+	for _, res := range resMap.Resources() {
+		if res.GetKind() != "ServiceMonitor" {
+			continue
+		}
+
+		node, err := res.Pipe(yaml.Lookup("spec", "namespaceSelector", "matchNames"))
+		if err != nil || node == nil {
+			continue
+		}
+
+		elements, err := node.Elements()
+		if err != nil {
+			return fmt.Errorf("failed to get matchNames elements on ServiceMonitor %s: %w", res.GetName(), err)
+		}
+
+		for _, elem := range elements {
+			elem.YNode().Value = targetNamespace
+		}
+	}
+	return nil
 }
