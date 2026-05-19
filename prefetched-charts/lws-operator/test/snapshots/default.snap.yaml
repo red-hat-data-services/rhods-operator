@@ -4,6 +4,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: openshift-lws-operator
+
 ---
 # Source: lws-operator/templates/serviceaccount-lws-controller.yaml
 apiVersion: v1
@@ -13,6 +14,7 @@ metadata:
   namespace: openshift-lws-operator
 imagePullSecrets:
   - name: rhai-pull-secret
+
 ---
 # Source: lws-operator/templates/serviceaccount-openshift-lws-operator.yaml
 apiVersion: v1
@@ -22,6 +24,7 @@ metadata:
   namespace: openshift-lws-operator
 imagePullSecrets:
   - name: rhai-pull-secret
+
 ---
 # Source: lws-operator/templates/clusterrole-openshift-lws-operator-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -213,6 +216,7 @@ rules:
       - patch
       - update
       - watch
+
 ---
 # Source: lws-operator/templates/clusterrolebinding-openshift-lws-operator-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -228,6 +232,7 @@ subjects:
   - kind: ServiceAccount
     name: openshift-lws-operator
     namespace: openshift-lws-operator
+
 ---
 # Source: lws-operator/templates/role-openshift-lws-operator-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -359,6 +364,7 @@ rules:
       - list
       - patch
       - update
+
 ---
 # Source: lws-operator/templates/kube-system-role-binding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -374,6 +380,7 @@ subjects:
   - kind: ServiceAccount
     name: openshift-lws-operator
     namespace: openshift-lws-operator
+
 ---
 # Source: lws-operator/templates/rolebinding-openshift-lws-operator-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -389,6 +396,7 @@ subjects:
   - kind: ServiceAccount
     name: openshift-lws-operator
     namespace: openshift-lws-operator
+
 ---
 # Source: lws-operator/templates/deployment-openshift-lws-operator.yaml
 apiVersion: apps/v1
@@ -440,6 +448,7 @@ spec:
       volumes:
         - emptyDir: {}
           name: tmp
+
 ---
 # Source: lws-operator/templates/leaderworkersetoperator.yaml
 apiVersion: operator.openshift.io/v1

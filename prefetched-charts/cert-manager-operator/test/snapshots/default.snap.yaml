@@ -10,6 +10,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: cert-manager
+
 ---
 # Source: cert-manager-operator/templates/serviceaccount-cert-manager-operator-controller-manager.yaml
 apiVersion: v1
@@ -19,6 +20,7 @@ metadata:
   namespace: cert-manager-operator
 imagePullSecrets:
   - name: rhai-pull-secret
+
 ---
 # Source: cert-manager-operator/templates/serviceaccount-cert-manager.yaml
 apiVersion: v1
@@ -46,6 +48,7 @@ metadata:
   namespace: cert-manager
 imagePullSecrets:
   - name: rhai-pull-secret
+
 ---
 # Source: cert-manager-operator/templates/clusterrole-cert-manager-operator-controller-manager-clusterro.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -336,6 +339,7 @@ rules:
       - subjectaccessreviews
     verbs:
       - create
+
 ---
 # Source: cert-manager-operator/templates/clusterrole-cert-manager-operator-metrics-reader.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -353,6 +357,7 @@ rules:
       - /metrics
     verbs:
       - get
+
 ---
 # Source: cert-manager-operator/templates/clusterrolebinding-cert-manager-operator-controller-manager-clusterro.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -368,6 +373,7 @@ subjects:
   - kind: ServiceAccount
     name: cert-manager-operator-controller-manager
     namespace: cert-manager-operator
+
 ---
 # Source: cert-manager-operator/templates/role-cert-manager-operator-controller-manager-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -407,6 +413,7 @@ rules:
     verbs:
       - create
       - patch
+
 ---
 # Source: cert-manager-operator/templates/rolebinding-cert-manager-operator-controller-manager-rolebindi.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -422,6 +429,7 @@ subjects:
   - kind: ServiceAccount
     name: cert-manager-operator-controller-manager
     namespace: cert-manager-operator
+
 ---
 # Source: cert-manager-operator/templates/service-cert-manager-operator-controller-manager-metrics-s.yaml
 apiVersion: v1
@@ -444,6 +452,7 @@ spec:
       targetPort: https
   selector:
     control-plane: controller-manager
+
 ---
 # Source: cert-manager-operator/templates/deployment-cert-manager-operator-controller-manager.yaml
 apiVersion: apps/v1
@@ -559,6 +568,7 @@ spec:
       volumes:
         - emptyDir: {}
           name: tmp
+
 ---
 # Source: cert-manager-operator/templates/certmanager.yaml
 apiVersion: operator.openshift.io/v1alpha1
