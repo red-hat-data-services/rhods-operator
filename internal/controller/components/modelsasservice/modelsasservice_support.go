@@ -124,7 +124,7 @@ func AppendOperatorInstallManifests(ctx context.Context, rr *odhtypes.Reconcilia
 	// to attach ext_proc filters. Restore their namespace to the gateway ns.
 	// See RHOAIENG-59726.
 	if err := restoreGatewayNamespaceResources(resMap); err != nil {
-		return nil, fmt.Errorf("restore gateway namespace for payload-processing: %w", err)
+		return fmt.Errorf("restore gateway namespace for payload-processing: %w", err)
 	}
 
 	componentLabels := map[string]string{
