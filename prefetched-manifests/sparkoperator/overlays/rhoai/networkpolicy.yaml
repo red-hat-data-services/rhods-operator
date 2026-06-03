@@ -10,6 +10,7 @@ spec:
  policyTypes:
    - Ingress
  ingress:
+   # Internal Spark communication + Spark UI ingress
    - ports:
        - port: 7078 # driver-rpc
          protocol: TCP
@@ -24,3 +25,15 @@ spec:
        - namespaceSelector:
            matchLabels:
              network.openshift.io/policy-group: ingress
+   # SparkConnect gRPC access from same namespace and workbench namespaces
+   - ports:
+       - port: 15002 # spark-connect-grpc
+         protocol: TCP
+     from:
+       - podSelector: {}
+       - namespaceSelector:
+           matchLabels:
+             opendatahub.io/dashboard: "true"
+         podSelector:
+           matchLabels:
+             opendatahub.io/workbenches: "true"
