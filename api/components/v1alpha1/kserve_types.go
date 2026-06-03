@@ -52,8 +52,10 @@ type KserveCommonSpec struct {
 	// Configures and enables NVIDIA NIM integration
 	NIM NimSpec `json:"nim,omitempty"`
 	// Configures and enables Models as a Service integration
+	// +kubebuilder:default={managementState: "Removed"}
 	ModelsAsService DSCModelsAsServiceSpec `json:"modelsAsService,omitempty"`
 	// Configures and enables workload-variant-autoscaler (WVA) integration
+	// +kubebuilder:default={}
 	WVA WVASpec `json:"wva,omitempty"`
 }
 
