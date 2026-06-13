@@ -1,0 +1,24 @@
+# Widen the TLS key file mode from 0600 (owner-only) to 0640 (owner+group)
+# so the OpenShift-assigned supplemental group can read the key.
+# Without an explicit fsGroup the file owner is root; postgres (running as
+# an arbitrary UID) can only access it through the auto-assigned group.
+#
+# NOTE: The full items list must be repeated here because secret.items is
+# not a strategic-merge-patch list — a partial list would replace, not merge.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  template:
+    spec:
+      volumes:
+        - name: tls-certs
+          secret:
+            items:
+              - key: server.crt
+                path: server.crt
+                mode: 0644
+              - key: server.key
+                path: server.key
+                mode: 0640

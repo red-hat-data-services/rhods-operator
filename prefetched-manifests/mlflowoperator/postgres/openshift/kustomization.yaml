@@ -5,7 +5,7 @@ resources:
   - ../base
 
 patches:
-  - path: pgdata-patch.yaml
+  - path: rhel-image-patch.yaml
     target:
       kind: Deployment
       name: postgres-deployment

@@ -1,0 +1,6 @@
+# Remove fsGroup set by the TLS component.
+# On OpenShift the restricted SCC only allows fsGroup values from the
+# namespace's allocated range — the explicit 999 is rejected.
+# Omitting it lets OpenShift auto-assign one from that range.
+- op: remove
+  path: /spec/template/spec/securityContext/fsGroup
