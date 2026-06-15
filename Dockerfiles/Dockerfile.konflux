@@ -1,6 +1,6 @@
 # Build the manager binary
 ################################################################################
-FROM registry.redhat.io/ubi8/go-toolset:1.25@sha256:c72413c3b463ad8a2b3638308180ccd4f27b9afbd1e78fcfb52bafd45055e9ed as builder
+FROM registry.redhat.io/ubi8/go-toolset:1.25@sha256:d1473ad716c1784a006bef9382b25c9cef6770907535687470398d460630e425 as builder
 USER root
 WORKDIR /opt
 # copy local manifests to build
