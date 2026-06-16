@@ -7,16 +7,20 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    build.appstudio.openshift.io/build-nudge-files: "schedule/bundle-github-trigger.txt"
+    build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push"
-      && target_branch == "rhoai-3.5-ea.2"
-      && "build/schedule/operator-tekton-trigger.txt".pathChanged()
+      "non-existent-file.non-existent-ext".pathChanged() && event == "push"
+      && target_branch == "test"
+      && ( files.all.exists(p, !(
+        p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
+          || p.matches('^\\.github/workflows/')
+          || p.matches('^Dockerfiles/bundle\\.Dockerfile$')
+      ) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v99-99-push.yaml".pathChanged()) )
   labels:
-    appstudio.openshift.io/application: rhoai-v3-5-ea-2
-    appstudio.openshift.io/component: odh-operator-v3-5-ea-2
+    appstudio.openshift.io/application: rhoai-v99-99
+    appstudio.openshift.io/component: odh-operator-v99-99
     pipelines.appstudio.openshift.io/type: build
-  name: odh-operator-v3-5-ea-2-on-schedule
+  name: odh-operator-v99-99-on-push
   namespace: rhoai-tenant
 spec:
   timeouts:
@@ -29,17 +33,10 @@ spec:
   - name: additional-tags
     value:
     - '{{target_branch}}-{{revision}}'
-    - '{{target_branch}}-nightly'
   - name: output-image
     value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
   - name: rhoai-version
-    value: "3.5.0-ea.2"
-  - name: build-platforms
-    value:
-    - linux/x86_64
-    - linux/ppc64le
-    - linux/s390x
-    - linux-m2xlarge/arm64
+    value: "99.99"
   - name: dockerfile
     value: Dockerfiles/Dockerfile.konflux
   - name: path-context
@@ -62,6 +59,12 @@ spec:
     value: true
   - name: build-image-index
     value: true
+  - name: build-platforms
+    value:
+    - linux/x86_64
+    - linux/ppc64le
+    - linux/s390x
+    - linux-m2xlarge/arm64
   pipelineRef:
     resolver: git
     params:
@@ -72,7 +75,7 @@ spec:
     - name: pathInRepo
       value: pipelines/multi-arch-container-build.yaml
   taskRunTemplate:
-    serviceAccountName: build-pipeline-odh-operator-v3-5-ea-2
+    serviceAccountName: build-pipeline-odh-operator-v99-99
   workspaces:
   - name: git-auth
     secret:

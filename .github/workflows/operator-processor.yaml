@@ -4,12 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
-      - 'rhoai-[23].[0-9][0-9]'  # e.g. rhoai-2.10, rhoai-3.10, rhoai-3.22
-      - 'rhoai-[23].[0-9]-ea.[0-9]'  # e.g. rhoai-2.4-ea.1, rhoai-3.4-ea.1, rhoai-3.5-ea.2
-      - 'rhoai-[23].[0-9][0-9]-ea.[0-9]'  # e.g. rhoai-2.10-ea.1, rhoai-3.10-ea.3
-    branches-ignore:
-      - 'rhoai-2.25' #Temorarily Disable Operator Processor for rhoai-2.25 RHOAIENG-69260
+      - 'rhoai-99.99'
     paths:
       - build/operator-nudging.yaml
 
@@ -31,7 +26,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Build-Config
-          ref: ${{ github.ref_name }}
+          ref: rhoai-3.5-ea.2
           path: RBC
           sparse-checkout: |
             bundle/bundle-patch.yaml
@@ -40,7 +35,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Konflux-Automation
-          ref: main
+          ref: ${{ github.ref_name }}
           path: utils
           sparse-checkout: |
             utils/processors
