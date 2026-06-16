@@ -1,4 +1,8 @@
 map:
+  odh-trainer-operator:
+    src: config
+    dest: traineroperator
+    is_modular: true
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 25f1b3a097738d679e7e3262c99a5488d4250946
@@ -60,11 +64,6 @@ map:
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 330bc12dd9874d30de57b6d0796b65d69c4be1d8
-  odh-trainer:
-    src: manifests
-    dest: trainer
-    git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 0077a53e6579d2e716fd6153cd5055938b07e8a2
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
