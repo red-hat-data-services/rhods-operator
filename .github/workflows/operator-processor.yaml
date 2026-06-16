@@ -2,6 +2,12 @@ name: Operator Processor
 
 on:
   workflow_dispatch:
+    inputs:
+      enable_modular_processing:
+        description: 'Enable modular operator processing to fetch and override image digests and git metadata from modular operator repos'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - 'rhoai-99.99'
@@ -81,7 +87,12 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+          MODULAR_FLAG=""
+          if [[ "${{ github.event.inputs.enable_modular_processing }}" == "true" ]]; then
+            MODULAR_FLAG="--enable-modular-processing"
+          fi
+
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable ${MODULAR_FLAG}
           
       - name: Print debug logs
         if: always()
