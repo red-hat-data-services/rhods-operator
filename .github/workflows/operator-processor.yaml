@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
-      - 'rhoai-[23].[0-9][0-9]'  # e.g. rhoai-2.10, rhoai-3.10, rhoai-3.22
-      - 'rhoai-[23].[0-9]-ea.[0-9]'  # e.g. rhoai-2.4-ea.1, rhoai-3.4-ea.1, rhoai-3.5-ea.2
-      - 'rhoai-[23].[0-9][0-9]-ea.[0-9]'  # e.g. rhoai-2.10-ea.1, rhoai-3.10-ea.3
+      - 'rhoai-[999].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
+#      - 'rhoai-[23].[0-9][0-9]'  # e.g. rhoai-2.10, rhoai-3.10, rhoai-3.22
+#      - 'rhoai-[23].[0-9]-ea.[0-9]'  # e.g. rhoai-2.4-ea.1, rhoai-3.4-ea.1, rhoai-3.5-ea.2
+#      - 'rhoai-[23].[0-9][0-9]-ea.[0-9]'  # e.g. rhoai-2.10-ea.1, rhoai-3.10-ea.3
     paths:
       - build/operator-nudging.yaml
 
