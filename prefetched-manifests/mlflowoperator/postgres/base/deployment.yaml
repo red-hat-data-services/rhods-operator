@@ -3,16 +3,16 @@ kind: Deployment
 metadata:
   name: postgres-deployment
   labels:
-    app: postgres
+    app: mlflow-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: mlflow-postgres
   template:
     metadata:
       labels:
-        app: postgres
+        app: mlflow-postgres
     spec:
       containers:
         - name: postgres
@@ -21,7 +21,7 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: "postgres"
+              value: "mlflow"
             - name: POSTGRES_DB
               value: "mydatabase"
             - name: POSTGRES_PASSWORD

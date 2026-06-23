@@ -4,7 +4,7 @@ metadata:
   name: postgres-service
 spec:
   selector:
-    app: postgres
+    app: mlflow-postgres
   ports:
     - protocol: TCP
       port: 5432
