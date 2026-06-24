@@ -1,0 +1,49 @@
+apiVersion: batch.llm-d.ai/v1alpha1
+kind: LLMBatchGateway
+metadata:
+  name: batch-gateway
+spec:
+  # Same-namespace secret (most common case):
+  secretRef:
+    name: batch-gateway-secrets
+  # Cross-namespace secret: uncomment namespace and create a ReferenceGrant in
+  # the secret's namespace (see the example below the LLMBatchGateway manifest).
+  # secretRef:
+  #   name: batch-gateway-secrets
+  #   namespace: credentials-ns
+  dbBackend: postgresql
+  fileStorage:
+    s3:
+      region: us-east-1
+      endpoint: https://s3.example.com
+  # Component images are NOT set here. They are pinned by the operator (sourced
+  # from params.env), so the platform controls which images run.
+  apiServer:
+    replicas: 1
+  processor:
+    replicas: 1
+    globalInferenceGateway:
+      url: http://inference-gateway.default.svc:8000
+      requestTimeout: 5m
+  gc:
+    interval: 30m
+---
+# ReferenceGrant required for cross-namespace secretRef.
+# Create this in the namespace where the Secret lives (credentials-ns),
+# to allow LLMBatchGateway in "default" to reference the Secret named
+# "batch-gateway-secrets". Remove the `name` field to allow any Secret.
+#
+# apiVersion: gateway.networking.k8s.io/v1beta1
+# kind: ReferenceGrant
+# metadata:
+#   name: allow-batch-gateway-secret
+#   namespace: credentials-ns
+# spec:
+#   from:
+#   - group: batch.llm-d.ai
+#     kind: LLMBatchGateway
+#     namespace: default
+#   to:
+#   - group: ""
+#     kind: Secret
+#     name: batch-gateway-secrets

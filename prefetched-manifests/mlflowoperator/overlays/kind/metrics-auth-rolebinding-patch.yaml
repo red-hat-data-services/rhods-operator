@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mlflow-operator-metrics-auth-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: mlflow-operator-controller-manager
+  namespace: $NAMESPACE

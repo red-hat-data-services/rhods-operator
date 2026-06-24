@@ -1,0 +1,115 @@
+# Default namespace: opendatahub (ODH overlay). Override via kustomize.
+# MAAS_API_NAMESPACE points to the infrastructure namespace where maas-api runs.
+# This is separate from the controller's namespace to support the namespace split architecture.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maas-controller
+  namespace: opendatahub
+  labels:
+    control-plane: maas-controller
+    app: maas-controller
+spec:
+  selector:
+    matchLabels:
+      control-plane: maas-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: maas-controller
+        app: maas-controller
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - command:
+        - /manager
+        args:
+          - --leader-elect
+          - --health-probe-bind-address=:8081
+          - --controller-namespace=$(CONTROLLER_NAMESPACE)
+          - --gateway-name=$(GATEWAY_NAME)
+          - --gateway-namespace=$(GATEWAY_NAMESPACE)
+          - --maas-api-namespace=$(MAAS_API_NAMESPACE)
+          - --maas-subscription-namespace=$(MAAS_SUBSCRIPTION_NAMESPACE)
+          - --aitenant-namespace=$(AITENANT_NAMESPACE)
+          - --enable-tenant-namespace-discovery
+          - --metadata-cache-ttl=60
+          - --authz-cache-ttl=60
+        env:
+          - name: CONTROLLER_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: GATEWAY_NAME
+            value: "maas-default-gateway"
+          - name: GATEWAY_NAMESPACE
+            value: "openshift-ingress"
+          - name: MAAS_API_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: MAAS_SUBSCRIPTION_NAMESPACE
+            value: "models-as-a-service"
+          - name: AITENANT_NAMESPACE
+            value: "ai-tenants"
+          - name: RELATED_IMAGE_ODH_MAAS_API_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: maas-api-image
+                name: maas-parameters
+                optional: true
+          - name: RELATED_IMAGE_ODH_AI_GATEWAY_PAYLOAD_PROCESSING_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: payload-processing-image
+                name: maas-parameters
+                optional: true
+          - name: RELATED_IMAGE_UBI_MINIMAL_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: maas-api-key-cleanup-image
+                name: maas-parameters
+                optional: true
+        image: maas-controller
+        name: manager
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: webhook-cert
+          readOnly: true
+      volumes:
+      - name: webhook-cert
+        secret:
+          defaultMode: 420
+          secretName: maas-controller-webhook-cert
+      serviceAccountName: maas-controller
+      terminationGracePeriodSeconds: 30

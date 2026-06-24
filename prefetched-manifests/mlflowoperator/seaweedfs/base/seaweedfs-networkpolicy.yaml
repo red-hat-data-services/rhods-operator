@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: seaweedfs
+spec:
+  ingress:
+  # Allow S3 and master traffic from namespaces with the profile label
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/part-of
+          operator: In
+          values:
+          - $PROFILE_NAMESPACE_LABEL
+    ports:
+    - port: 8333
+    - port: 9333
+  # Allow S3 and master traffic from istio-system
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+          - istio-system
+    ports:
+    - port: 8333
+    - port: 9333
+  # Allow S3 and master traffic from any pod in the same namespace
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 8333
+    - port: 9333
+  # The init job uses weed shell (master + filer gRPC) to create buckets.
+  - from:
+    - podSelector:
+        matchLabels:
+          app: init-seaweedfs
+    ports:
+    - port: 18888
+    - port: 19333
+  podSelector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - seaweedfs
+  policyTypes:
+  - Ingress

@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-seaweedfs
+spec:
+  template:
+    spec:
+      containers:
+        - name: init-seaweedfs
+          env:
+            - name: S3_SCHEME
+              value: "https"
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: seaweedfs-tls-certs
+            items:
+              - key: tls.crt
+                path: tls.crt
+                mode: 0444

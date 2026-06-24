@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: $NAMESPACE
+
+resources:
+- seaweedfs-deployment.yaml
+- seaweedfs-pvc.yaml
+- seaweedfs-networkpolicy.yaml
+- seaweedfs-create-admin-user-job.yaml
+- seaweedfs-service.yaml
+- seaweedfs-service-account.yaml
+- minio-service.yaml
+- mlflow-aws-secret.yaml
+- seaweedfs-s3config.yaml
+
+configMapGenerator:
+- name: seaweedfs-params
+  envs:
+  - params.env
+  options:
+    disableNameSuffixHash: true
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: seaweedfs-params
+    fieldPath: data.SEAWEEDFS_IMAGE
+  targets:
+  - select:
+      kind: Deployment
+      name: seaweedfs
+    fieldPaths:
+    - spec.template.spec.containers.[name=seaweedfs].image
+  - select:
+      kind: Job
+      name: init-seaweedfs
+    fieldPaths:
+    - spec.template.spec.containers.[name=init-seaweedfs].image
