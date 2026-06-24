@@ -1,5 +1,6 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
+# konflux build manual retrigger
 metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
@@ -32,7 +33,7 @@ spec:
   - name: output-image
     value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
   - name: rhoai-version
-    value: "3.3.3"
+    value: "3.3.4"
   - name: build-platforms
     value:
     - linux/x86_64
