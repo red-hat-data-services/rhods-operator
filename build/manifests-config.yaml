@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: e57ef48f8133fcff4bfa859c72776dbd663919f3
+    git.commit: f2d9f6f2b2fee71685d99107244e8116ac9bca91
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 6693e94b3d390d780d78d62a790436674ecd87f2
+    git.commit: fe1bfe10d4d041baa94537999806a948c3acbee4
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -64,7 +64,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: ef9985f5f9e0185ac6fb52ce07203314abe636a8
+    git.commit: dfe291b7b850f11bea29f180f1a514dfd1c8f0f9
   odh-trainer:
     src: manifests
     dest: trainer
@@ -74,12 +74,12 @@ map:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: 193627bd09d6eda72f125852bc979810358e9ecd
+    git.commit: 8551c8455b24f4726876b2d62f4da49e1553f2b3
   odh-maas-api:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 87de07b92f024e4a255700b8c3ed6711aa65de69
+    git.commit: 4f2afcf95fc416259b0924f58bc3daed9e965688
   odh-spark-operator:
     src: config
     dest: sparkoperator
@@ -114,7 +114,7 @@ additional_meta:
     git.commit: d57be6222ef32b12e842902b15175fd8ec104192
   odh-eval-hub:
     git.url: https://github.com/red-hat-data-services/eval-hub
-    git.commit: 95512dd5f35df22db1e843aa269e7624d1de1dfd
+    git.commit: f47cd3b2dd3ebd745e11e422d5b77d85e31f7917
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 1b8a0b308216e5ca5fb8ac439ced213af8764e0d
@@ -165,7 +165,7 @@ additional_meta:
     git.commit: d23ba7930769970cd00d6069c4aaabf2dee46fcc
   odh-maas-controller:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 87de07b92f024e4a255700b8c3ed6711aa65de69
+    git.commit: 4f2afcf95fc416259b0924f58bc3daed9e965688
   odh-mlflow:
     git.url: https://github.com/red-hat-data-services/mlflow
     git.commit: 6229e4904e3f3bcc165ddaea0bd1bc49b3ec2d51
