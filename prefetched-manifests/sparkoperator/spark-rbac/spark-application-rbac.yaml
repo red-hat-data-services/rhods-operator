@@ -15,20 +15,13 @@
 #
 apiVersion: v1
 kind: ServiceAccount
-automountServiceAccountToken: true
 metadata:
   name: spark-operator-spark
-  namespace: system
-  labels:
-    app.kubernetes.io/name: spark-operator
-    app.kubernetes.io/instance: spark-operator
-    app.kubernetes.io/component: spark
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: spark-operator-role
-  namespace: system
+  name: spark-role
 rules:
 - apiGroups:
   - ""
@@ -52,17 +45,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: spark-operator-rolebinding
-  namespace: system
-  labels:
-    app.kubernetes.io/name: spark-operator
-    app.kubernetes.io/instance: spark-operator
-    app.kubernetes.io/component: spark
+  name: spark-role-binding
 subjects:
-  - kind: ServiceAccount
-    name: spark-operator-spark
-    namespace: system
+- kind: ServiceAccount
+  name: spark-operator-spark
 roleRef:
   kind: Role
-  name: spark-operator-role
+  name: spark-role
   apiGroup: rbac.authorization.k8s.io

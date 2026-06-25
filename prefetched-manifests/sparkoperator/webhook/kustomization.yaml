@@ -1,6 +1,3 @@
-# Webhook Kustomization
-# Admission webhook for mutating and validating SparkApplications and pods
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -12,9 +9,26 @@ resources:
   - rolebinding.yaml
   - service.yaml
   - deployment.yaml
-  - mutatingwebhookconfiguration.yaml
-  - validatingwebhookconfiguration.yaml
+  - manifests.yaml
 
-# Configuration for transforming webhook namespace references
+patches:
+  - path: webhook-objectselector-patch.yaml
+  - path: webhook-validating-selector-patch.yaml
+
 configurations:
   - kustomizeconfig.yaml
+
+replacements:
+  - source:
+      kind: Service
+      name: spark-operator-webhook-svc
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: MutatingWebhookConfiguration
+        fieldPaths:
+          - webhooks.*.clientConfig.service.name
+      - select:
+          kind: ValidatingWebhookConfiguration
+        fieldPaths:
+          - webhooks.*.clientConfig.service.name

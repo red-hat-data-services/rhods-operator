@@ -1,18 +1,12 @@
-# Namespace where Spark Operator controller runs.
-# For overlays (ODH/RHOAI), this namespace is deleted via patch
-# and the overlay's namespace is used instead.
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: system
+  name: spark-operator
   labels:
     app.kubernetes.io/name: spark-operator
     app.kubernetes.io/component: operator
     control-plane: controller-manager
 ---
-# Controller Deployment - the brain of the Spark Operator.
-# Watches SparkApplication CRs and creates/manages Spark driver pods.
-# Note: No fsGroup is set - OpenShift's restricted-v2 SCC assigns it automatically.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -63,7 +57,7 @@ spec:
               app.kubernetes.io/name: spark-operator
       containers:
         - name: controller
-          image: $(SPARK_OPERATOR_CONTROLLER_IMAGE)
+          image: ghcr.io/kubeflow/spark-operator/controller
           imagePullPolicy: IfNotPresent
           args:
             - controller
@@ -79,6 +73,7 @@ spec:
             - --metrics-prefix=
             - --metrics-labels=app_type
             - --metrics-job-start-latency-buckets=30,60,90,120,150,180,210,240,270,300
+            - --metrics-job-submit-latency-buckets=0.5,1,2,4,8,16,32,64,128,256
             - --leader-election=true
             - --leader-election-lock-name=spark-operator-controller-lock
             - --leader-election-lock-namespace=$(CONTROLLER_NAMESPACE)
@@ -90,9 +85,13 @@ spec:
             - --workqueue-ratelimiter-max-delay=6h
             - --driver-pod-creation-grace-period=10s
             - --max-tracked-executor-per-app=1000
+            - --kube-api-qps=20
+            - --kube-api-burst=30
+            - --feature-gates=PartialRestart=false,LoadSparkDefaults=false
+            - --scheduled-spark-application-timestamp-precision=nanos
           env:
             - name: OPERATOR_VERSION
-              value: "2.4.0"
+              value: "2.5.0"
             - name: CONTROLLER_NAMESPACE
               valueFrom:
                 fieldRef:

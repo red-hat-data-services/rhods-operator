@@ -1,8 +1,7 @@
-# RoleBinding for controller - connects Role to the controller ServiceAccount.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: spark-operator-controller  # References leader-election-role.yaml
+  name: spark-operator-controller
   namespace: system
   labels:
     app.kubernetes.io/name: spark-operator

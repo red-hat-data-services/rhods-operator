@@ -1,5 +1,3 @@
-# ClusterRole for webhook - needs cluster-wide access to webhook configurations.
-# The webhook manages its own MutatingWebhookConfiguration and ValidatingWebhookConfiguration.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -9,7 +7,19 @@ metadata:
     app.kubernetes.io/instance: spark-operator
     app.kubernetes.io/component: webhook
 rules:
-  # Webhook configurations - webhook needs to list/watch all, but only update its own
+  - apiGroups:
+      - ""
+    resources:
+      - resourcequotas
+    verbs:
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - list
+      - watch
   - apiGroups:
       - admissionregistration.k8s.io
     resources:
@@ -18,18 +28,17 @@ rules:
     verbs:
       - list
       - watch
-  # Specific webhook configurations - can only modify its own webhook configs
   - apiGroups:
       - admissionregistration.k8s.io
     resources:
       - mutatingwebhookconfigurations
       - validatingwebhookconfigurations
     resourceNames:
-      - spark-operator-webhook
+      - mutating-webhook-configuration
+      - validating-webhook-configuration
     verbs:
       - get
       - update
-  # SparkApplications - webhook needs to list/watch for validation and defaulting
   - apiGroups:
       - sparkoperator.k8s.io
     resources:
@@ -37,13 +46,5 @@ rules:
       - scheduledsparkapplications
     verbs:
       - get
-      - list
-      - watch
-  # Pods - read-only permissions for informer cache sync
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
       - list
       - watch

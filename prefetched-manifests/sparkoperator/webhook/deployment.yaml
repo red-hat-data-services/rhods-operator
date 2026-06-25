@@ -1,8 +1,3 @@
-# Deployment for the webhook component.
-# The webhook intercepts pod and SparkApplication creation/updates to:
-# 1. Mutate pods - inject Spark configuration, volumes, environment variables
-# 2. Validate SparkApplications - ensure they meet requirements before creation
-# Note: No fsGroup - OpenShift restricted-v2 SCC assigns it automatically.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,7 +32,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: webhook
-          image: $(SPARK_OPERATOR_WEBHOOK_IMAGE)
+          image: ghcr.io/kubeflow/spark-operator/controller
           imagePullPolicy: IfNotPresent
           args:
             - webhook
@@ -50,13 +45,15 @@ spec:
             - --webhook-svc-name=spark-operator-webhook-svc
             - --webhook-svc-namespace=$(WEBHOOK_NAMESPACE)
             - --webhook-port=9443
-            - --mutating-webhook-name=spark-operator-webhook
-            - --validating-webhook-name=spark-operator-webhook
+            - --mutating-webhook-name=mutating-webhook-configuration
+            - --validating-webhook-name=validating-webhook-configuration
             - --enable-metrics=true
             - --metrics-bind-address=:8080
             - --metrics-endpoint=/metrics
             - --metrics-prefix=
             - --metrics-labels=app_type
+            - --kube-api-qps=20
+            - --kube-api-burst=30
             - --leader-election=true
             - --leader-election-lock-name=spark-operator-webhook-lock
             - --leader-election-lock-namespace=$(WEBHOOK_NAMESPACE)

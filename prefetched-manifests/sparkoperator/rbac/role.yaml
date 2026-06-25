@@ -4,48 +4,48 @@ kind: ClusterRole
 metadata:
   name: spark-operator-controller
 rules:
-- resources:
+- apiGroups:
+  - ""
+  resources:
   - configmaps
   verbs:
   - create
-  - delete
   - get
   - list
   - patch
   - update
-- resources:
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - events
   verbs:
   - create
   - patch
   - update
-- resources:
-  - nodes
-  verbs:
-  - get
-- resources:
+- apiGroups:
+  - ""
+  resources:
   - pods
   verbs:
   - create
   - delete
-  - deletecollection
   - get
   - list
-  - patch
   - update
   - watch
-- resources:
-  - resourcequotas
-  verbs:
-  - get
-  - list
-  - watch
-- resources:
+- apiGroups:
+  - ""
+  resources:
   - services
   verbs:
   - create
   - delete
   - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
@@ -69,35 +69,40 @@ rules:
   - create
   - delete
   - get
-  - list
   - update
-  - watch
 - apiGroups:
   - sparkoperator.k8s.io
   resources:
   - scheduledsparkapplications
+  - sparkconnects
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
+  - scheduledsparkapplications/finalizers
+  verbs:
+  - patch
+  - update
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
+  - scheduledsparkapplications/status
+  - sparkapplications/finalizers
+  - sparkapplications/status
+  - sparkconnects/finalizers
+  - sparkconnects/status
+  verbs:
+  - update
+- apiGroups:
+  - sparkoperator.k8s.io
+  resources:
   - sparkapplications
   verbs:
   - create
   - delete
   - get
   - list
-  - patch
-  - update
   - watch
-- apiGroups:
-  - sparkoperator.k8s.io
-  resources:
-  - scheduledsparkapplications/finalizers
-  - sparkapplications/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sparkoperator.k8s.io
-  resources:
-  - scheduledsparkapplications/status
-  - sparkapplications/status
-  verbs:
-  - get
-  - patch
-  - update

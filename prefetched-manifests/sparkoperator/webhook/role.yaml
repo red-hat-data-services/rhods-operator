@@ -1,5 +1,3 @@
-# Role for webhook component in operator namespace.
-# Webhook needs permissions for managing TLS secrets and leader election.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -10,7 +8,6 @@ metadata:
     app.kubernetes.io/instance: spark-operator
     app.kubernetes.io/component: webhook
 rules:
-  # Secrets - webhook generates and stores its TLS certificates
   - apiGroups:
       - ""
     resources:
@@ -26,7 +23,6 @@ rules:
     verbs:
       - get
       - update
-  # Leader election - for HA coordination
   - apiGroups:
       - coordination.k8s.io
     resources:
@@ -42,11 +38,3 @@ rules:
     verbs:
       - get
       - update
-  # Events - for recording webhook activity
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
