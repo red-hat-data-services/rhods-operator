@@ -451,6 +451,37 @@ spec:
                         description: Concurrency groups all dispatch-rate and concurrency
                           control knobs.
                         properties:
+                          aimd:
+                            description: AIMD holds adaptive concurrency control parameters.
+                            properties:
+                              additiveIncrease:
+                                description: |-
+                                  AdditiveIncrease is the number of concurrency slots added after a full
+                                  window of consecutive successes per endpoint.
+                                format: int32
+                                minimum: 1
+                                type: integer
+                              backoffFactor:
+                                description: |-
+                                  BackoffFactor is the multiplicative decrease applied to the per-endpoint
+                                  concurrency limit when the endpoint signals overload (429/5xx).
+                                  Must be a decimal in (0, 1), e.g. "0.5".
+                                maxLength: 16
+                                pattern: ^0\.[0-9]+$
+                                type: string
+                              enabled:
+                                description: |-
+                                  Enabled controls whether AIMD adaptive concurrency is active.
+                                  When false, per-endpoint concurrency is fixed at ConcurrencyConfig.PerEndpoint.
+                                type: boolean
+                              min:
+                                description: |-
+                                  Min is the floor for per-endpoint adaptive concurrency.
+                                  AIMD will never reduce a single endpoint's effective limit below this value.
+                                format: int32
+                                minimum: 1
+                                type: integer
+                            type: object
                           global:
                             description: |-
                               Global limits total in-flight inference requests across all workers.
@@ -800,9 +831,10 @@ spec:
                 x-kubernetes-validations:
                 - message: tls.secretName or tls.certManager must be set when tls.enabled
                     is true
-                  rule: '!self.enabled || size(self.secretName) > 0 || has(self.certManager)'
+                  rule: '!self.enabled || (has(self.secretName) && size(self.secretName)
+                    > 0) || has(self.certManager)'
                 - message: tls.secretName and tls.certManager are mutually exclusive
-                  rule: '!(size(self.secretName) > 0 && has(self.certManager))'
+                  rule: '!(has(self.secretName) && size(self.secretName) > 0 && has(self.certManager))'
             required:
             - apiServer
             - gc
