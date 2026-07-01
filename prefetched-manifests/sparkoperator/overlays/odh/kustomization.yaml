@@ -13,6 +13,7 @@ namespace: opendatahub
 # 2. Import base configuration
 resources:
   - ../../default # Inherits everything from config/default/
+  - ../../spark-rbac # SA/Role/RoleBinding for Spark driver pods
   - ../../prometheus
   - networkpolicy.yaml
 
