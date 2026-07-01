@@ -160,6 +160,8 @@ func AppendOperatorInstallManifests(ctx context.Context, rr *odhtypes.Reconcilia
 	}
 	extra = append(extra, *paramsCM)
 
+	extra = append(extra, payloadProcessingNetworkPolicy(componentLabels))
+
 	sortedExtra, err := resources.SortByApplyOrder(ctx, extra)
 	if err != nil {
 		return fmt.Errorf("sort maas-controller install bundle: %w", err)
@@ -205,6 +207,92 @@ func maasParametersConfigMapFromParamsEnv(manifestsBasePath string, appNs string
 		},
 	}
 	return cm, nil
+}
+
+// payloadProcessingNetworkPolicy returns a NetworkPolicy for the
+// payload-processing pod in the gateway namespace. OCP 4.22 introduced a
+// deny-all NetworkPolicy in openshift-ingress; without explicit rules the pod
+// cannot reach the Kubernetes API server (egress) or receive ext_proc calls
+// from the gateway (ingress).
+func payloadProcessingNetworkPolicy(componentLabels map[string]string) unstructured.Unstructured {
+	npLabels := make(map[string]any, len(componentLabels)+1)
+	for k, v := range componentLabels {
+		npLabels[k] = v
+	}
+	npLabels["app"] = "payload-processing"
+
+	return unstructured.Unstructured{
+		Object: map[string]any{
+			"apiVersion": "networking.k8s.io/v1",
+			"kind":       "NetworkPolicy",
+			"metadata": map[string]any{
+				"name":      "payload-processing",
+				"namespace": DefaultGatewayNamespace,
+				"labels":    npLabels,
+			},
+			"spec": map[string]any{
+				"podSelector": map[string]any{
+					"matchLabels": map[string]any{
+						"app": "payload-processing",
+					},
+				},
+				"policyTypes": []any{"Ingress", "Egress"},
+				"ingress": []any{
+					map[string]any{
+						"from": []any{
+							map[string]any{
+								"podSelector": map[string]any{
+									"matchLabels": map[string]any{
+										"gateway.networking.k8s.io/gateway-name": "data-science-gateway",
+									},
+								},
+								"namespaceSelector": map[string]any{
+									"matchLabels": map[string]any{
+										"kubernetes.io/metadata.name": DefaultGatewayNamespace,
+									},
+								},
+							},
+						},
+						"ports": []any{
+							map[string]any{
+								"protocol": "TCP",
+								"port":     int64(9004),
+							},
+						},
+					},
+					map[string]any{
+						"from": []any{
+							map[string]any{
+								"namespaceSelector": map[string]any{
+									"matchLabels": map[string]any{
+										"kubernetes.io/metadata.name": "openshift-monitoring",
+									},
+								},
+							},
+							map[string]any{
+								"namespaceSelector": map[string]any{
+									"matchLabels": map[string]any{
+										"kubernetes.io/metadata.name": "openshift-user-workload-monitoring",
+									},
+								},
+							},
+						},
+						"ports": []any{
+							map[string]any{
+								"protocol": "TCP",
+								"port":     int64(9005),
+							},
+							map[string]any{
+								"protocol": "TCP",
+								"port":     int64(9090),
+							},
+						},
+					},
+				},
+				"egress": []any{map[string]any{}},
+			},
+		},
+	}
 }
 
 // parseParamsEnv reads a key=value env file, skipping comments and blank lines.
@@ -262,6 +350,7 @@ var gatewayNamespaceResources = map[resourceKey]bool{
 	{kind: "Service", name: "payload-processing"}:                   true,
 	{kind: "ServiceAccount", name: "payload-processing"}:            true,
 	{kind: "ConfigMap", name: "payload-processing-plugins"}:         true,
+	{kind: "NetworkPolicy", name: "payload-processing"}:             true,
 	{kind: "ClusterRoleBinding", name: "payload-processing-reader"}: true,
 }
 
