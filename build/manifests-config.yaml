@@ -95,6 +95,11 @@ map:
     dest: aigateway
     git.url: https://github.com/red-hat-data-services/ai-gateway-operator
     git.commit: 9b7d806bde52a80309c939443b66cd3705715329
+  odh-mcp-lifecycle-module-operator:
+    src: config
+    dest: mcplifecycleoperator
+    git.url: https://github.com/red-hat-data-services/mcp-lifecycle-module-operator
+    git.commit: 1cabdc32dbdc975d3f54efbf2b89b7bc0013bb00
 additional_meta:
   odh-ai-gateway-payload-processing-e2e:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -201,9 +206,6 @@ additional_meta:
   odh-maas-controller:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
     git.commit: 599f0edd6e36baed8e6a16b0e5ec6bb4eea93e51
-  odh-mcp-lifecycle-module-operator:
-    git.url: https://github.com/red-hat-data-services/mcp-lifecycle-module-operator
-    git.commit: 1cabdc32dbdc975d3f54efbf2b89b7bc0013bb00
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
     git.commit: fae313d360f61fd78dd5a50f3a9c4f7ddd860bbb
