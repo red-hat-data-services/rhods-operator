@@ -66,8 +66,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: RELATED_IMAGE_ODH_KUBE_AUTH_PROXY_IMAGE
-            value: "registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9@sha256:11828cdb31cd9c1e15bc9e31c7e4669daf71c84c028cad2df5dbab68150da273"
           # If not set or set to true, kuberay auto injects an init container waiting for ray GCS.
           # If false, you will need to inject your own init container to ensure ray GCS is up before the ray workers start.
           # Warning: we highly recommend setting to true and let kuberay handle for you.
