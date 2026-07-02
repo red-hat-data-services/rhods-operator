@@ -36,6 +36,8 @@ spec:
           value: quay.io/opendatahub/odh-llm-d-batch-gateway-processor:odh-stable
         - name: LLM_D_BATCH_GATEWAY_GC_IMAGE
           value: quay.io/opendatahub/odh-llm-d-batch-gateway-gc:odh-stable
+        - name: LLM_D_ASYNC_IMAGE
+          value: quay.io/opendatahub/odh-llm-d-async:odh-stable
         - name: GOMEMLIMIT
           value: 200MiB
         ports:

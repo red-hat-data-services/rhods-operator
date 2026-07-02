@@ -63,3 +63,13 @@ replacements:
           name: llm-d-batch-gateway-operator
         fieldPaths:
           - spec.template.spec.containers.[name=manager].env.[name=LLM_D_BATCH_GATEWAY_GC_IMAGE].value
+  - source:
+      kind: ConfigMap
+      name: batch-gateway-operator-params
+      fieldPath: data.LLM_D_ASYNC_IMAGE
+    targets:
+      - select:
+          kind: Deployment
+          name: llm-d-batch-gateway-operator
+        fieldPaths:
+          - spec.template.spec.containers.[name=manager].env.[name=LLM_D_ASYNC_IMAGE].value
