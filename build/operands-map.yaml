@@ -49,6 +49,8 @@ relatedImages:
   value: "quay.io/rhoai/odh-kserve-localmodelnode-agent-rhel9@sha256:6a56ef129a1a866401e1953bb5fa51c25f26a357a517bcb70a1b30f66621143c"
 - name: RELATED_IMAGE_ODH_KSERVE_LOCALMODEL_CONTROLLER_IMAGE
   value: "quay.io/rhoai/odh-kserve-localmodel-controller-rhel9@sha256:2899cf4a6490001d7e10546731b2d2b75461857057933dab646d872d8b738e80"
+- name: RELATED_IMAGE_ODH_KSERVE_MODULE_OPERATOR_IMAGE
+  value: "quay.io/rhoai/odh-kserve-module-operator-rhel9@sha256:aaaab9ae8e62083dbcebcf187d1867be131e19b1d57a2e61b90a298881663daa"
 - name: RELATED_IMAGE_ODH_KSERVE_ROUTER_IMAGE
   value: "quay.io/rhoai/odh-kserve-router-rhel9@sha256:ba8d0fafe12de04adbe59841da22e64bd87e0d83b3b16bbe82403b76d0e1ec32"
 - name: RELATED_IMAGE_ODH_KSERVE_STORAGE_INITIALIZER_IMAGE
@@ -68,13 +70,13 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_LLM_D_ASYNC_IMAGE
   value: "quay.io/rhoai/odh-llm-d-async-rhel9@sha256:7a845739842c1e76584fed4d0e1fb1ecc2c2a42ada2ab0aa3a5590838df87f26"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_APISERVER_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-apiserver-rhel9@sha256:383ccf765861f3c010f4106952945dea2c2a07231736842f264195fa4168fa63"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-apiserver-rhel9@sha256:4048263d0c148696675389b0a3fbb0a3a91e9440f80201c6d6aadc710cd0d7cf"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_GC_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-gc-rhel9@sha256:9d19b4f7b7f20e423d216b5625bf274a56623a8d4aa77bc761859ef205e59aa3"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-gc-rhel9@sha256:511fe7cde9c12cbf6926447347172ba1c8147d9c6d6bffa08f0ae716c55fa154"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_OPERATOR_IMAGE
   value: "quay.io/rhoai/odh-llm-d-batch-gateway-operator-rhel9@sha256:3b8a47599cc408a22a30bc6b1817616bffe19e7e0939a4c86d0d4180449e1246"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_PROCESSOR_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-processor-rhel9@sha256:7448ab313f68796234a8259839c214f0918ab6b303d8433d1a9337956b626413"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-processor-rhel9@sha256:825442bf5b7c5244a60f973765e2519e97d17a1da251a7f89f4ab1686473e2bc"
 - name: RELATED_IMAGE_ODH_LLM_D_KV_CACHE_IMAGE
   value: "quay.io/rhoai/odh-llm-d-kv-cache-rhel9@sha256:fe2de5ce8509b9cd097ca5510285456bb173f638d745d65850a96cc8c698f757"
 - name: RELATED_IMAGE_ODH_LLM_D_ROUTER_DISAGG_SIDECAR_IMAGE
