@@ -33,13 +33,6 @@ vars:
     apiVersion: v1
   fieldref:
     fieldpath: data.odh-kube-rbac-proxy-image
-- name: odh-oauth-proxy-image
-  objref:
-    kind: ConfigMap
-    name: ray-config
-    apiVersion: v1
-  fieldref:
-    fieldpath: data.odh-oauth-proxy-image
 
 resources:
 - ray_operator_scc.yaml

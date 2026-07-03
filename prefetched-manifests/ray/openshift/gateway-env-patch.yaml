@@ -26,10 +26,3 @@ spec:
         # authentication_controller.go.
         - name: RELATED_IMAGE_OSE_KUBE_RBAC_PROXY_IMAGE
           value: $(odh-kube-rbac-proxy-image)
-        # oauth-proxy sidecar image for integrated OAuth authentication.
-        # Value comes from params.env (odh-oauth-proxy-image), overridden at deploy
-        # time by the ODH/RHOAI operator via imageParamMap
-        # (RELATED_IMAGE_OSE_OAUTH_PROXY_IMAGE). Read at startup by init() in
-        # authentication_controller.go.
-        - name: RELATED_IMAGE_OSE_OAUTH_PROXY_IMAGE
-          value: $(odh-oauth-proxy-image)

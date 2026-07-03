@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 8d147e8b5d2816085ed3468aa0e648ff49cb7f46
+    git.commit: 6406fb0bea59430a9e722be2a3f3cb0da512c96e
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -317,6 +317,9 @@ additional_meta:
   odh-ta-lmes-job:
     git.url: https://github.com/red-hat-data-services/lm-evaluation-harness
     git.commit: 53626b926e698ca9bd1bfb84ad40c8239c4fcb0a
+  odh-trainer-operator:
+    git.url: https://github.com/red-hat-data-services/trainer-operator
+    git.commit: 36f4e6c4e4837d9b48bf71b25189794052561c15
   odh-training-cuda121-torch24-py311:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
     git.commit: 9cd241431fb1f951563524e0f6844c92a0b34cf0
