@@ -26,6 +26,13 @@ vars:
     apiVersion: v1
   fieldref:
     fieldpath: data.odh-kuberay-operator-controller-image
+- name: odh-kube-rbac-proxy-image
+  objref:
+    kind: ConfigMap
+    name: ray-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.odh-kube-rbac-proxy-image
 
 resources:
 - ray_operator_scc.yaml

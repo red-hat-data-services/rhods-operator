@@ -19,3 +19,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        # kube-rbac-proxy sidecar image for authentication controller.
+        # Value comes from params.env (odh-kube-rbac-proxy-image), overridden at deploy
+        # time by the ODH/RHOAI operator via imageParamMap
+        # (RELATED_IMAGE_ODH_KUBE_RBAC_PROXY_IMAGE). Read at startup by init() in
+        # authentication_controller.go.
+        - name: RELATED_IMAGE_ODH_KUBE_RBAC_PROXY_IMAGE
+          value: $(odh-kube-rbac-proxy-image)
