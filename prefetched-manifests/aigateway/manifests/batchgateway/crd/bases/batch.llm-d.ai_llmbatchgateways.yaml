@@ -478,6 +478,11 @@ spec:
                           InferenceGateway configures the connection to the inference gateway
                           EPP (EndpointPicker) service where inference requests are sent.
                         properties:
+                          inferenceObjective:
+                            description: InferenceObjective specifies the scheduling
+                              objective for this gateway (e.g. "throughput", "latency").
+                            maxLength: 253
+                            type: string
                           inferencePoolName:
                             description: |-
                               InferencePoolName identifies the async dispatch pool for this model.
@@ -878,11 +883,6 @@ spec:
                         description: EnablePprof enables the Go pprof profiling HTTP
                           endpoints.
                         type: boolean
-                      inferenceObjective:
-                        description: InferenceObjective specifies the scheduling objective
-                          (e.g. "throughput", "latency").
-                        maxLength: 253
-                        type: string
                       logging:
                         description: Logging configures log verbosity for the processor.
                         properties:
@@ -919,6 +919,11 @@ spec:
                       unless overridden by a ModelGateways entry.
                       Not supported when dispatchMode is "async"; use modelGateways with inferencePoolName instead.
                     properties:
+                      inferenceObjective:
+                        description: InferenceObjective specifies the scheduling objective
+                          for this gateway (e.g. "throughput", "latency").
+                        maxLength: 253
+                        type: string
                       inferencePoolName:
                         description: |-
                           InferencePoolName identifies the async dispatch pool for this model.
@@ -993,6 +998,11 @@ spec:
                       description: InferenceGatewaySpec configures a connection to
                         an inference gateway.
                       properties:
+                        inferenceObjective:
+                          description: InferenceObjective specifies the scheduling
+                            objective for this gateway (e.g. "throughput", "latency").
+                          maxLength: 253
+                          type: string
                         inferencePoolName:
                           description: |-
                             InferencePoolName identifies the async dispatch pool for this model.
