@@ -115,6 +115,13 @@ spec:
                           to wait for the next request.
                         format: int32
                         type: integer
+                      inputHeaders:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          InputHeaders maps logical header roles to HTTP header names used for tenant
+                          identification and other input metadata (e.g. {"tenant": "X-MaaS-Username"}).
+                        type: object
                       logging:
                         description: Logging configures log verbosity for the API
                           server.
@@ -357,6 +364,74 @@ spec:
                     description: Interval is how often the GC runs (e.g. "30m").
                     pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                     type: string
+                  replicas:
+                    default: 1
+                    description: |-
+                      Replicas is the desired number of GC pods.
+                      Setting this to 0 suspends the GC; the Ready condition will be False.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  resources:
+                    description: Resources defines CPU and memory requests/limits
+                      for the GC container.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
                 type: object
               grafana:
                 description: Grafana enables the bundled Grafana dashboard ConfigMap.
@@ -407,6 +482,28 @@ spec:
                     type: array
                     x-kubernetes-list-type: atomic
                 type: object
+              imagePullSecrets:
+                description: |-
+                  ImagePullSecrets is a list of references to secrets for pulling container images
+                  from private registries. Applied globally to all component pods (apiServer, processor, gc).
+                items:
+                  description: |-
+                    LocalObjectReference contains enough information to let you locate the
+                    referenced object inside the same namespace.
+                  properties:
+                    name:
+                      default: ""
+                      description: |-
+                        Name of the referent.
+                        This field is effectively required, but due to backwards compatibility is
+                        allowed to be empty. Instances of this type with an empty value here are
+                        almost certainly wrong.
+                        More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      type: string
+                  type: object
+                  x-kubernetes-map-type: atomic
+                maxItems: 20
+                type: array
               monitoring:
                 description: Monitoring enables Prometheus ServiceMonitor and PodMonitor
                   resources.
@@ -902,6 +999,11 @@ spec:
                           state is retained before being considered stale.
                         format: int64
                         type: integer
+                      sendFairnessHeader:
+                        description: |-
+                          SendFairnessHeader controls whether the processor sends a fairness header
+                          to the inference gateway for fair scheduling across tenants.
+                        type: boolean
                     type: object
                   dispatchMode:
                     default: sync
