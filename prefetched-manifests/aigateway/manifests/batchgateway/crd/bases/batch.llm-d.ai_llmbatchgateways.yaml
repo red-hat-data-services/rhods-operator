@@ -299,6 +299,13 @@ spec:
                         description: AutoCreateBucket causes the operator to create
                           the bucket if it does not exist.
                         type: boolean
+                      bucket:
+                        description: |-
+                          Bucket is the S3 bucket name used for all file storage.
+                          Tenant isolation is achieved via S3 key prefixes, not separate buckets.
+                        maxLength: 63
+                        minLength: 1
+                        type: string
                       endpoint:
                         description: Endpoint overrides the S3 endpoint URL for non-AWS
                           providers (e.g. MinIO).
@@ -318,6 +325,8 @@ spec:
                         description: UsePathStyle forces path-style addressing (required
                           by some S3-compatible stores).
                         type: boolean
+                    required:
+                    - bucket
                     type: object
                 type: object
                 x-kubernetes-validations:

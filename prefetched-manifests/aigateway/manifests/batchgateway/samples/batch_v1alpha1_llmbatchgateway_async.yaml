@@ -13,6 +13,7 @@ spec:
   dbBackend: postgresql
   fileStorage:
     s3:
+      bucket: llm-d-batch-gateway
       region: us-east-1
       endpoint: https://s3.example.com
   apiServer:
