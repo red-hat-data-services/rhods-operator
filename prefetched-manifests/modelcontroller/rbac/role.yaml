@@ -99,6 +99,14 @@ rules:
   - list
   - watch
 - apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - hardwareprofiles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - keda.sh
   resources:
   - triggerauthentications

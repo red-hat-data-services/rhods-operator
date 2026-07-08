@@ -44,10 +44,18 @@ patches:
       clientConfig:
         service:
           name: odh-model-controller-webhook-service
+    - name: connection-llmisvc-v1alpha2.odh-model-controller.opendatahub.io
+      clientConfig:
+        service:
+          name: odh-model-controller-webhook-service
+    - name: connection-llmisvc-v1alpha1.odh-model-controller.opendatahub.io
+      clientConfig:
+        service:
+          name: odh-model-controller-webhook-service
     - name: mutating.pod.odh-model-controller.opendatahub.io
       clientConfig:
         service:
-          name: odh-model-controller-webhook-service          
+          name: odh-model-controller-webhook-service
       objectSelector:
         matchExpressions:
           - key: serving.kserve.io/inferenceservice
