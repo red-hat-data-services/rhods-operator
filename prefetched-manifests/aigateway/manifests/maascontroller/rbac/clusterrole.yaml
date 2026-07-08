@@ -2,13 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: manager-role
+  name: maas-controller-role
 rules:
 - apiGroups:
   - ""
   resources:
   - configmaps
-  - serviceaccounts
   - services
   verbs:
   - create
@@ -23,10 +22,18 @@ rules:
   resources:
   - endpoints
   - pods
+  - secrets
   verbs:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - ""
   resources:
@@ -41,9 +48,10 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - secrets
+  - serviceaccounts
   verbs:
   - create
+  - delete
   - get
   - list
   - patch
@@ -55,72 +63,13 @@ rules:
   verbs:
   - create
 - apiGroups:
-  - ""
-  - events.k8s.io
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - admissionregistration.k8s.io
-  resources:
-  - validatingwebhookconfigurations
-  verbs:
-  - create
-  - list
-  - watch
-- apiGroups:
-  - admissionregistration.k8s.io
-  resourceNames:
-  - maas-validating-webhook-configuration
-  resources:
-  - validatingwebhookconfigurations
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
   verbs:
-  - create
   - get
   - list
   - watch
-- apiGroups:
-  - apiextensions.k8s.io
-  resourceNames:
-  - aitenants.maas.opendatahub.io
-  - configs.maas.opendatahub.io
-  - externalmodels.inference.opendatahub.io
-  - externalmodels.maas.opendatahub.io
-  - externalproviders.inference.opendatahub.io
-  - maasauthpolicies.maas.opendatahub.io
-  - maasmodelrefs.maas.opendatahub.io
-  - maassubscriptions.maas.opendatahub.io
-  - modelsasservices.components.platform.opendatahub.io
-  - tenants.maas.opendatahub.io
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - apiextensions.k8s.io
-  resourceNames:
-  - llmbatchgateways.batch.llm-d.ai
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
 - apiGroups:
   - apps
   resources:
@@ -163,100 +112,12 @@ rules:
   - patch
   - watch
 - apiGroups:
-  - batch.llm-d.ai
-  resources:
-  - llmbatchgateways
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - batch.llm-d.ai
-  resources:
-  - llmbatchgateways/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - batch.llm-d.ai
-  resources:
-  - llmbatchgateways/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - cert-manager.io
-  resources:
-  - certificates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - components.platform.opendatahub.io
-  resources:
-  - aigateways
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - components.platform.opendatahub.io
-  resources:
-  - aigateways/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - components.platform.opendatahub.io
-  resources:
-  - aigateways/status
-  - modelsasservices/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - components.platform.opendatahub.io
-  resources:
-  - modelsasservices
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - config.openshift.io
   resources:
   - authentications
   verbs:
   - get
   - list
-  - watch
-- apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - dscinitialization.opendatahub.io
@@ -281,7 +142,6 @@ rules:
   - gateway.networking.k8s.io
   resources:
   - gateways
-  - referencegrants
   verbs:
   - get
   - list
@@ -348,7 +208,6 @@ rules:
   - kuadrant.io
   resources:
   - ratelimitpolicies
-  - telemetrypolicies
   verbs:
   - create
   - delete
@@ -360,8 +219,6 @@ rules:
   - maas.opendatahub.io
   resources:
   - aitenants
-  - configs
-  - externalmodels
   - maasauthpolicies
   - maasmodelrefs
   - maassubscriptions
@@ -378,7 +235,6 @@ rules:
   - maas.opendatahub.io
   resources:
   - aitenants/finalizers
-  - configs/finalizers
   - externalmodels/finalizers
   - maasauthpolicies/finalizers
   - maasmodelrefs/finalizers
@@ -389,7 +245,6 @@ rules:
   - maas.opendatahub.io
   resources:
   - aitenants/status
-  - configs/status
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status
@@ -399,10 +254,18 @@ rules:
   - patch
   - update
 - apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - configs
+  - externalmodels
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - monitoring.coreos.com
   resources:
   - podmonitors
-  - prometheusrules
   - servicemonitors
   verbs:
   - create
@@ -410,7 +273,6 @@ rules:
   - get
   - list
   - patch
-  - update
   - watch
 - apiGroups:
   - networking.istio.io
@@ -479,29 +341,6 @@ rules:
   - watch
 - apiGroups:
   - rbac.authorization.k8s.io
-  resourceNames:
-  - llm-d-batch-gateway-operator
-  resources:
-  - clusterrolebindings
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resourceNames:
-  - maas-controller-cluster-config-rolebinding
-  - maas-controller-rolebinding
-  resources:
-  - clusterrolebindings
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
   resources:
   - clusterrolebindings
   - clusterroles
@@ -514,35 +353,14 @@ rules:
   - watch
 - apiGroups:
   - rbac.authorization.k8s.io
-  resourceNames:
-  - llm-d-batch-gateway-admin
-  - llm-d-batch-gateway-operator
-  - llm-d-batch-gateway-view
-  resources:
-  - clusterroles
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resourceNames:
-  - maas-controller-cluster-config-role
-  - maas-controller-role
-  - maas-owner-role
-  - maas-viewer-role
-  resources:
-  - clusterroles
-  verbs:
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
   resources:
   - rolebindings
+  verbs:
+  - delete
+  - get
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
   - roles
   verbs:
   - create
