@@ -150,6 +150,26 @@ oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
 
 See also [gen-create-model-hf.sh](./examples/gen-create-model-hf.sh) for a complete example script.
 
+## Disconnected Clusters
+
+On disconnected clusters where the destination OCI registry uses a self-signed certificate, TLS verification can be disabled by passing `MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY=false`. This applies to both the S3 and URI source templates.
+
+```sh
+oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
+  -p MODEL_SYNC_MODEL_UPLOAD_INTENT=update_artifact \
+  -p MODEL_SYNC_MODEL_ID="$MODEL_ID" \
+  -p MODEL_SYNC_MODEL_VERSION_ID="$MODEL_VERSION_ID" \
+  -p MODEL_SYNC_MODEL_ARTIFACT_ID="$MODEL_ARTIFACT_ID" \
+  -p MODEL_SYNC_REGISTRY_SERVER_ADDRESS="$MR_BASE_URL" \
+  -p MODEL_SYNC_REGISTRY_PORT="443" \
+  -p MODEL_SYNC_SOURCE_URI="https://..." \
+  -p MODEL_SYNC_DESTINATION_OCI_URI="bastion-registry.example.com/project/model:latest" \
+  -p DESTINATION_CONNECTION=my-oci-credentials \
+  -p MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY=false \
+  -o yaml \
+  > job.yaml
+```
+
 ## More configmap examples
 
 ```bash
