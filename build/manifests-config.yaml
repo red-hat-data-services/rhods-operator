@@ -107,8 +107,9 @@ map:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-module-operator
     git.commit: 1cabdc32dbdc975d3f54efbf2b89b7bc0013bb00
   odh-feast-module-operator:
-    src: config/manifests
-    dest: config/manifests
+    src: config/chart
+    dest: feastoperator
+    type: chart
 additional_meta:
   odh-ai-gateway-payload-processing-e2e:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
