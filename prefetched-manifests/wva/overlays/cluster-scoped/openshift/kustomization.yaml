@@ -10,3 +10,37 @@ resources:
 
 components:
 - ../../../components/openshift
+
+configMapGenerator:
+- name: wva-parameters
+  envs:
+  - params.env
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+- source:
+    kind: ConfigMap
+    version: v1
+    name: wva-parameters
+    fieldPath: data.wva-controller-image
+  targets:
+  - select:
+      kind: Deployment
+      name: wva-controller-manager
+    fieldPaths:
+    - spec.template.spec.containers.[name=manager].image
+
+patches:
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/env/4/value
+      value: "wva-saturation-scaling-config"
+    - op: replace
+      path: /spec/template/spec/containers/0/env/5/value
+      value: "wva-manager-config"
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: controller-manager
