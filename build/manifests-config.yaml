@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 4e2c1ca8eda0ce596ed087cf209602c3fa3140a6
+    git.commit: 451ff992683adaacc848118e64b6a9c93785fabf
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: f9767ad8938fb504abcf2007171eecc7f450b8a2
+    git.commit: 61dab336cb2fed40e8daa2023785179a1bebd360
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -110,6 +110,8 @@ map:
     src: config/chart
     dest: feastoperator
     type: chart
+    git.url: https://github.com/red-hat-data-services/feast-module-operator
+    git.commit: 1154bba84c57ff272828f51b673c15662ce67842
 additional_meta:
   odh-ai-gateway-payload-processing-e2e:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -131,7 +133,7 @@ additional_meta:
     git.commit: 13f2a12d72a1af25f7fd5dfb20d405f8765e650d
   odh-cli:
     git.url: https://github.com/red-hat-data-services/odh-cli
-    git.commit: e2a17a0a270be547410de5564dc8aad4f36f88af
+    git.commit: 4ac9b0d14b2f3cf403c64ccda2e152d19f17716b
   odh-core-bff:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 6c06a91b4413321fde4a7e462a6d304c71f74d3f
@@ -144,9 +146,6 @@ additional_meta:
   odh-eval-hub:
     git.url: https://github.com/red-hat-data-services/eval-hub
     git.commit: e9eeba991bcf3223df96240721da470a0c9fc6ab
-  odh-feast-module-operator:
-    git.url: https://github.com/red-hat-data-services/feast-module-operator
-    git.commit: 1154bba84c57ff272828f51b673c15662ce67842
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 280859e613a89c19cac50483b5ee13384d23113f
