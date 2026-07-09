@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: f52b23ec4cbede558923fcd1b897c206d2a2e97f
+    git.commit: a245ad25e928eef64ee783bca12b5287e86b6a4f
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -140,6 +140,9 @@ additional_meta:
   odh-eval-hub:
     git.url: https://github.com/red-hat-data-services/eval-hub
     git.commit: e9eeba991bcf3223df96240721da470a0c9fc6ab
+  odh-feast-module-operator:
+    git.url: https://github.com/red-hat-data-services/feast-module-operator
+    git.commit: 1154bba84c57ff272828f51b673c15662ce67842
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 280859e613a89c19cac50483b5ee13384d23113f
@@ -373,7 +376,7 @@ additional_meta:
     git.commit: 4702874f4a06d2e521888a9ae847c067aefc6bcf
   odh-workbench-codeserver-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 9f6054404e22ead251f7171aa0e6a73cbf92ce15
+    git.commit: 4e2c1ca8eda0ce596ed087cf209602c3fa3140a6
   odh-workbench-jupyter-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 4e2c1ca8eda0ce596ed087cf209602c3fa3140a6
