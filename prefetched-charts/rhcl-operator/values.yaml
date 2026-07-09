@@ -1,0 +1,9 @@
+# RHCL Operator Helm Chart
+operatorNamespace: kuadrant-operators
+operandNamespace: kuadrant-system
+
+imagePullSecrets:
+  - name: rhai-pull-secret
+
+bundle:
+  version: "1.3.0"
