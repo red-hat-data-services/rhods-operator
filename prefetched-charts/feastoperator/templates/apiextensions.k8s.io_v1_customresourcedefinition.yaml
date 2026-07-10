@@ -167,3 +167,101 @@ spec:
     storage: true
     subresources:
       status: {}
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: FeastOperator is the Schema for the feastoperators API.
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: FeastOperatorSpec defines the desired state of FeastOperator.
+            properties:
+              oidc:
+                properties:
+                  issuerURL:
+                    format: uri
+                    maxLength: 2048
+                    minLength: 1
+                    pattern: ^https://\S+$
+                    type: string
+                required:
+                - issuerURL
+                type: object
+            type: object
+          status:
+            description: FeastOperatorStatus defines the observed state of FeastOperator.
+            properties:
+              conditions:
+                items:
+                  properties:
+                    lastHeartbeatTime:
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      type: string
+                    severity:
+                      type: string
+                    status:
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-type: atomic
+              observedGeneration:
+                format: int64
+                type: integer
+              phase:
+                type: string
+              release:
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                type: object
+              releases:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    repoUrl:
+                      type: string
+                    version:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+            type: object
+        type: object
+    served: true
+    storage: false
+    subresources:
+      status: {}

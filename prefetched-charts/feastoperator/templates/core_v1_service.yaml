@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
   name: opendatahub-feast-metrics-service
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace }}
 spec:
   ports:
   - name: https

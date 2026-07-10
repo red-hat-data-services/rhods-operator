@@ -1,12 +1,15 @@
-nameOverride: ""
-fullnameOverride: ""
 config:
   platform-name: OpenDataHub
   platform-version: unknown
+fullnameOverride: ""
 image:
+  fullRef: ""
   repository: quay.io/opendatahub/odh-feast-module-operator
   tag: odh-stable
+imagePullSecret: ""
 leaderElect: true
+nameOverride: ""
+namespace: ""
 replicas: 1
 resources:
   limits:
@@ -15,4 +18,6 @@ resources:
   requests:
     cpu: 10m
     memory: 128Mi
-serviceAccount: {}
+serviceAccount:
+  annotations: {}
+  name: ""

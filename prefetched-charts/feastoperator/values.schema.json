@@ -19,7 +19,8 @@
       "type": "object",
       "required": [
         "repository",
-        "tag"
+        "tag",
+        "fullRef"
       ]
     },
     "ResourceList": {
@@ -32,7 +33,11 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "cpu",
+        "memory"
+      ]
     },
     "ResourceSpec": {
       "properties": {
@@ -44,7 +49,11 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "limits",
+        "requests"
+      ]
     },
     "ServiceAccountSpec": {
       "properties": {
@@ -59,10 +68,17 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "name",
+        "annotations"
+      ]
     },
     "Values": {
       "properties": {
+        "namespace": {
+          "type": "string"
+        },
         "nameOverride": {
           "type": "string"
         },
@@ -100,11 +116,16 @@
       "additionalProperties": false,
       "type": "object",
       "required": [
+        "namespace",
+        "nameOverride",
+        "fullnameOverride",
         "image",
         "replicas",
         "resources",
         "leaderElect",
-        "serviceAccount"
+        "serviceAccount",
+        "imagePullSecret",
+        "config"
       ]
     }
   }

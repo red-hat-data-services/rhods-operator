@@ -6,11 +6,9 @@ data:
   {{- range $key, $val := .Values.config }}
   {{ $key }}: {{ $val | quote }}
   {{- end }}
-  platform-name: OpenDataHub
-  platform-version: unknown
 kind: ConfigMap
 metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
   name: opendatahub-feast-config
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace }}
