@@ -2664,6 +2664,122 @@ spec:
                       type: string
                   type: object
                 type: array
+              traceArchival:
+                description: |-
+                  TraceArchival configures trace archival, which moves older trace span
+                  payloads from the SQL tracking store to a configured artifact location.
+                  When enabled, the operator creates a CronJob that runs the standalone
+                  archival module and mounts the archival config into the MLflow server
+                  so the UI can surface archival status. The server's built-in scheduler
+                  stays disabled; the CronJob handles execution externally.
+                properties:
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled toggles trace archival. When true, the operator creates a
+                      CronJob that runs the standalone archival module and mounts the
+                      archival config into the MLflow server for UI awareness.
+                    type: boolean
+                  location:
+                    description: |-
+                      Location is the artifact repository URI where archived span payloads
+                      are stored. Supports s3:// and file:// (file:// requires Storage).
+                      Required when enabled is true.
+                    maxLength: 2048
+                    type: string
+                  longRetentionAllowlist:
+                    description: |-
+                      LongRetentionAllowlist contains experiment IDs whose longer-than-broader
+                      retention values may be honored. Experiments not in this list use the
+                      broader server or workspace retention even if they set a longer value.
+                    items:
+                      type: string
+                    maxItems: 64
+                    type: array
+                  maxTracesPerPass:
+                    default: 1000
+                    description: MaxTracesPerPass limits the number of traces archived
+                      in a single pass.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  resources:
+                    description: Resources for the trace archival CronJob container.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
+                  retention:
+                    description: |-
+                      Retention is the age threshold after which span payloads are archived
+                      out of the tracking store. Uses the duration grammar <int><unit> where
+                      unit is m, h, or d. Examples: "30d", "12h", "360m".
+                      Required when enabled is true.
+                    maxLength: 16
+                    pattern: ^\d+[mhd]$
+                    type: string
+                  schedule:
+                    default: 0 */6 * * *
+                    description: |-
+                      Schedule is the cron expression for when archival runs
+                      (e.g., "0 */6 * * *" for every 6 hours).
+                    maxLength: 256
+                    minLength: 1
+                    type: string
+                type: object
               workers:
                 default: 1
                 description: |-
@@ -2774,6 +2890,9 @@ spec:
             - message: setting the MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE environment
                 variable is not allowed
               rule: '!has(self.env) || self.env.all(e, e.name != ''MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE'')'
+            - message: setting the MLFLOW_SERVER_ENABLE_JOB_EXECUTION environment
+                variable is not allowed; the operator manages job execution lifecycle
+              rule: '!has(self.env) || self.env.all(e, e.name != ''MLFLOW_SERVER_ENABLE_JOB_EXECUTION'')'
             - message: each networkPolicyEgressRules entry must specify at least one
                 port or one destination
               rule: '!has(self.networkPolicyEgressRules) || self.networkPolicyEgressRules.all(r,
@@ -2789,6 +2908,25 @@ spec:
               rule: '!has(self.resourceClaims) || self.resourceClaims.all(c, ((has(c.resourceClaimName)
                 && size(c.resourceClaimName) > 0) != (has(c.resourceClaimTemplateName)
                 && size(c.resourceClaimTemplateName) > 0)))'
+            - message: storage must be configured when traceArchival.location uses
+                file-based storage (file:// prefix)
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.location)
+                || !self.traceArchival.location.startsWith(''file://'') || has(self.storage)'
+            - message: traceArchival.schedule is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.schedule)
+                && size(self.traceArchival.schedule) > 0)'
+            - message: traceArchival.location is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.location)
+                && size(self.traceArchival.location) > 0)'
+            - message: traceArchival.retention is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.retention)
+                && size(self.traceArchival.retention) > 0)'
           status:
             description: status defines the observed state of MLflow
             properties:
