@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: d30e9530e1a1e0ee218e4089e48288023f47ea96
+    git.commit: 08f4fe374e340279312bbbc8f9e85fa86c2233d3
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -34,7 +34,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: a1dc846475359a7bd8a76bba92bef048f21e4cc6
+    git.commit: dbfea7d5dc9c41d8699e1c50245932617660216b
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -69,7 +69,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: cd6ec32e8c5df71c2e1ca0b807b6143f324ffd0c
+    git.commit: 12520bb97e2332bdb6c069e317487783012c2f3b
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -116,7 +116,7 @@ additional_meta:
     git.commit: 66f46c729bb91aa6d0a7c8afcf660b9875e4eccc
   odh-llama-stack-core:
     git.url: https://gitlab.com/redhat/rhel-ai/llama-stack/containers
-    git.commit: bfd3145494538793098629e803c9b6dfa825a735
+    git.commit: 87ec1bdd899e68c817d638071abb8b2fb45d09ad
   odh-llm-d-inference-scheduler:
     git.url: https://github.com/red-hat-data-services/llm-d-inference-scheduler
     git.commit: 4e5d31b89615ce5a9b9692711b8e8bb1b32d1460
