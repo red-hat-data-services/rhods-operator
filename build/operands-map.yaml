@@ -18,7 +18,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_CORE_BFF_IMAGE
   value: "quay.io/rhoai/odh-core-bff-rhel9@sha256:aa98b2bbb7665845cfc33590003219ccab5ec8299a4b1e096330388bc4fcd425"
 - name: RELATED_IMAGE_ODH_DASHBOARD_IMAGE
-  value: "quay.io/rhoai/odh-dashboard-rhel9@sha256:736ff4e901955789ca674bafe2111ebc951360897e9a71b29ee7ea8dec821508"
+  value: "quay.io/rhoai/odh-dashboard-rhel9@sha256:e448ebfe2967f7ca3e1991c75327b47f1dbb9f8783707a21aad96359cdf3a05f"
 - name: RELATED_IMAGE_ODH_DASHBOARD_OPERATOR_IMAGE
   value: "quay.io/rhoai/odh-dashboard-operator-rhel9@sha256:d4078c2d2e46ac71e89a577dae7df14e29c0ac27b51ac5e1bbe35b874d16553a"
 - name: RELATED_IMAGE_ODH_DATA_SCIENCE_PIPELINES_ARGO_ARGOEXEC_IMAGE
@@ -74,13 +74,13 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_LLM_D_ASYNC_IMAGE
   value: "quay.io/rhoai/odh-llm-d-async-rhel9@sha256:7a845739842c1e76584fed4d0e1fb1ecc2c2a42ada2ab0aa3a5590838df87f26"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_APISERVER_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-apiserver-rhel9@sha256:25d63eb07d9baba2f42ae1099586540c6f4615934530ab83702657cb8d97ccae"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-apiserver-rhel9@sha256:e412f6dc390dcfbe024551575a7a0c62e525c37c3d5335660fe0bfec7b03a1e5"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_GC_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-gc-rhel9@sha256:f62e5fb27be886acb799feb503f4267551fa8a6633870ee721c08b20eaa1941e"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-gc-rhel9@sha256:4fe2141f71f0f013de35d246ab7e2100c580a805e9132e6f2cf7af5541b73f90"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_OPERATOR_IMAGE
   value: "quay.io/rhoai/odh-llm-d-batch-gateway-operator-rhel9@sha256:a41ca8f562a5e021d70f295017eb12dbd230f6612062effd18c72e6319f59459"
 - name: RELATED_IMAGE_ODH_LLM_D_BATCH_GATEWAY_PROCESSOR_IMAGE
-  value: "quay.io/rhoai/odh-llm-d-batch-gateway-processor-rhel9@sha256:3d778873078e2c45320374c320a3ce77bb277d9ff8436ab5e6f5454f1894001e"
+  value: "quay.io/rhoai/odh-llm-d-batch-gateway-processor-rhel9@sha256:e3e4d206fb5c538c147961f49df895883c3008e78dfef6e40c0ab6d12dccd21f"
 - name: RELATED_IMAGE_ODH_LLM_D_KV_CACHE_IMAGE
   value: "quay.io/rhoai/odh-llm-d-kv-cache-rhel9@sha256:fe2de5ce8509b9cd097ca5510285456bb173f638d745d65850a96cc8c698f757"
 - name: RELATED_IMAGE_ODH_LLM_D_ROUTER_DISAGG_SIDECAR_IMAGE
@@ -88,9 +88,9 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_LLM_D_ROUTER_ENDPOINT_PICKER_IMAGE
   value: "quay.io/rhoai/odh-llm-d-router-endpoint-picker-rhel9@sha256:19ce9254b59225579ec63b1315a7f88d610edb134d4d4547342bc49dcbc2d1a0"
 - name: RELATED_IMAGE_ODH_MAAS_API_IMAGE
-  value: "quay.io/rhoai/odh-maas-api-rhel9@sha256:15fe99a067613e5b3caff14809981a27c4d94f4df439457ba1cae521226d2854"
+  value: "quay.io/rhoai/odh-maas-api-rhel9@sha256:a0a025c1f0b87ca97245edd70da2432bcd55000dfa409780b2568d5eddfac7a2"
 - name: RELATED_IMAGE_ODH_MAAS_CONTROLLER_IMAGE
-  value: "quay.io/rhoai/odh-maas-controller-rhel9@sha256:82984a9cf7706cacd3b0beaaad85c9bfa7160e476f8194b4d7e35f07d5f88e6b"
+  value: "quay.io/rhoai/odh-maas-controller-rhel9@sha256:0de47b1bce364c934841326b0ea05c7153637d1ff5d4f204dae4474f151b869e"
 - name: RELATED_IMAGE_ODH_MCP_LIFECYCLE_MODULE_OPERATOR_IMAGE
   value: "quay.io/rhoai/odh-mcp-lifecycle-module-operator-rhel9@sha256:60ab8a8906d72d3abc545c07ac30704eae16850d58f7a21c6bcd199bff9f2a7a"
 - name: RELATED_IMAGE_ODH_MCP_LIFECYCLE_OPERATOR_IMAGE
@@ -146,7 +146,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_MUST_GATHER_IMAGE
   value: "quay.io/rhoai/odh-must-gather-rhel9@sha256:ef9c6477d82706ef5e040fd5d41d8feb0809ed62a147a231f81cc9921c830e15"
 - name: RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE
-  value: "quay.io/rhoai/odh-notebook-controller-rhel9@sha256:18a72de23845926f77207c9c659099366e95db31a1fe918cc69c2b1a23f41fbd"
+  value: "quay.io/rhoai/odh-notebook-controller-rhel9@sha256:ceee8981412c8307591059677d7fd8f26d63705e221a0e09fd1daf0a539d7a3f"
 - name: RELATED_IMAGE_ODH_OGX_CORE_IMAGE
   value: "quay.io/rhoai/odh-ogx-core-rhel9@sha256:a5547700a546403ff7cc0089773cc9de577d20aa53c2ec78bb6f49efaeaf20bb"
 - name: RELATED_IMAGE_ODH_OGX_K8S_OPERATOR_IMAGE
