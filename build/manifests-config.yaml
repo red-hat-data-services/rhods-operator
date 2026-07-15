@@ -34,7 +34,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: daedea8fef1d8684a543fcaf01a729be76794454
+    git.commit: 4e8c55004c14edd6959946a764f80f2b616b60af
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -69,7 +69,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 5cdbc797c6977fae1e7052f0d552214ca818fc3e
+    git.commit: 164173f8c314ec0ba7c76dae6ba4149a7a4bd51c
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -224,7 +224,7 @@ additional_meta:
     git.commit: 10a618a122b99aec9d519059e00fd99bbe438ea6
   odh-vllm-gaudi:
     git.url: https://github.com/red-hat-data-services/vllm-gaudi
-    git.commit: 1dc53a0cb469ca8c4da9018d8722a0420ee8ec6f
+    git.commit: 0534758c5d970cd04f86b29305c528dfc0ca5e72
   odh-vllm-rocm:
     git.url: https://github.com/red-hat-data-services/vllm-rocm
     git.commit: d5d166dba152346026695abf8595310ccbe2f04c
