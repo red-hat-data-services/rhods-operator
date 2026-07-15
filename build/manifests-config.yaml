@@ -19,7 +19,7 @@ map:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 0964a8debf01d643b50fd9b5ac1ca4cc2a83d00b
+    git.commit: 75e7a8c88a5f49c67423bee32d4ad1b7dd3148ae
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 46e741286881846b0d4c1dcdc8279e241407e3db
+    git.commit: 409fb4195b9e131f650771879641fa7c51f0a7c4
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: cd6423a3959e9f874bc07177a689d2ec59c8a341
+    git.commit: a002dfce8140cfa19a153a54f46d43664db323c0
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: ed49549792de9c5c566310b78e5b41a900f204a8
+    git.commit: 7b3cda0bac075a3feb64e07715e8fef5250aa338
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -128,7 +128,7 @@ additional_meta:
     git.commit: 1bcda0cbddc1a84f738ef1cc1f05f79c4c25f464
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: 407d762b17227839ea3138fe1e2a796f0e11168b
+    git.commit: 86143a32a987c9a145f15e80bef5e479525af752
   odh-mlserver:
     git.url: https://github.com/red-hat-data-services/MLServer
     git.commit: 24597183d0c79e53f2f9827fddcef43f43ed2883
