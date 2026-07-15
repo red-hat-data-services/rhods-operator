@@ -16,6 +16,12 @@ patches:
       - op: add
         path: /objects/0/metadata/annotations/opendatahub.io~1support-status
         value: "unsupported"
+      - op: add
+        path: /metadata/annotations/opendatahub.io~1fast-version
+        value: "1"
+      - op: add
+        path: /objects/0/metadata/annotations/opendatahub.io~1fast-version
+        value: "1"
   - target: { kind: Template, name: vllm-cuda-runtime-template }
     patch: |-
       - op: replace

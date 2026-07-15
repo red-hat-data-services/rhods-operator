@@ -5,23 +5,24 @@ metadata:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/ootb: 'true'
   annotations:
-    description: MLServer is a lightweight, extensible inference server for serving machine learning models across multiple frameworks.
-    openshift.io/display-name: MLServer ServingRuntime for KServe
+    description: MLServer ServingRuntime with NVIDIA CUDA support (for NVIDIA GPUs)
+    openshift.io/display-name: MLServer NVIDIA GPU ServingRuntime for KServe
     openshift.io/provider-display-name: Red Hat, Inc.
     tags: rhods,rhoai,kserve,servingruntime
     template.openshift.io/documentation-url: https://github.com/opendatahub-io/MLServer
-    template.openshift.io/long-description: This template defines resources needed to deploy MLServer ServingRuntime with KServe in Red Hat OpenShift AI
+    template.openshift.io/long-description: This template defines resources needed to deploy MLServer NVIDIA GPU ServingRuntime with KServe in Red Hat OpenShift AI
     opendatahub.io/modelServingSupport: '["single"]'
     opendatahub.io/apiProtocol: 'REST'
     opendatahub.io/model-type: '["predictive"]'
-  name: mlserver-runtime-template
+  name: mlserver-cuda-runtime-template
 objects:
   - apiVersion: serving.kserve.io/v1alpha1
     kind: ServingRuntime
     metadata:
-      name: mlserver-runtime
+      name: mlserver-cuda-runtime
       annotations:
-        openshift.io/display-name: MLServer ServingRuntime for KServe
+        openshift.io/display-name: MLServer NVIDIA GPU ServingRuntime for KServe
+        opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
         opendatahub.io/runtime-version: '1.7.1'
         serving.kserve.io/server-type: mlserver
       labels:
@@ -34,7 +35,7 @@ objects:
         monitoring.opendatahub.io/scrape: 'true'
       containers:
         - name: kserve-container
-          image: $(mlserver-image)
+          image: $(mlserver-cuda-image)
           env:
             - name: MLSERVER_MODEL_IMPLEMENTATION
               value: '{{.Labels.modelClass}}'
@@ -63,7 +64,7 @@ objects:
           livenessProbe:
             initialDelaySeconds: 20
             periodSeconds: 10
-            failureThreshold: 6
+            failureThreshold: 10
             timeoutSeconds: 5
             httpGet:
               path: /v2/models/{{.Name}}/ready
@@ -71,10 +72,10 @@ objects:
           resources:
             requests:
               cpu: "1"
-              memory: 2Gi
-            limits:
-              cpu: "2"
               memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
           ports:
             - containerPort: 8080
               protocol: TCP
@@ -89,17 +90,5 @@ objects:
         - v2
       multiModel: false
       supportedModelFormats:
-        - name: sklearn
-          version: '0'
-        - name: sklearn
-          version: '1'
-        - name: xgboost
-          version: '1'
-        - name: xgboost
-          version: '2'
-        - name: lightgbm
-          version: '3'
-        - name: lightgbm
-          version: '4'
         - name: onnx
           version: '1'
