@@ -1,7 +1,7 @@
 map:
   notebooks:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: d3952370f218f0508153b15c52246f9fd00929e8
+    git.commit: aa5e23acd2befa93311062bdfcb85512b524afcc
     src: manifests
     dest: workbenches/notebooks
     ref_type: branch
@@ -14,12 +14,12 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 6a95291483511e6455bf69034a48d987eeb42428
+    git.commit: 261ab8889a68cb22e662cfc6264d6370c8fb154d
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 6a95291483511e6455bf69034a48d987eeb42428
+    git.commit: 261ab8889a68cb22e662cfc6264d6370c8fb154d
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 05ba46e9df4b453d999b192cb7c8353b59557368
+    git.commit: bf08cfd97a62091084d6bb32e9a75f47a31a444e
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -60,7 +60,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: d4c484336612d303b080576f369ac31c9547513d
+    git.commit: 4592c13101f3800935d3a6521d2d7f324f43c8d3
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -80,7 +80,7 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: f9cdd7e99c6d751267922cc1d018e0f8751e788b
+    git.commit: 5aa1807a3ddce20bbe3b788febba76ad248fd27a
   odh-spark-operator:
     src: config
     dest: sparkoperator
@@ -133,7 +133,7 @@ additional_meta:
     git.commit: 13f2a12d72a1af25f7fd5dfb20d405f8765e650d
   odh-cli:
     git.url: https://github.com/red-hat-data-services/odh-cli
-    git.commit: 5dbaa60dc1ba5a0bfcf0ffb84f4ccda1696dd682
+    git.commit: 7edd64ce6f0bd7b14981b103105d51f51edd6d1f
   odh-core-bff:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 6c06a91b4413321fde4a7e462a6d304c71f74d3f
@@ -163,7 +163,7 @@ additional_meta:
     git.commit: a26949a2c4cacaa635f15b3849cd101086b7b146
   odh-kserve-llmisvc-controller:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: b86eaa1a200443d18cd4325eb3c59b74e5b711b3
+    git.commit: dd2bfdd37522cbdb98b650b0e1f50ffdf94f15b6
   odh-kserve-localmodelnode-agent:
     git.url: https://github.com/red-hat-data-services/kserve
     git.commit: a26949a2c4cacaa635f15b3849cd101086b7b146
@@ -217,7 +217,7 @@ additional_meta:
     git.commit: cf8536accf9766978c15cf7c73601463e7939775
   odh-maas-controller:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: f9cdd7e99c6d751267922cc1d018e0f8751e788b
+    git.commit: 5aa1807a3ddce20bbe3b788febba76ad248fd27a
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
     git.commit: fae313d360f61fd78dd5a50f3a9c4f7ddd860bbb
@@ -247,7 +247,7 @@ additional_meta:
     git.commit: f9ff1c14b9fd4131572f2a05165e58119317cb7c
   odh-model-metadata-collection:
     git.url: https://github.com/red-hat-data-services/model-metadata-collection
-    git.commit: e751952a89f1e8a98844d08d7d7dabf2d9e45732
+    git.commit: 16651e3743153c04c2cd0548e417dd51de15a079
   odh-model-performance-data:
     git.url: https://github.com/red-hat-data-services/models-perf-benchmark-data
     git.commit: b8ec91b379cd384c4b6fed4925776e031f603d52
@@ -265,25 +265,25 @@ additional_meta:
     git.commit: 2dde3585df87d6f1bb43f3345bde80c0d62b8aac
   odh-mod-arch-automl:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: b18ccbd21978cd6920999e18664663752aa958c1
+    git.commit: 51005cad723c42faa8836c39d63b7293f12b28d1
   odh-mod-arch-autorag:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 51005cad723c42faa8836c39d63b7293f12b28d1
+    git.commit: e34331fc2e5bac9a7330062e0c909519b3a8f5aa
   odh-mod-arch-eval-hub:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 2dde3585df87d6f1bb43f3345bde80c0d62b8aac
   odh-mod-arch-gen-ai:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: b18ccbd21978cd6920999e18664663752aa958c1
+    git.commit: e34331fc2e5bac9a7330062e0c909519b3a8f5aa
   odh-mod-arch-maas:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 2dde3585df87d6f1bb43f3345bde80c0d62b8aac
+    git.commit: e34331fc2e5bac9a7330062e0c909519b3a8f5aa
   odh-mod-arch-mlflow:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 5d38395c14b78c0978e6701920fb926852dbbd85
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 51005cad723c42faa8836c39d63b7293f12b28d1
+    git.commit: e34331fc2e5bac9a7330062e0c909519b3a8f5aa
   odh-must-gather:
     git.url: https://github.com/red-hat-data-services/must-gather
     git.commit: 8cf1eaa5ad489aaa28afba28e2324af951ce0c44
@@ -319,10 +319,10 @@ additional_meta:
     git.commit: c51077abe25e96b6acb3487e1b572bced0d6973b
   odh-rhaii-cluster-validator:
     git.url: https://github.com/red-hat-data-services/rhaii-cluster-validation
-    git.commit: c9bd0690fb1704ba5d65fe0b57f55f90c78f367f
+    git.commit: 69f7abdd8f51798169b1e93931e702b1a26e8a5a
   odh-rhaii-validator-tools:
     git.url: https://github.com/red-hat-data-services/rhaii-cluster-validation
-    git.commit: c9bd0690fb1704ba5d65fe0b57f55f90c78f367f
+    git.commit: 69f7abdd8f51798169b1e93931e702b1a26e8a5a
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
     git.commit: 26a8052cda820504e5e5383c0d8ef1d5ebd4f8b0
