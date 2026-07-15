@@ -246,7 +246,7 @@ spec:
               fileStorage:
                 description: |-
                   FileStorage configures the file storage backend used to persist batch
-                  input/output files. If omitted, S3 defaults are used.
+                  input/output files. Exactly one of s3 or fs must be configured.
                 properties:
                   fs:
                     description: FS configures PVC-backed filesystem storage. Mutually
@@ -262,7 +262,12 @@ spec:
                           to mount.
                         maxLength: 253
                         type: string
+                    required:
+                    - claimName
                     type: object
+                    x-kubernetes-validations:
+                    - message: fs.claimName is required
+                      rule: size(self.claimName) > 0
                   retry:
                     description: Retry configures retry behaviour for transient file
                       storage errors.
@@ -282,7 +287,9 @@ spec:
                       maxRetries:
                         default: 3
                         description: MaxRetries is the maximum number of retry attempts.
+                          Set to 0 to disable retries.
                         format: int32
+                        minimum: 0
                         type: integer
                     type: object
                   s3:
@@ -835,6 +842,13 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                             type: object
                         type: object
+                      resultPollTimeout:
+                        description: |-
+                          ResultPollTimeout is the maximum time the batch-gateway processor waits
+                          for an async dispatch result before timing out (e.g. "30s").
+                        maxLength: 32
+                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                        type: string
                       tls:
                         description: TLS configures TLS for connections to inference
                           gateways.
@@ -915,15 +929,6 @@ spec:
                   config:
                     description: Config holds fine-grained processor configuration.
                     properties:
-                      asyncDispatchResultPollTimeout:
-                        description: |-
-                          AsyncDispatchResultPollTimeout is the maximum time the processor waits for
-                          an async dispatch result before timing out (e.g. "30s").
-                          Only takes effect when dispatchMode is "async".
-                          once the batch-gateway chart supports it.
-                        maxLength: 32
-                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                        type: string
                       concurrency:
                         description: Concurrency groups all dispatch-rate and concurrency
                           control knobs.
@@ -1268,6 +1273,18 @@ spec:
                       used to match Prometheus operator rule selectors.
                     type: object
                 type: object
+              redis:
+                description: RedisClient configures Redis/Valkey client connection
+                  settings (TLS, etc.).
+                properties:
+                  enableTLS:
+                    description: EnableTLS enables TLS for the Redis/Valkey connection.
+                    type: boolean
+                  insecure:
+                    description: Insecure skips TLS certificate verification. Only
+                      effective when enableTLS is true.
+                    type: boolean
+                type: object
               secretRef:
                 description: |-
                   SecretRef references the Kubernetes Secret that holds runtime credentials
@@ -1350,6 +1367,7 @@ spec:
                   rule: '!(has(self.secretName) && size(self.secretName) > 0 && has(self.certManager))'
             required:
             - apiServer
+            - fileStorage
             - gc
             - processor
             - secretRef

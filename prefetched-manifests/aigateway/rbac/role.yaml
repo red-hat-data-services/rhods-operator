@@ -8,6 +8,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - namespaces
   - serviceaccounts
   - services
   verbs:
@@ -26,17 +27,6 @@ rules:
   verbs:
   - get
   - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - ""
@@ -101,6 +91,7 @@ rules:
   - maasauthpolicies.maas.opendatahub.io
   - maasmodelrefs.maas.opendatahub.io
   - maassubscriptions.maas.opendatahub.io
+  - maastenantconfigs.maas.opendatahub.io
   - modelsasservices.components.platform.opendatahub.io
   - tenants.maas.opendatahub.io
   resources:
@@ -155,6 +146,7 @@ rules:
   - batch
   resources:
   - cronjobs
+  - jobs
   verbs:
   - create
   - delete
@@ -311,8 +303,10 @@ rules:
   - externalproviders
   verbs:
   - create
+  - delete
   - get
   - list
+  - patch
   - update
   - watch
 - apiGroups:
@@ -365,6 +359,7 @@ rules:
   - maasauthpolicies
   - maasmodelrefs
   - maassubscriptions
+  - maastenantconfigs
   - tenants
   verbs:
   - create
@@ -383,6 +378,7 @@ rules:
   - maasauthpolicies/finalizers
   - maasmodelrefs/finalizers
   - maassubscriptions/finalizers
+  - maastenantconfigs/finalizers
   verbs:
   - update
 - apiGroups:
@@ -393,6 +389,7 @@ rules:
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status
+  - maastenantconfigs/status
   - tenants/status
   verbs:
   - get
