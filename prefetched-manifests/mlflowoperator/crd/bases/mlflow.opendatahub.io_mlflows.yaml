@@ -2052,6 +2052,41 @@ spec:
                         type: string
                     type: object
                 type: object
+              readReplicaBackendStoreUri:
+                description: |-
+                  ReadReplicaBackendStoreURI is the optional URI for a read-only replica of the
+                  backend store. MLflow routes supported read operations to this database while
+                  writes and operator-managed migrations continue to use the primary backend store.
+                  The replica must use a compatible schema and may return stale data due to
+                  replication lag. For URIs containing credentials, prefer using
+                  ReadReplicaBackendStoreURIFrom.
+                type: string
+              readReplicaBackendStoreUriFrom:
+                description: |-
+                  ReadReplicaBackendStoreURIFrom is a reference to a secret containing the
+                  optional read-replica backend store URI. Mutually exclusive with
+                  ReadReplicaBackendStoreURI.
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a
+                      valid secret key.
+                    type: string
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  optional:
+                    description: Specify whether the Secret or its key must be defined
+                    type: boolean
+                required:
+                - key
+                type: object
+                x-kubernetes-map-type: atomic
               registryStoreUri:
                 description: |-
                   RegistryStoreURI is the URI for the MLflow registry store (model registry metadata).
@@ -2853,6 +2888,13 @@ spec:
                 > 0 && size(self.backendStoreUriFrom.key) > 0)
             - message: backendStoreUri and backendStoreUriFrom are mutually exclusive
               rule: '!(has(self.backendStoreUri) && has(self.backendStoreUriFrom))'
+            - message: readReplicaBackendStoreUri and readReplicaBackendStoreUriFrom
+                are mutually exclusive
+              rule: '!(has(self.readReplicaBackendStoreUri) && has(self.readReplicaBackendStoreUriFrom))'
+            - message: readReplicaBackendStoreUriFrom.name and readReplicaBackendStoreUriFrom.key
+                must be non-empty when readReplicaBackendStoreUriFrom is set
+              rule: '!has(self.readReplicaBackendStoreUriFrom) || (size(self.readReplicaBackendStoreUriFrom.name)
+                > 0 && size(self.readReplicaBackendStoreUriFrom.key) > 0)'
             - message: registryStoreUri and registryStoreUriFrom are mutually exclusive
               rule: '!(has(self.registryStoreUri) && has(self.registryStoreUriFrom))'
             - message: registryStoreUriFrom.name and registryStoreUriFrom.key must
@@ -2865,6 +2907,12 @@ spec:
                 || self.backendStoreUri.startsWith(''sqlite+'') || self.backendStoreUri.startsWith(''postgresql://'')
                 || self.backendStoreUri.startsWith(''postgresql+'') || self.backendStoreUri.startsWith(''mysql://'')
                 || self.backendStoreUri.startsWith(''mysql+'')'
+            - message: readReplicaBackendStoreUri must use a supported SQL metadata
+                store URI scheme
+              rule: '!has(self.readReplicaBackendStoreUri) || self.readReplicaBackendStoreUri.startsWith(''sqlite://'')
+                || self.readReplicaBackendStoreUri.startsWith(''sqlite+'') || self.readReplicaBackendStoreUri.startsWith(''postgresql://'')
+                || self.readReplicaBackendStoreUri.startsWith(''postgresql+'') ||
+                self.readReplicaBackendStoreUri.startsWith(''mysql://'') || self.readReplicaBackendStoreUri.startsWith(''mysql+'')'
             - message: registryStoreUri must use a supported SQL metadata store URI
                 scheme
               rule: '!has(self.registryStoreUri) || self.registryStoreUri.startsWith(''sqlite://'')
@@ -2875,6 +2923,10 @@ spec:
                 (sqlite:// or file:// prefix)
               rule: '!has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
                 && !self.backendStoreUri.startsWith(''file://'')) || has(self.storage)'
+            - message: storage must be configured when using a file-based read-replica
+                backend store (sqlite:// prefix)
+              rule: '!has(self.readReplicaBackendStoreUri) || !self.readReplicaBackendStoreUri.startsWith(''sqlite://'')
+                || has(self.storage)'
             - message: storage must be configured when using file-based registry store
                 (sqlite:// or file:// prefix)
               rule: '!has(self.registryStoreUri) || (!self.registryStoreUri.startsWith(''sqlite://'')

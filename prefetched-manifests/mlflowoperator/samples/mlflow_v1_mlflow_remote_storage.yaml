@@ -1,4 +1,4 @@
-# Example with remote storage (PostgreSQL + S3)
+# Example with remote storage (PostgreSQL primary/read replica + S3)
 # No PVC required - all storage is remote
 #
 # This example uses secret references for database credentials (recommended for production).
@@ -6,7 +6,7 @@
 #
 #   kubectl create secret generic mlflow-db-credentials \
 #     --from-literal=backend-store-uri='postgresql://mlflow:password@postgres.example.com:5432/mlflow' \
-#     --from-literal=registry-store-uri='postgresql://mlflow:password@postgres.example.com:5432/mlflow_registry'
+#     --from-literal=read-replica-backend-store-uri='postgresql://mlflow:password@postgres-reader.example.com:5432/mlflow'
 #
 apiVersion: mlflow.opendatahub.io/v1
 kind: MLflow
@@ -43,9 +43,16 @@ spec:
     name: mlflow-db-credentials
     key: backend-store-uri
 
+  # Optional read replica for supported tracking and model-registry reads.
+  # Writes and operator-managed migrations continue to use the primary backend store.
+  readReplicaBackendStoreUriFrom:
+    name: mlflow-db-credentials
+    key: read-replica-backend-store-uri
+
   # Alternative: Direct URI (not recommended for production due to embedded credentials)
   # backendStoreUri: "postgresql://mlflow:password@postgres.example.com:5432/mlflow"
-  # registryStoreUri: defaults to backendStoreUri if not specified
+  # readReplicaBackendStoreUri: "postgresql://mlflow:password@postgres-reader.example.com:5432/mlflow"
+  # Registry storage defaults to the primary backend store configuration if not specified
 
   # Remote S3 storage for artifacts
   artifactsDestination: "s3://my-mlflow-bucket/artifacts"

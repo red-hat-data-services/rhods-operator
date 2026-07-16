@@ -50,6 +50,11 @@ spec:
           value: placeholder-section-title
         - name: ENABLE_MLFLOW_OPERATOR_MODULE_CONTROLLER
           value: "false"
+        - name: ENABLE_NAMESPACE_RBAC
+          value: "false"
+        - name: RESOURCE_NAME_PREFIX
+          # Must match namePrefix in config/base/kustomization.yaml
+          value: mlflow-operator-
         ports: []
         securityContext:
           readOnlyRootFilesystem: true
