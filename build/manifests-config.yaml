@@ -14,7 +14,7 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: d6b8a8dd4c27bd155ea049ca8e7420e85e066275
+    git.commit: a596bd1fa2e777aa65da368e3d3ea97fd515ec5b
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
@@ -29,7 +29,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 21e3b46afc4d756798b50368d7bf6371bd4fa56a
+    git.commit: d362d4cac9bc04be91fba047a723876a9e60229c
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 9149aa95fa1915992086dd57bec81648d4260925
+    git.commit: 06c162554dba7591cd42be0028d43a3fc62d6a76
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -79,7 +79,7 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 4eeb8e7cc2fb3bece9258c87566ce42430912bf0
+    git.commit: 8848ad45579c8650697b525623864c384fef1862
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
