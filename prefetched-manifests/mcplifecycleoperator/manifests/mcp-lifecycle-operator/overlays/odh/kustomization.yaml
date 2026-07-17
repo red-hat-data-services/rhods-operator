@@ -4,3 +4,12 @@ kind: Kustomization
 resources:
 - ../../default
 - ../../prometheus
+
+patches:
+- target:
+    kind: ServiceMonitor
+    name: controller-manager-metrics-monitor
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: mcp-lifecycle-operator-controller-manager-metrics-monitor
