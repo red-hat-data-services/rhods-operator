@@ -22,3 +22,12 @@ spec:
           value: "workload-variant-autoscaler-saturation-scaling-config"
         - name: CONFIG_MAP_NAME
           value: "workload-variant-autoscaler-manager-config"
+        volumeMounts:
+        - name: metrics-serving-cert
+          mountPath: /etc/k8s-metrics-server/serving-certs
+          readOnly: true
+      volumes:
+      - name: metrics-serving-cert
+        secret:
+          secretName: metrics-server-cert
+          defaultMode: 420
