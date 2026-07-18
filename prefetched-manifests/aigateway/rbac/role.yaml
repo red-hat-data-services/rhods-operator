@@ -8,7 +8,6 @@ rules:
   - ""
   resources:
   - configmaps
-  - namespaces
   - serviceaccounts
   - services
   verbs:
@@ -27,6 +26,17 @@ rules:
   verbs:
   - get
   - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - ""
@@ -460,6 +470,17 @@ rules:
   - networking.k8s.io
   resources:
   - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - opentelemetry.io
+  resources:
+  - opentelemetrycollectors
   verbs:
   - create
   - delete
