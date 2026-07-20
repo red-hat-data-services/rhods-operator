@@ -6,6 +6,7 @@ resources:
 # - ../../crd/full/localmodel
 - rbac/
 - accelerators/
+- accelerators-fast/
 - network-policies.yaml
 - ../../monitoring/llmisvc
 
@@ -185,9 +186,29 @@ replacements:
   targets:
   - select:
       kind: LLMInferenceServiceConfig
-      name: kserve-config-llm-template-nvidia-cuda
+      name: kserve-config-llm-single-node-template-nvidia-cuda
     fieldPaths:
     - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+    - spec.prefill.worker.containers.[name=main].image
 - source:
     kind: ConfigMap
     name: kserve-parameters
@@ -226,6 +247,148 @@ replacements:
   - select:
       kind: LLMInferenceServiceConfig
       name: kserve-config-llm-template-ibm-spyre-ppc64le
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+# Replace fast-1 accelerator LLMInferenceServiceConfig images
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-nvidia-cuda-fast-1
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+    - spec.prefill.worker.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-amd-rocm-fast-1
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-amd-rocm-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-intel-gaudi-fast-1
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-intel-gaudi-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-ibm-spyre-fast-1
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-s390x-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-x86-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-ppc64le-fast-1
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+# Replace fast-2 accelerator LLMInferenceServiceConfig images
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-nvidia-cuda-fast-2
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+    - spec.worker.containers.[name=main].image
+    - spec.prefill.template.containers.[name=main].image
+    - spec.prefill.worker.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-amd-rocm-fast-2
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-amd-rocm-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-intel-gaudi-fast-2
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-intel-gaudi-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-ibm-spyre-fast-2
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-s390x-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-x86-fast-2
+    fieldPaths:
+    - spec.template.containers.[name=main].image
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-ppc64le-fast-2
     fieldPaths:
     - spec.template.containers.[name=main].image
 # Set runAsNonRoot: true for all LLMInferenceServiceConfig templates.
@@ -313,6 +476,206 @@ replacements:
       name: inferenceservice-config
     fieldPaths:
     - data.oauthProxy.image
+# Stamp the upstream runtime (vLLM) version annotation on the accelerator
+# LLMInferenceServiceConfig presets. Values are injected into params.env by the
+# build pipeline as raw SBOM versionInfo strings. Each preset is stamped from
+# its own dedicated key: base presets from the base *-upstream-version keys,
+# fast variants from the matching *-fast-N-upstream-version keys.
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-nvidia-cuda-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-template-nvidia-cuda
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-nvidia-cuda-fast-1-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-nvidia-cuda-fast-2-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-single-node-pd-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-multi-node-pd-template-nvidia-cuda-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-amd-rocm-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-amd-rocm
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-amd-rocm-fast-1-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-amd-rocm-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-amd-rocm-fast-2-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-amd-rocm-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-intel-gaudi-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-intel-gaudi
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-intel-gaudi-fast-1-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-intel-gaudi-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-intel-gaudi-fast-2-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-intel-gaudi-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-ibm-spyre-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-x86
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-ppc64le
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-s390x
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-ibm-spyre-fast-1-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-x86-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-ppc64le-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-s390x-fast-1
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-ibm-spyre-fast-2-upstream-version
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-x86-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-ppc64le-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-template-ibm-spyre-s390x-fast-2
+    fieldPaths:
+    - metadata.annotations.[opendatahub.io/runtime-version]
 
 configMapGenerator:
 - envs:
