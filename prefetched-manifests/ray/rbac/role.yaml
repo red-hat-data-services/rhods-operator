@@ -23,14 +23,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - endpoints
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - pods
   verbs:
   - create
@@ -53,8 +45,15 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - pods/resize
+  verbs:
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - secrets
   verbs:
+  - create
   - delete
   - get
   - list
@@ -144,6 +143,14 @@ rules:
   - list
   - update
 - apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - extensions
   resources:
   - ingresses
@@ -160,8 +167,10 @@ rules:
   resources:
   - gateways
   verbs:
+  - create
   - get
   - list
+  - update
   - watch
 - apiGroups:
   - gateway.networking.k8s.io
@@ -210,6 +219,7 @@ rules:
   - ray.io
   resources:
   - rayclusters
+  - raycronjobs
   - rayjobs
   - rayservices
   verbs:
@@ -224,6 +234,7 @@ rules:
   - ray.io
   resources:
   - rayclusters/finalizers
+  - raycronjobs/finalizers
   - rayjobs/finalizers
   - rayservices/finalizers
   verbs:
@@ -232,6 +243,7 @@ rules:
   - ray.io
   resources:
   - rayclusters/status
+  - raycronjobs/status
   - rayjobs/status
   - rayservices/status
   verbs:

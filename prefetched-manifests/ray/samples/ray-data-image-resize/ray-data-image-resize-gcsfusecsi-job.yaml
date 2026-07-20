@@ -21,13 +21,13 @@ spec:
       template:
         metadata:
           annotations:
-            gke-gcsfuse/cpu-limit: '0'
-            gke-gcsfuse/ephemeral-storage-limit: '0'
-            gke-gcsfuse/memory-limit: '0'
-            gke-gcsfuse/volumes: 'true'
+            gke-gcsfuse/cpu-limit: "0"
+            gke-gcsfuse/ephemeral-storage-limit: "0"
+            gke-gcsfuse/memory-limit: "0"
+            gke-gcsfuse/volumes: "true"
         spec:
           containers:
-          - image: rayproject/ray:2.46.0
+          - image: rayproject/ray:2.52.0
             name: ray-head
             ports:
             - containerPort: 6379
@@ -37,9 +37,12 @@ spec:
             - containerPort: 10001
               name: client
             resources:
+              limits:
+                cpu: "1"
+                memory: "5Gi"
               requests:
-                cpu: '1'
-                memory: 4Gi
+                cpu: "1"
+                memory: "4Gi"
             volumeMounts:
             - mountPath: /tmp/ray
               name: ray-logs
@@ -61,13 +64,13 @@ spec:
                 mountOptions: implicit-dirs,anonymous-access,uid=1000,gid=100,metadata-cache:ttl-secs:-1,metadata-cache:stat-cache-max-size-mb:-1,metadata-cache:type-cache-max-size-mb:-1
                 skipCSIBucketAccessCheck: 'true'
             name: gcs-fuse-csi-ephemeral
-    rayVersion: 2.46.0
+    rayVersion: 2.52.0
     workerGroupSpecs:
     - groupName: worker-group
       maxReplicas: 3
       minReplicas: 1
-      rayStartParams: {}
       replicas: 3
+      rayStartParams: {}
       template:
         metadata:
           annotations:
@@ -77,12 +80,12 @@ spec:
             gke-gcsfuse/volumes: 'true'
         spec:
           containers:
-          - image: rayproject/ray:2.46.0
+          - image: rayproject/ray:2.52.0
             name: ray-worker
             resources:
               requests:
-                cpu: '1'
-                memory: 4Gi
+                cpu: "1"
+                memory: "4Gi"
             volumeMounts:
             - mountPath: /tmp/ray
               name: ray-logs
