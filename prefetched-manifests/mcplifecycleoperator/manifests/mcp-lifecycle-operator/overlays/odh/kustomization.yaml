@@ -7,6 +7,14 @@ resources:
 
 patches:
 - target:
+    kind: Namespace
+  patch: |-
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: system
+    $patch: delete
+- target:
     kind: ServiceMonitor
     name: controller-manager-metrics-monitor
   patch: |-
