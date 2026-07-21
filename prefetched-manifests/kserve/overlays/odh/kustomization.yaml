@@ -135,6 +135,27 @@ replacements:
         name: kserve-config-llm-scheduler
       fieldPaths:
         - spec.router.scheduler.template.containers.[name=tokenizer].image
+# Replace latency predictor images with ODH images
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-latency-predictor-training
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-scheduler-latency-predictor
+    fieldPaths:
+    - spec.router.scheduler.template.containers.[name=training-server].image
+- source:
+    kind: ConfigMap
+    name: kserve-parameters
+    fieldPath: data.kserve-llm-d-latency-predictor-prediction
+  targets:
+  - select:
+      kind: LLMInferenceServiceConfig
+      name: kserve-config-llm-scheduler-latency-predictor
+    fieldPaths:
+    - spec.router.scheduler.template.containers.[name=prediction-server].image
 # Replace routing sidecar init container images with ODH image
 - source:
     kind: ConfigMap
