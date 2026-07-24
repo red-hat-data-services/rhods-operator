@@ -11,7 +11,6 @@ import (
 //go:embed trainingoperator/monitoring
 //go:embed trainer/monitoring
 //go:embed trustyai/monitoring
-//go:embed workbenches/monitoring
 //go:embed dashboard/monitoring
 //go:embed datasciencepipelines/monitoring
 //go:embed feastoperator/monitoring
@@ -19,7 +18,6 @@ import (
 //go:embed ogx/monitoring
 //go:embed modelcontroller/monitoring
 //go:embed modelregistry/monitoring
-//go:embed modelsasservice/monitoring
 //go:embed ray/monitoring
 var ComponentRulesFS embed.FS
 

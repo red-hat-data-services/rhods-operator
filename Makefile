@@ -30,7 +30,7 @@ ifeq ($(ODH_PLATFORM_TYPE), OpenDataHub)
 	# - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 	# - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 	ifeq ($(VERSION), )
-		VERSION = 3.5.0-ea.2
+		VERSION = 3.5.0
 	endif
 	# Specifies the namespace where the operator pods are deployed (defaults to opendatahub-operator-system)
 	OPERATOR_NAMESPACE ?= opendatahub-operator-system
@@ -62,7 +62,7 @@ else
 	# - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 	# NOTE: see also the git branches for RHOAI in get_all_manifests.sh. This variable does NOT affect those
 	ifeq ($(VERSION), )
-		VERSION = 3.5.0-ea.2
+		VERSION = 3.5.0
 	endif
 	# Specifies the namespace where the operator pods are deployed (defaults to redhat-ods-operator)
 	OPERATOR_NAMESPACE ?= redhat-ods-operator
@@ -170,7 +170,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 # E2E tests additional flags
 # See README.md, default go test timeout 10m
-E2E_TEST_FLAGS = -timeout 50m
+E2E_TEST_FLAGS = -timeout 80m
 
 # Default image-build is to not use local odh-manifests folder
 # set to "true" to use local instead
@@ -282,9 +282,7 @@ endif
 	@cp $(CONFIG_DIR)/crd/bases/components.platform.opendatahub.io_kserves.yaml config/rhaii/crd/bases/
 	@cp $(CONFIG_DIR)/crd/bases/config.opendatahub.io_platforms.yaml config/rhaii/crd/bases/
 	@$(call add-crd-to-kustomization,config/rhaii/crd/bases)
-	@# Generate shared rhaii webhook manifests with only KServe connection webhooks
-	@$(YQ) eval 'select(.kind == "MutatingWebhookConfiguration") | .webhooks = [.webhooks[] | select(.name == "connection-isvc.opendatahub.io" or .name == "connection-llmisvc.opendatahub.io")]' $(CONFIG_DIR)/webhook/manifests.yaml > config/rhaii/webhook/manifests.yaml
-MANIFEST_GENERATED_FILES = config/crd/bases config/rhoai/crd/bases config/rhaii/crd/bases config/crd/external config/rhoai/crd/external config/rbac/role.yaml config/rhoai/rbac/role.yaml config/webhook/manifests.yaml config/rhoai/webhook/manifests.yaml config/rhaii/webhook/manifests.yaml
+MANIFEST_GENERATED_FILES = config/crd/bases config/rhoai/crd/bases config/rhaii/crd/bases config/crd/external config/rhoai/crd/external config/rbac/role.yaml config/rhoai/rbac/role.yaml config/webhook/manifests.yaml config/rhoai/webhook/manifests.yaml
 
 .PHONY: manifests-all
 manifests-all:
@@ -370,7 +368,8 @@ endif
 api-docs: crd-ref-docs ## Creates API docs using https://github.com/elastic/crd-ref-docs, render managementstate with marker
 	$(CRD_REF_DOCS) --source-path ./ --output-path ./docs/api-overview.md --renderer markdown --config ./crd-ref-docs.config.yaml && \
 	grep -Ev '\.io/[^v][^1].*)$$' ./docs/api-overview.md > temp.md && mv ./temp.md ./docs/api-overview.md && \
-	$(SED_COMMAND) -i "s|](#managementstate)|](https://pkg.go.dev/github.com/openshift/api@v0.0.0-20250812222054-88b2b21555f3/operator/v1#ManagementState)|g" ./docs/api-overview.md
+	$(SED_COMMAND) -i "s|](#managementstate)|](https://pkg.go.dev/github.com/openshift/api@v0.0.0-20250812222054-88b2b21555f3/operator/v1#ManagementState)|g" ./docs/api-overview.md && \
+	$(SED_COMMAND) -i "s|](#managementspec)|](https://pkg.go.dev/github.com/opendatahub-io/opendatahub-operator/v2/api/common#ManagementSpec)|g" ./docs/api-overview.md
 	$(CRD_REF_DOCS) --source-path ./api/cloudmanager/ --output-path ./docs/cloudmanager-api-overview.md --renderer markdown --config ./crd-ref-docs.cloudmanager.config.yaml
 
 .PHONY: ginkgo
@@ -664,7 +663,7 @@ unit-test-operator: envtest ginkgo # directly use ginkgo since the framework is 
         		--cover \
         		--coverprofile=cover.out \
         		--succinct \
-        		--skip-package=pkg/clusterhealth,cmd/health-check \
+        		--skip-package=pkg/clusterhealth,pkg/mcptools,cmd/health-check \
         		$(TEST_SRC)
 CLEANFILES += cover.out
 

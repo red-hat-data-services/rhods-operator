@@ -5,7 +5,10 @@ commonLabels:
   opendatahub.io/config-type: accelerator
 
 resources:
-- nvidia-cuda-config-llm-template.yaml
+- nvidia-cuda-config-llm-single-node-template.yaml
+- nvidia-cuda-config-llm-single-node-pd-template.yaml
+- nvidia-cuda-config-llm-multi-node-template.yaml
+- nvidia-cuda-config-llm-multi-node-pd-template.yaml
 - amd-rocm-config-llm-template.yaml
 - intel-gaudi-config-llm-template.yaml
 - ibm-spyre-s390x-config-llm-template.yaml

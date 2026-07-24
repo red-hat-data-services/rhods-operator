@@ -33,6 +33,13 @@ rules:
   - apiGroups:
       - mlflow.kubeflow.org
     resources:
+      - mcpservers
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - mlflow.kubeflow.org
+    resources:
       - gatewayendpoints/use
     verbs:
       - create

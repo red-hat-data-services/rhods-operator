@@ -114,13 +114,6 @@ rules:
   - update
 - apiGroups:
   - rbac.authorization.k8s.io
-  resources:
-  - clusterrolebindings
-  - clusterroles
-  verbs:
-  - create
-- apiGroups:
-  - rbac.authorization.k8s.io
   resourceNames:
   - mlflow
   resources:
@@ -145,4 +138,45 @@ rules:
   - list
   - patch
   - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  - clusterroles
+  - rolebindings
+  verbs:
+  - create
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - mlflow-operator-mlflow-edit
+  - mlflow-operator-mlflow-view
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - odh-group-mlflow-edit
+  - odh-group-mlflow-view
+  resources:
+  - rolebindings
+  verbs:
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - services.platform.opendatahub.io
+  resourceNames:
+  - auth
+  resources:
+  - auths
+  verbs:
+  - get
+  - list
   - watch

@@ -8,7 +8,7 @@ kind: RayCluster
 metadata:
   name: custom-head-svc
 spec:
-  rayVersion: '2.46.0' # should match the Ray version in the image of the containers
+  rayVersion: '2.52.0' # should match the Ray version in the image of the containers
   # Ray head pod template
   headGroupSpec:
     # the following params are used to complete the ray start: ray start --head --block --redis-port=6379 ...
@@ -32,14 +32,14 @@ spec:
       spec:
         containers:
         - name: ray-head
-          image: rayproject/ray:2.46.0
+          image: rayproject/ray:2.52.0
           resources:
             limits:
-              cpu: 1
-              memory: 2Gi
+              cpu: "1"
+              memory: "5Gi"
             requests:
-              cpu: 500m
-              memory: 2Gi
+              cpu: "500m"
+              memory: "2Gi"
           ports:
           - containerPort: 6379
             name: gcs-server

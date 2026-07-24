@@ -64,6 +64,18 @@ spec:
                     - Removed
                     type: string
                 type: object
+              modelsAsAService:
+                description: ModelsAsAService controls the Models as a Service sub-component.
+                properties:
+                  managementState:
+                    default: Removed
+                    description: ManagementState controls whether the maas-controller
+                      is deployed.
+                    enum:
+                    - Managed
+                    - Removed
+                    type: string
+                type: object
             type: object
           status:
             description: AIGatewayStatus defines the observed state of AIGateway.
@@ -133,19 +145,10 @@ spec:
                       in the format repo@branch/commit (e.g. github.com/org/repo@main/abc1234).
                     type: string
                   platform:
-                    description: Platform reports the detected platform identity and
-                      version.
-                    properties:
-                      name:
-                        description: Name is the platform identifier (e.g. OpenDataHub,
-                          SelfManagedRHOAI).
-                        type: string
-                      version:
-                        description: Version is the platform operator version.
-                        type: string
-                    required:
-                    - name
-                    type: object
+                    description: |-
+                      Platform is the detected platform identifier (e.g. OpenShift AI Self-Managed).
+                      The platform version is reported separately via status.releases.
+                    type: string
                   sources:
                     description: Sources lists the manifest sources loaded during
                       reconciliation.

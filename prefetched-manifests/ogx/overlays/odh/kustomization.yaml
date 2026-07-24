@@ -19,7 +19,7 @@ replacements:
   - source:
       kind: ConfigMap
       name: params
-      fieldPath: data.RELATED_IMAGE_ODH_OGX_OPERATOR
+      fieldPath: data.RELATED_IMAGE_ODH_OGX_K8S_OPERATOR_IMAGE
     targets:
       - select:
           kind: Deployment
@@ -39,10 +39,10 @@ replacements:
   - source:
       kind: ConfigMap
       name: params
-      fieldPath: data.RELATED_IMAGE_RH_DISTRIBUTION
+      fieldPath: data.RELATED_IMAGE_ODH_OGX_CORE_IMAGE
     targets:
       - select:
           kind: Deployment
           name: controller-manager
         fieldPaths:
-          - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_RH_DISTRIBUTION].value
+          - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_ODH_OGX_CORE_IMAGE].value

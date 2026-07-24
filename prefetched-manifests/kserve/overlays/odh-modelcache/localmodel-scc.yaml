@@ -17,7 +17,12 @@ runAsUser:
   type: MustRunAs
   uid: 1000
 seLinuxContext:
-  type: RunAsAny
+  # MustRunAs (with no explicit level) makes OpenShift derive the pod's SELinux
+  # MCS category from the namespace's `openshift.io/sa.scc.mcs` annotation, the
+  # same category the model-cache permission-fix Job relabels the hostPath
+  # directory to. RunAsAny let CRI-O assign an unrelated per-pod category,
+  # causing a permanent SELinux permission-denied loop on the agent.
+  type: MustRunAs
 fsGroup:
   type: MustRunAs
   ranges:

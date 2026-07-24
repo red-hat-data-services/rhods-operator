@@ -49,9 +49,24 @@ type PlatformModules struct {
 	// +optional
 	AIGateway common.ManagementSpec `json:"aigateway,omitempty"`
 
+	// MLflowOperator controls the MLflow module operator lifecycle.
+	// +optional
+	MLflowOperator common.ManagementSpec `json:"mlflowoperator,omitempty"`
+
 	// Monitoring controls the monitoring module operator lifecycle.
 	// +optional
 	Monitoring common.ManagementSpec `json:"monitoring,omitempty"`
+
+	// MCPLifecycleOperator controls the MCP Lifecycle Operator module lifecycle.
+	// +optional
+	MCPLifecycleOperator common.ManagementSpec `json:"mcplifecycleoperator,omitempty"`
+	// Kserve controls the kserve module operator lifecycle.
+	// +optional
+	Kserve common.ManagementSpec `json:"kserve,omitempty"`
+
+	// Workbenches controls the workbenches module operator lifecycle.
+	// +optional
+	Workbenches common.ManagementSpec `json:"workbenches,omitempty"`
 }
 
 // PlatformStatus defines the observed state of Platform.
@@ -105,8 +120,20 @@ func (m *PlatformModules) EnabledModules() []string {
 	if m.AIGateway.ManagementState == operatorv1.Managed {
 		enabled = append(enabled, "aigateway")
 	}
+	if m.MLflowOperator.ManagementState == operatorv1.Managed {
+		enabled = append(enabled, "mlflowoperator")
+	}
 	if m.Monitoring.ManagementState == operatorv1.Managed {
 		enabled = append(enabled, "monitoring")
+	}
+	if m.MCPLifecycleOperator.ManagementState == operatorv1.Managed {
+		enabled = append(enabled, "mcplifecycleoperator")
+	}
+	if m.Kserve.ManagementState == operatorv1.Managed {
+		enabled = append(enabled, "kserve")
+	}
+	if m.Workbenches.ManagementState == operatorv1.Managed {
+		enabled = append(enabled, "workbenches")
 	}
 	return enabled
 }

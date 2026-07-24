@@ -41,6 +41,10 @@ parameters:
   - name: MODEL_SYNC_DESTINATION_OCI_URI
     description: The OCI URI for the destination
     required: true
+  - name: MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY
+    description: Enable TLS verification for destination OCI registry operations (set to "false" for registries with self-signed certificates)
+    required: false
+    value: "true"
   - name: MODEL_SYNC_REGISTRY_USER_TOKEN_ENVVAR
     description: The environment variable name for the registry user token
     required: false
@@ -143,8 +147,12 @@ objects:
                   value: "/opt/creds/source"
                 - name: MODEL_SYNC_SOURCE_AWS_KEY
                   value: "${MODEL_SYNC_SOURCE_AWS_KEY}"
+                - name: MODEL_SYNC_DESTINATION_OCI_URI
+                  value: "${MODEL_SYNC_DESTINATION_OCI_URI}"
                 - name: MODEL_SYNC_DESTINATION_OCI_CREDENTIALS_PATH
                   value: "/opt/creds/destination"
+                - name: MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY
+                  value: "${MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY}"
                 - name: MODEL_SYNC_MODEL_UPLOAD_INTENT
                   value: "${MODEL_SYNC_MODEL_UPLOAD_INTENT}"
                 - name: MODEL_SYNC_METADATA_CONFIGMAP_PATH

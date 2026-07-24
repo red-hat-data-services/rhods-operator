@@ -2052,6 +2052,41 @@ spec:
                         type: string
                     type: object
                 type: object
+              readReplicaBackendStoreUri:
+                description: |-
+                  ReadReplicaBackendStoreURI is the optional URI for a read-only replica of the
+                  backend store. MLflow routes supported read operations to this database while
+                  writes and operator-managed migrations continue to use the primary backend store.
+                  The replica must use a compatible schema and may return stale data due to
+                  replication lag. For URIs containing credentials, prefer using
+                  ReadReplicaBackendStoreURIFrom.
+                type: string
+              readReplicaBackendStoreUriFrom:
+                description: |-
+                  ReadReplicaBackendStoreURIFrom is a reference to a secret containing the
+                  optional read-replica backend store URI. Mutually exclusive with
+                  ReadReplicaBackendStoreURI.
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a
+                      valid secret key.
+                    type: string
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  optional:
+                    description: Specify whether the Secret or its key must be defined
+                    type: boolean
+                required:
+                - key
+                type: object
+                x-kubernetes-map-type: atomic
               registryStoreUri:
                 description: |-
                   RegistryStoreURI is the URI for the MLflow registry store (model registry metadata).
@@ -2664,6 +2699,122 @@ spec:
                       type: string
                   type: object
                 type: array
+              traceArchival:
+                description: |-
+                  TraceArchival configures trace archival, which moves older trace span
+                  payloads from the SQL tracking store to a configured artifact location.
+                  When enabled, the operator creates a CronJob that runs the standalone
+                  archival module and mounts the archival config into the MLflow server
+                  so the UI can surface archival status. The server's built-in scheduler
+                  stays disabled; the CronJob handles execution externally.
+                properties:
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled toggles trace archival. When true, the operator creates a
+                      CronJob that runs the standalone archival module and mounts the
+                      archival config into the MLflow server for UI awareness.
+                    type: boolean
+                  location:
+                    description: |-
+                      Location is the artifact repository URI where archived span payloads
+                      are stored. Supports s3:// and file:// (file:// requires Storage).
+                      Required when enabled is true.
+                    maxLength: 2048
+                    type: string
+                  longRetentionAllowlist:
+                    description: |-
+                      LongRetentionAllowlist contains experiment IDs whose longer-than-broader
+                      retention values may be honored. Experiments not in this list use the
+                      broader server or workspace retention even if they set a longer value.
+                    items:
+                      type: string
+                    maxItems: 64
+                    type: array
+                  maxTracesPerPass:
+                    default: 1000
+                    description: MaxTracesPerPass limits the number of traces archived
+                      in a single pass.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  resources:
+                    description: Resources for the trace archival CronJob container.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
+                  retention:
+                    description: |-
+                      Retention is the age threshold after which span payloads are archived
+                      out of the tracking store. Uses the duration grammar <int><unit> where
+                      unit is m, h, or d. Examples: "30d", "12h", "360m".
+                      Required when enabled is true.
+                    maxLength: 16
+                    pattern: ^\d+[mhd]$
+                    type: string
+                  schedule:
+                    default: 0 */6 * * *
+                    description: |-
+                      Schedule is the cron expression for when archival runs
+                      (e.g., "0 */6 * * *" for every 6 hours).
+                    maxLength: 256
+                    minLength: 1
+                    type: string
+                type: object
               workers:
                 default: 1
                 description: |-
@@ -2737,6 +2888,13 @@ spec:
                 > 0 && size(self.backendStoreUriFrom.key) > 0)
             - message: backendStoreUri and backendStoreUriFrom are mutually exclusive
               rule: '!(has(self.backendStoreUri) && has(self.backendStoreUriFrom))'
+            - message: readReplicaBackendStoreUri and readReplicaBackendStoreUriFrom
+                are mutually exclusive
+              rule: '!(has(self.readReplicaBackendStoreUri) && has(self.readReplicaBackendStoreUriFrom))'
+            - message: readReplicaBackendStoreUriFrom.name and readReplicaBackendStoreUriFrom.key
+                must be non-empty when readReplicaBackendStoreUriFrom is set
+              rule: '!has(self.readReplicaBackendStoreUriFrom) || (size(self.readReplicaBackendStoreUriFrom.name)
+                > 0 && size(self.readReplicaBackendStoreUriFrom.key) > 0)'
             - message: registryStoreUri and registryStoreUriFrom are mutually exclusive
               rule: '!(has(self.registryStoreUri) && has(self.registryStoreUriFrom))'
             - message: registryStoreUriFrom.name and registryStoreUriFrom.key must
@@ -2749,6 +2907,12 @@ spec:
                 || self.backendStoreUri.startsWith(''sqlite+'') || self.backendStoreUri.startsWith(''postgresql://'')
                 || self.backendStoreUri.startsWith(''postgresql+'') || self.backendStoreUri.startsWith(''mysql://'')
                 || self.backendStoreUri.startsWith(''mysql+'')'
+            - message: readReplicaBackendStoreUri must use a supported SQL metadata
+                store URI scheme
+              rule: '!has(self.readReplicaBackendStoreUri) || self.readReplicaBackendStoreUri.startsWith(''sqlite://'')
+                || self.readReplicaBackendStoreUri.startsWith(''sqlite+'') || self.readReplicaBackendStoreUri.startsWith(''postgresql://'')
+                || self.readReplicaBackendStoreUri.startsWith(''postgresql+'') ||
+                self.readReplicaBackendStoreUri.startsWith(''mysql://'') || self.readReplicaBackendStoreUri.startsWith(''mysql+'')'
             - message: registryStoreUri must use a supported SQL metadata store URI
                 scheme
               rule: '!has(self.registryStoreUri) || self.registryStoreUri.startsWith(''sqlite://'')
@@ -2759,6 +2923,10 @@ spec:
                 (sqlite:// or file:// prefix)
               rule: '!has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
                 && !self.backendStoreUri.startsWith(''file://'')) || has(self.storage)'
+            - message: storage must be configured when using a file-based read-replica
+                backend store (sqlite:// prefix)
+              rule: '!has(self.readReplicaBackendStoreUri) || !self.readReplicaBackendStoreUri.startsWith(''sqlite://'')
+                || has(self.storage)'
             - message: storage must be configured when using file-based registry store
                 (sqlite:// or file:// prefix)
               rule: '!has(self.registryStoreUri) || (!self.registryStoreUri.startsWith(''sqlite://'')
@@ -2774,6 +2942,9 @@ spec:
             - message: setting the MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE environment
                 variable is not allowed
               rule: '!has(self.env) || self.env.all(e, e.name != ''MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE'')'
+            - message: setting the MLFLOW_SERVER_ENABLE_JOB_EXECUTION environment
+                variable is not allowed; the operator manages job execution lifecycle
+              rule: '!has(self.env) || self.env.all(e, e.name != ''MLFLOW_SERVER_ENABLE_JOB_EXECUTION'')'
             - message: each networkPolicyEgressRules entry must specify at least one
                 port or one destination
               rule: '!has(self.networkPolicyEgressRules) || self.networkPolicyEgressRules.all(r,
@@ -2789,6 +2960,25 @@ spec:
               rule: '!has(self.resourceClaims) || self.resourceClaims.all(c, ((has(c.resourceClaimName)
                 && size(c.resourceClaimName) > 0) != (has(c.resourceClaimTemplateName)
                 && size(c.resourceClaimTemplateName) > 0)))'
+            - message: storage must be configured when traceArchival.location uses
+                file-based storage (file:// prefix)
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.location)
+                || !self.traceArchival.location.startsWith(''file://'') || has(self.storage)'
+            - message: traceArchival.schedule is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.schedule)
+                && size(self.traceArchival.schedule) > 0)'
+            - message: traceArchival.location is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.location)
+                && size(self.traceArchival.location) > 0)'
+            - message: traceArchival.retention is required when traceArchival.enabled
+                is true
+              rule: '!has(self.traceArchival) || !has(self.traceArchival.enabled)
+                || self.traceArchival.enabled == false || (has(self.traceArchival.retention)
+                && size(self.traceArchival.retention) > 0)'
           status:
             description: status defines the observed state of MLflow
             properties:

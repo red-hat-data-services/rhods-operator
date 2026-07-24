@@ -6,6 +6,11 @@ metadata:
     openshift.io/display-name: vLLM IBM Spyre x86 LLMInferenceServiceConfig
     openshift.io/description: vLLM IBM Spyre x86 LLMInferenceServiceConfig for LLMInferenceService.
     opendatahub.io/recommended-accelerators: '["ibm.com/spyre_pf"]'
+    opendatahub.io/runtime-version: ""
+    # supported-topologies values must be consistent with the samples API and Dashboard usage.
+    # See https://github.com/opendatahub-io/odh-model-controller/blob/incubating/server/docs/features/samples/llm-d/llm-d-ui-flow-mechanics.md
+    # and https://github.com/opendatahub-io/odh-model-controller/blob/incubating/server/docs/features/llm-d/samples/samples-api.md
+    opendatahub.io/supported-topologies: '["workload-single-node"]'
 spec:
   template:
     containers:

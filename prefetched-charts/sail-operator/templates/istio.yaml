@@ -2,7 +2,6 @@ apiVersion: sailoperator.io/v1
 kind: Istio
 metadata:
   name: default
-  namespace: {{ .Values.namespace }}
 spec:
   namespace: {{ .Values.namespace }}
   version: v1.27-latest

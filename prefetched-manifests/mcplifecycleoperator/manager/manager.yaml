@@ -10,6 +10,7 @@ metadata:
 spec:
   selector:
     matchLabels:
+      app.kubernetes.io/name: mcp-lifecycle-module-operator
       control-plane: controller-manager
   replicas: 1
   template:
@@ -17,6 +18,7 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
+        app.kubernetes.io/name: mcp-lifecycle-module-operator
         control-plane: controller-manager
     spec:
       securityContext:
@@ -39,7 +41,7 @@ spec:
         - name: OPERATOR_VERSION
           value: "0.0.1"
         - name: GOMEMLIMIT
-          value: "120586240"
+          value: "482344960"
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -61,9 +63,9 @@ spec:
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
+            memory: 512Mi
           requests:
             cpu: 10m
-            memory: 64Mi
+            memory: 128Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

@@ -8,13 +8,14 @@ rules:
   - ""
   resources:
   - configmaps
-  - serviceaccounts
+  - services
   verbs:
   - create
   - delete
   - get
   - list
   - patch
+  - update
   - watch
 - apiGroups:
   - ""
@@ -42,7 +43,17 @@ rules:
   - get
   - list
   - patch
-  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
   - watch
 - apiGroups:
   - ""
@@ -50,18 +61,6 @@ rules:
   - serviceaccounts/token
   verbs:
   - create
-- apiGroups:
-  - ""
-  resources:
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - apiextensions.k8s.io
   resources:
@@ -112,9 +111,32 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+- apiGroups:
   - config.openshift.io
   resources:
   - authentications
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - dscinitialization.opendatahub.io
+  resources:
+  - dscinitializations
   verbs:
   - get
   - list
@@ -214,7 +236,7 @@ rules:
   - maasauthpolicies
   - maasmodelrefs
   - maassubscriptions
-  - tenants
+  - maastenantconfigs
   verbs:
   - create
   - delete
@@ -240,7 +262,7 @@ rules:
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status
-  - tenants/status
+  - maastenantconfigs/status
   verbs:
   - get
   - patch
@@ -253,6 +275,16 @@ rules:
   verbs:
   - get
   - list
+  - watch
+- apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - tenants
+  verbs:
+  - get
+  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - monitoring.coreos.com
@@ -312,6 +344,17 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - opentelemetry.io
+  resources:
+  - opentelemetrycollectors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
   - operator.authorino.kuadrant.io
   resources:
   - authorinos
@@ -347,6 +390,12 @@ rules:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
+  verbs:
+  - delete
+  - get
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
   - roles
   verbs:
   - create

@@ -24,7 +24,8 @@ spec:
         imagePullPolicy: IfNotPresent
         args:
         - --leader-elect
-        - --chart-path=/charts/batch-gateway
+        - --batch-gateway-chart-path=/charts/batch-gateway
+        - --async-chart-path=/charts/async-processor
         env:
         - name: POD_NAMESPACE
           valueFrom:

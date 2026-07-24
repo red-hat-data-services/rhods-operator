@@ -282,6 +282,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - config.openshift.io
+  resources:
+  - apiservers
+  resourceNames:
+  - cluster
+  verbs:
+  - get
+- apiGroups:
   - networking.k8s.io
   resources:
   - networkpolicies

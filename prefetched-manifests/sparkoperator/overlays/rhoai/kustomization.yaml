@@ -21,6 +21,12 @@ resources:
 #    Add monitoring label to PodMonitor
 patches:
   - path: delete-namespace.yaml
+  - path: networkpolicy-rbac-patch.yaml
+    target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRole
+      name: spark-operator-controller
   - patch: |-
       - op: add
         path: /metadata/labels/opendatahub.io~1monitoring

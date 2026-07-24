@@ -70,7 +70,7 @@ func CreateDefaultDSC(ctx context.Context, cli client.Client) error {
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Removed},
 				},
 				OGX: componentApi.DSCOGX{
-					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Removed},
+					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
 				},
 				MLflowOperator: componentApi.DSCMLflowOperator{
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
@@ -79,6 +79,17 @@ func CreateDefaultDSC(ctx context.Context, cli client.Client) error {
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Managed},
 				},
 				SparkOperator: componentApi.DSCSparkOperator{
+					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Removed},
+				},
+				AIGateway: componentApi.DSCAIGateway{
+					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Removed},
+					AIGatewayCommonSpec: componentApi.AIGatewayCommonSpec{
+						BatchGateway: componentApi.AIGatewayBatchGatewaySpec{
+							ManagementState: operatorv1.Removed,
+						},
+					},
+				},
+				MCPLifecycleOperator: componentApi.DSCMCPLifecycleOperator{
 					ManagementSpec: common.ManagementSpec{ManagementState: operatorv1.Removed},
 				},
 			},
