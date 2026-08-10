@@ -21,14 +21,20 @@ spec:
      protocol: HTTP
      allowedRoutes:
        namespaces:
-         from: All
+         from: Selector
+         selector:
+           matchLabels:
+             maas.opendatahub.io/gateway-access: "true"
    - name: https
      hostname: maas.${CLUSTER_DOMAIN}
      port: 443
      protocol: HTTPS
      allowedRoutes:
        namespaces:
-         from: All
+         from: Selector
+         selector:
+           matchLabels:
+             maas.opendatahub.io/gateway-access: "true"
      tls:
        certificateRefs:
        - group: ''
