@@ -72,6 +72,7 @@ import (
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 	infrav1alpha1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1alpha1"
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
+	modelregistryctrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelregistry"
 	cr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/registry"
 	dscctrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/datasciencecluster"
 	dscictrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/dscinitialization"
@@ -94,7 +95,6 @@ import (
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/llamastackoperator"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/mlflowoperator"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelcontroller"
-	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelregistry"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelsasservice"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/ray"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/trainer"
@@ -534,6 +534,14 @@ func createODHGeneralCacheConfig(platform common.Platform) (map[string]cache.Con
 
 	namespaceConfigs["openshift-operators"] = cache.Config{} // for dependent operators installed namespace
 	namespaceConfigs["openshift-ingress"] = cache.Config{}   // for gateway auth proxy resources
+
+	switch platform {
+	case cluster.SelfManagedRhoai, cluster.ManagedRhoai:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceRHOAI] = cache.Config{}
+	case cluster.OpenDataHub:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceODH] = cache.Config{}
+	}
+	namespaceConfigs[modelregistryctrl.DefaultModelRegistriesNamespace] = cache.Config{}
 
 	return namespaceConfigs, nil
 }

@@ -100,6 +100,7 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 		WithAction(initialize).
 		WithAction(setKustomizedParams).
 		WithAction(configureDependencies).
+		WithAction(ensureNamespacedRBAC).
 		WithAction(kustomize.NewAction(
 			// Those are the default labels added by the legacy deploy method
 			// and should be preserved as the original plugin were affecting
