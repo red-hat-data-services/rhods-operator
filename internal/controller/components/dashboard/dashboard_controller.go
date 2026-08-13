@@ -95,6 +95,10 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 			GenericFunc: func(tge event.TypedGenericEvent[client.Object]) bool { return false },
 			DeleteFunc:  func(tde event.TypedDeleteEvent[client.Object]) bool { return false },
 		}), reconciler.Dynamic(reconciler.CrdExists(gvk.DashboardHardwareProfile))).
+		// Namespace events re-trigger reconciliation so that ensureNamespacedRBAC
+		// can create or remove the notebooks/model-registry Role and RoleBinding
+		// when the target namespace appears or disappears after initial reconcile.
+		Watches(&corev1.Namespace{}).
 		WithAction(initialize).
 		WithAction(devFlags).
 		WithAction(setKustomizedParams).
