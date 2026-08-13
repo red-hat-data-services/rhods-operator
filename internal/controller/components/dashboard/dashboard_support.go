@@ -22,6 +22,9 @@ const (
 
 	LegacyComponentNameUpstream   = "dashboard"
 	LegacyComponentNameDownstream = "rhods-dashboard"
+
+	ServiceAccountNameODH   = "odh-dashboard"
+	ServiceAccountNameRHOAI = "rhods-dashboard"
 )
 
 var (
