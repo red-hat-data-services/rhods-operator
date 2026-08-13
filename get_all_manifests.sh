@@ -78,7 +78,7 @@ declare -A RHOAI_CCM_CHARTS=(
 declare -A RHOAI_COMPONENT_CHARTS=(
     ["dashboard-operator"]="red-hat-data-services:odh-dashboard:rhoai-3.5@6cc29775853f45b79ec06857b56f880bdd0970e1:dashboard-operator/charts/dashboard"
     ["workbenches"]="red-hat-data-services:workbenches-operator:rhoai-3.5@30992d8148ddf59b23c3d87bfb3f321b6a93e2ec:charts/operator"
-    ["feastoperator"]="red-hat-data-services:feast-module-operator:rhoai-3.5@44aa9444229c1aba6eab7cc30b1def58cfca371b:config/chart"
+    ["feastoperator"]="red-hat-data-services:feast-module-operator:rhoai-3.5@804bef32fad14cb6a33fe4a6b3dbf8f41cb3aee7:config/chart"
 )
 
 # merge_charts merges CCM and component charts into COMPONENT_CHARTS, failing on duplicate keys.
