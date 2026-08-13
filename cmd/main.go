@@ -600,6 +600,15 @@ func createODHGeneralCacheConfig(platform common.Platform) (map[string]cache.Con
 	namespaceConfigs["models-as-a-service"] = cache.Config{} // for maas admin rolebinding
 	namespaceConfigs["kuadrant-system"] = cache.Config{}     // for kuadrant admin rolebinding
 
+	// for dashboard namespace-scoped RBAC in workbenches and model-registry namespaces
+	switch platform {
+	case cluster.SelfManagedRhoai, cluster.ManagedRhoai:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceRHOAI] = cache.Config{}
+	case cluster.OpenDataHub:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceODH] = cache.Config{}
+	}
+	namespaceConfigs[modelregistry.DefaultModelRegistriesNamespace] = cache.Config{}
+
 	return namespaceConfigs, nil
 }
 
