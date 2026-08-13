@@ -69,6 +69,7 @@ import (
 	featurev1 "github.com/opendatahub-io/opendatahub-operator/v2/api/features/v1"
 	infrastructurev1alpha1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1alpha1"
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
+	modelregistryctrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelregistry"
 	cr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/registry"
 	dscctrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/datasciencecluster"
 	dscictrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/dscinitialization"
@@ -91,7 +92,6 @@ import (
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/llamastackoperator"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelcontroller"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelmeshserving"
-	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/modelregistry"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/ray"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/trainingoperator"
 	_ "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/trustyai"
@@ -539,6 +539,15 @@ func createODHGeneralCacheConfig(ctx context.Context, cli client.Client, platfor
 
 	namespaceConfigs["istio-system"] = cache.Config{}        // for serivcemonitor: data-science-smcp-pilot-monitor
 	namespaceConfigs["openshift-operators"] = cache.Config{} // for dependent operators installed namespace
+
+	switch platform {
+	case cluster.SelfManagedRhoai, cluster.ManagedRhoai:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceRHOAI] = cache.Config{}
+		namespaceConfigs[modelregistryctrl.DefaultModelRegistriesNamespace] = cache.Config{}
+	case cluster.OpenDataHub:
+		namespaceConfigs[cluster.DefaultNotebooksNamespaceODH] = cache.Config{}
+		namespaceConfigs["odh-model-registries"] = cache.Config{}
+	}
 
 	return namespaceConfigs, nil
 }
