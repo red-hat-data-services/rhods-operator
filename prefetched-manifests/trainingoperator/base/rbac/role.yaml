@@ -40,12 +40,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - pods/exec
-  verbs:
-  - create
-- apiGroups:
-  - ""
-  resources:
   - serviceaccounts
   verbs:
   - create
@@ -67,10 +61,17 @@ rules:
   resources:
   - validatingwebhookconfigurations
   verbs:
-  - get
   - list
-  - update
   - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  resourceNames:
+  - kubeflow-validator.training-operator.kubeflow.org
+  verbs:
+  - get
+  - update
 - apiGroups:
   - autoscaling
   resources:
@@ -245,8 +246,8 @@ rules:
   - rolebindings
   verbs:
   - create
+  - get
   - list
-  - update
   - watch
 - apiGroups:
   - rbac.authorization.k8s.io
@@ -254,6 +255,7 @@ rules:
   - roles
   verbs:
   - create
+  - get
   - list
   - update
   - watch
@@ -287,9 +289,6 @@ rules:
   - networkpolicies
   verbs:
   - create
-  - delete
   - get
-  - list
   - patch
   - update
-  - watch
