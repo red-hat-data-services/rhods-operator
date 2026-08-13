@@ -42,9 +42,9 @@ func newDashboardRBACTestRR(t *testing.T, platform common.Platform, dsc *dscv2.D
 	}
 }
 
-// getRoleAndBinding fetches the Role and RoleBinding from the fake client and
-// fails the test if either is missing.
-func getRoleAndBinding(t *testing.T, rr *odhtypes.ReconciliationRequest, name, namespace string) (*rbacv1.Role, *rbacv1.RoleBinding) {
+// getRoleAndBinding asserts that a Role and RoleBinding both exist in the fake
+// client for the given name and namespace, failing the test if either is missing.
+func getRoleAndBinding(t *testing.T, rr *odhtypes.ReconciliationRequest, name, namespace string) {
 	t.Helper()
 
 	role := &rbacv1.Role{}
@@ -56,8 +56,6 @@ func getRoleAndBinding(t *testing.T, rr *odhtypes.ReconciliationRequest, name, n
 	if err := rr.Client.Get(context.Background(), k8stypes.NamespacedName{Name: name, Namespace: namespace}, rb); err != nil {
 		t.Errorf("expected RoleBinding %s/%s to exist: %v", namespace, name, err)
 	}
-
-	return role, rb
 }
 
 // assertRoleAndBindingAbsent checks that neither a Role nor RoleBinding exists
@@ -227,10 +225,8 @@ func TestEnsureDashboardNamespacedRBAC_ODHSAName(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	role, _ := getRoleAndBinding(t, rr, "odh-dashboard-notebooks", cluster.DefaultNotebooksNamespaceODH)
-	if role != nil && role.Name != "odh-dashboard-notebooks" {
-		t.Errorf("expected ODH SA name in role, got %q", role.Name)
-	}
+	// "odh-dashboard-notebooks" is the expected name: SA prefix is "odh-dashboard", suffix is "notebooks"
+	getRoleAndBinding(t, rr, "odh-dashboard-notebooks", cluster.DefaultNotebooksNamespaceODH)
 }
 
 func TestDashboardModelRegistryRBACRules_ContainsCreateVerb(t *testing.T) {
