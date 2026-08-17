@@ -55,8 +55,9 @@ spec:
         priority: 0
         patternMatching:
           patterns:
-            - predicate: '!has(request.headers["x-maas-username"])'
-            - predicate: '!has(request.headers["x-maas-group"])'
+            # CEL has() only works on message fields; use `in` for map keys (Authorino).
+            - predicate: '!("x-maas-username" in request.headers)'
+            - predicate: '!("x-maas-group" in request.headers)'
       # Check API key is valid (only for API key auth)
       api-key-valid:
         when:
