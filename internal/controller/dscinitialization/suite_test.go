@@ -51,6 +51,7 @@ import (
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
 	dscictrl "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/dscinitialization"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/operatorconfig"
 	"github.com/opendatahub-io/opendatahub-operator/v2/tests/envtestutil"
 
@@ -148,6 +149,17 @@ var _ = BeforeSuite(func() {
 
 	k8sClient = cli
 
+	manifestsBasePath := filepath.Join(rootPath, "config")
+	operatorSettings := operatorconfig.OperatorSettings{
+		OperatorNamespace: "test-operator-ns",
+		PlatformType:      "OpenDataHub",
+		ManifestsBasePath: manifestsBasePath,
+	}
+
+	// Ignore errors from Init as we only care about setting the operator namespace.
+	// Other initialization errors (like missing cluster resources) are expected in tests.
+	_ = cluster.Init(gCtx, k8sClient, operatorSettings)
+
 	webhookInstallOptions := &testEnv.WebhookInstallOptions
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:         testScheme,
@@ -161,12 +173,10 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&dscictrl.DSCInitializationReconciler{
-		Client:   k8sClient,
-		Scheme:   testScheme,
-		Recorder: mgr.GetEventRecorder("dscinitialization-controller"),
-		OperatorSettings: operatorconfig.OperatorSettings{
-			ManifestsBasePath: "",
-		},
+		Client:           k8sClient,
+		Scheme:           testScheme,
+		Recorder:         mgr.GetEventRecorder("dscinitialization-controller"),
+		OperatorSettings: operatorSettings,
 	}).SetupWithManager(gCtx, mgr)
 
 	Expect(err).ToNot(HaveOccurred())
