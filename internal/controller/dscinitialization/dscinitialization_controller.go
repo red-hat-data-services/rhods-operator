@@ -24,7 +24,10 @@ import (
 	"time"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -299,19 +302,19 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 			getObject(gvk.Namespace),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.Secret),
+			&corev1.Secret{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.ConfigMap),
+			&corev1.ConfigMap{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.NetworkPolicy),
+			&networkingv1.NetworkPolicy{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.Role),
+			&rbacv1.Role{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.RoleBinding),
+			&rbacv1.RoleBinding{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
 			getObject(gvk.ClusterRole),
@@ -320,19 +323,19 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 			getObject(gvk.ClusterRoleBinding),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.Deployment),
+			&appsv1.Deployment{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.ServiceAccount),
+			&corev1.ServiceAccount{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.Service),
+			&corev1.Service{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
 			getObject(gvk.Route),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			getObject(gvk.PersistentVolumeClaim),
+			&corev1.PersistentVolumeClaim{},
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns( // ensure always have default one for AcceleratorProfile/HardwareProfile blocking
 			getObject(gvk.ValidatingAdmissionPolicy),
