@@ -169,7 +169,7 @@ spec:
           args:
             - --config=/config
             - -logtostderr=true
-            - --sampleconfig=/config/sample_config.json
+            - --sampleconfig=/config/sample-config/sample_config.json
             {{ if .PodToPodTLS }}
             - --tlsCertPath=/etc/tls/private/tls.crt
             - --tlsCertKeyPath=/etc/tls/private/tls.key
@@ -231,8 +231,7 @@ spec:
               name: proxy-tls
           {{ end }}
             - name: sample-config
-              mountPath: /config/sample_config.json
-              subPath: sample_config.json
+              mountPath: /config/sample-config
             - name: sample-pipeline
               mountPath: /samples/
             {{ if .CustomCABundle }}
@@ -322,6 +321,8 @@ spec:
         - name: sample-config
           configMap:
             name: sample-config-{{.Name}}
+            optional: true
         - name: sample-pipeline
           configMap:
             name: sample-pipeline-{{.Name}}
+            optional: true

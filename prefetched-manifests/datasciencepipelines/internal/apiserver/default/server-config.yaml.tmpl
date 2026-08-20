@@ -18,7 +18,12 @@ data:
         "ConMaxLifeTime": "120s"
       },
       "ObjectStoreConfig": {
-        "PipelinePath": "pipelines"
+        "PipelinePath": "pipelines",
+        "Host": "{{.ObjectStorageConnection.Host}}",
+        "Port": "{{.ObjectStorageConnection.Port}}",
+        "Secure": {{.ObjectStorageConnection.Secure}},
+        "Region": "{{.ObjectStorageConnection.Region}}",
+        "BucketName": "{{.ObjectStorageConnection.Bucket}}"
       },
       "DBDriverName": "mysql",
       "ARCHIVE_CONFIG_LOG_FILE_NAME": "main.log",
