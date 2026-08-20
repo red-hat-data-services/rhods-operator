@@ -72,6 +72,9 @@ spec:
             drop:
             - "ALL"
         env:
+          # Soft GC limit at ~88% of the 2Gi container limit (matches other RHOAI operators).
+          - name: GOMEMLIMIT
+            value: 1800MiB
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
