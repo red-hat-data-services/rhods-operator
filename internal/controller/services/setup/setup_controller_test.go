@@ -6,6 +6,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/upgrade"
@@ -13,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestFilterDeleteConfigMapPredicate(t *testing.T) {
+func TestFilterDeleteConfigMapPredicateWithTypedAndUnstructured(t *testing.T) {
 	const operatorNs = "test-operator-ns"
 
 	r := &SetupControllerReconciler{}
@@ -21,11 +23,11 @@ func TestFilterDeleteConfigMapPredicate(t *testing.T) {
 
 	tests := []struct {
 		name string
-		obj  *corev1.ConfigMap
+		obj  client.Object
 		want bool
 	}{
 		{
-			name: "ConfigMap with correct namespace and label",
+			name: "typed ConfigMap with correct namespace and label",
 			obj: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "delete-cm",
@@ -36,7 +38,7 @@ func TestFilterDeleteConfigMapPredicate(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "ConfigMap wrong namespace",
+			name: "typed ConfigMap wrong namespace",
 			obj: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "delete-cm",
@@ -47,13 +49,60 @@ func TestFilterDeleteConfigMapPredicate(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "ConfigMap missing label",
+			name: "typed ConfigMap missing label",
 			obj: &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "delete-cm",
 					Namespace: operatorNs,
 				},
 			},
+			want: false,
+		},
+		{
+			name: "unstructured ConfigMap with correct namespace and label",
+			obj: func() client.Object {
+				u := &unstructured.Unstructured{}
+				u.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("ConfigMap"))
+				u.SetName("delete-cm")
+				u.SetNamespace(operatorNs)
+				u.SetLabels(map[string]string{upgrade.DeleteConfigMapLabel: "true"})
+				return u
+			}(),
+			want: true,
+		},
+		{
+			name: "unstructured ConfigMap wrong namespace",
+			obj: func() client.Object {
+				u := &unstructured.Unstructured{}
+				u.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("ConfigMap"))
+				u.SetName("delete-cm")
+				u.SetNamespace("other-ns")
+				u.SetLabels(map[string]string{upgrade.DeleteConfigMapLabel: "true"})
+				return u
+			}(),
+			want: false,
+		},
+		{
+			name: "unstructured ConfigMap missing label",
+			obj: func() client.Object {
+				u := &unstructured.Unstructured{}
+				u.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("ConfigMap"))
+				u.SetName("delete-cm")
+				u.SetNamespace(operatorNs)
+				return u
+			}(),
+			want: false,
+		},
+		{
+			name: "unstructured non-ConfigMap with correct namespace and label",
+			obj: func() client.Object {
+				u := &unstructured.Unstructured{}
+				u.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("Secret"))
+				u.SetName("delete-cm")
+				u.SetNamespace(operatorNs)
+				u.SetLabels(map[string]string{upgrade.DeleteConfigMapLabel: "true"})
+				return u
+			}(),
 			want: false,
 		},
 	}

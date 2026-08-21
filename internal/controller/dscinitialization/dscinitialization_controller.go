@@ -24,10 +24,7 @@ import (
 	"time"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,7 +40,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	dscv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v2"
 	dsciv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/dscinitialization/v2"
@@ -334,11 +330,6 @@ func getObject(gvk schema.GroupVersionKind) client.Object {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager) error {
-	monitoringCache, err := managedMonitoringCacheForManager(mgr)
-	if err != nil {
-		return err
-	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		// add predicates prevents meaningless reconciliations from being triggered
 		// not use WithEventFilter() because it conflict with secret and configmap predicate
@@ -350,19 +341,19 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 			getObject(gvk.Namespace),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&corev1.Secret{},
+			getObject(gvk.Secret),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&corev1.ConfigMap{},
+			getObject(gvk.ConfigMap),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&networkingv1.NetworkPolicy{},
+			getObject(gvk.NetworkPolicy),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&rbacv1.Role{},
+			getObject(gvk.Role),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&rbacv1.RoleBinding{},
+			getObject(gvk.RoleBinding),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
 			getObject(gvk.ClusterRole),
@@ -371,19 +362,19 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 			getObject(gvk.ClusterRoleBinding),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&appsv1.Deployment{},
+			getObject(gvk.Deployment),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&corev1.ServiceAccount{},
+			getObject(gvk.ServiceAccount),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&corev1.Service{},
+			getObject(gvk.Service),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
 			getObject(gvk.Route),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns(
-			&corev1.PersistentVolumeClaim{},
+			getObject(gvk.PersistentVolumeClaim),
 			builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
 		Owns( // ensure always have default one for AcceleratorProfile/HardwareProfile blocking
 			getObject(gvk.ValidatingAdmissionPolicy),
@@ -401,21 +392,15 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 			}),
 			builder.WithPredicates(rp.DSCDeletionPredicate), // TODO: is it needed?
 		).
-		WatchesRawSource(
-			source.TypedKind[client.Object](
-				monitoringCache,
-				&corev1.Secret{},
-				handler.EnqueueRequestsFromMapFunc(r.watchMonitoringSecretResource),
-				rp.SecretContentChangedPredicate,
-			),
+		Watches(
+			getObject(gvk.Secret),
+			handler.EnqueueRequestsFromMapFunc(r.watchMonitoringSecretResource),
+			builder.WithPredicates(rp.SecretContentChangedPredicate),
 		).
-		WatchesRawSource(
-			source.TypedKind[client.Object](
-				monitoringCache,
-				&corev1.ConfigMap{},
-				handler.EnqueueRequestsFromMapFunc(r.watchMonitoringConfigMapResource),
-				rp.CMContentChangedPredicate,
-			),
+		Watches(
+			getObject(gvk.ConfigMap),
+			handler.EnqueueRequestsFromMapFunc(r.watchMonitoringConfigMapResource),
+			builder.WithPredicates(rp.CMContentChangedPredicate),
 		).
 		Watches(
 			getObject(gvk.Auth),
@@ -438,13 +423,10 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 
 func (r *DSCInitializationReconciler) watchMonitoringConfigMapResource(ctx context.Context, a client.Object) []reconcile.Request {
 	log := logf.FromContext(ctx)
-	if a.GetName() == managedMonitoringConfigMapName && a.GetNamespace() == cluster.DefaultMonitoringNamespaceRHOAI {
+	if a.GetName() == "prometheus" && a.GetNamespace() == "redhat-ods-monitoring" {
 		log.Info("Found monitoring configmap has updated, start reconcile")
 
-		return []reconcile.Request{{NamespacedName: types.NamespacedName{
-			Name:      managedMonitoringConfigMapName,
-			Namespace: cluster.DefaultMonitoringNamespaceRHOAI,
-		}}}
+		return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: "prometheus", Namespace: "redhat-ods-monitoring"}}}
 	}
 	return nil
 }
@@ -456,13 +438,10 @@ func (r *DSCInitializationReconciler) watchMonitoringSecretResource(ctx context.
 		return nil
 	}
 
-	if a.GetName() == managedMonitoringSecretName && a.GetNamespace() == operatorNs {
+	if a.GetName() == "addon-managed-odh-parameters" && a.GetNamespace() == operatorNs {
 		log.Info("Found monitoring secret has updated, start reconcile")
 
-		return []reconcile.Request{{NamespacedName: types.NamespacedName{
-			Name:      managedMonitoringSecretName,
-			Namespace: operatorNs,
-		}}}
+		return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: "addon-managed-odh-parameters", Namespace: operatorNs}}}
 	}
 	return nil
 }
