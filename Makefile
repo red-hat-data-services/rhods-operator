@@ -511,7 +511,7 @@ bundle: prepare operator-sdk ## Generate bundle manifests and metadata, then val
 	# unreachable webhook -> 404 -> failed upgrade. Non-OLM installs (config/crd) keep their
 	# static conversion, so xKS/self-managed deployments are unaffected.
 	for f in $(BUNDLE_DIR)/manifests/datasciencecluster.opendatahub.io_datascienceclusters.yaml $(BUNDLE_DIR)/manifests/dscinitialization.opendatahub.io_dscinitializations.yaml; do \
-		[ -f "$$f" ] && $(YQ) -i 'del(.spec.conversion)' "$$f"; \
+		[ -f "$$f" ] && $(YQ) eval -i 'del(.spec.conversion)' "$$f"; \
 	done
 CLEANFILES += rhoai-bundle odh-bundle
 
