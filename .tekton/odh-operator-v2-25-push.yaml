@@ -12,14 +12,8 @@ metadata:
     #   bundle/, build/, .tekton/, .github/workflows/, Dockerfiles/bundle.Dockerfile
     # Exception: always trigger for:
     #   build/operands-map.yaml, .tekton/odh-operator-v2-25-push.yaml
-    pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push"
-      && target_branch == "rhoai-2.25"
-      && ( files.all.exists(p, !(
-        p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
-          || p.matches('^\\.github/workflows/')
-          || p.matches('^Dockerfiles/bundle\\.Dockerfile$')
-      ) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v2-25-push.yaml".pathChanged()) )
+    pipelinesascode.tekton.dev/on-cel-expression: |-
+      false
   labels:
     appstudio.openshift.io/application: rhoai-v2-25
     appstudio.openshift.io/component: odh-operator-v2-25
