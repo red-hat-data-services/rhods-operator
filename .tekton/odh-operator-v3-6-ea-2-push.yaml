@@ -14,7 +14,7 @@ metadata:
     # Exception: always trigger for:
     #   build/operands-map.yaml, .tekton/odh-operator-v3-6-ea-2-push.yaml
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push"
+      event == "pull_request"
       && target_branch == "rhoai-3.6-ea.2"
       && ( files.all.exists(p, !(
         p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
