@@ -39,7 +39,7 @@ spec:
     value:
     - '{{target_branch}}-{{revision}}'
   - name: output-image
-    value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
+    value: quay.io/rhoai/odh-rhel9-operator:pqc
   - name: rhoai-version
     value: "3.6.0-ea.2"
   - name: dockerfile
@@ -70,6 +70,10 @@ spec:
     - linux/ppc64le
     - linux/s390x
     - linux-m2xlarge/arm64
+  - name: image-expires-after
+    value: 5d
+  - name: enable-slack-failure-notification
+    value: "false"
   pipelineRef:
     resolver: git
     params:
