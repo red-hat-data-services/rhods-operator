@@ -4,6 +4,15 @@ metadata:
   name: catalog
   namespace: opendatahub
 spec:
+  # catalogDataImage and benchmarkDataImage accept a sha256 digest or an image
+  # tag. The operator pins the value onto the trusted repository derived from the
+  # shipped default image; the registry/repository is not user-configurable.
+  # A digest is recommended because a tag can be repointed without triggering a
+  # rollout.
+  # catalogDataImage: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  # catalogDataImage: "v2.19"
+  # benchmarkDataImage: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  # benchmarkDataImage: "v2.19"
   resources:
     catalog:
       requests:
