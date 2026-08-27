@@ -46,6 +46,16 @@ spec:
             type: object
           spec:
             properties:
+              auditLogging:
+                default: Removed
+                description: |-
+                  AuditLogging controls inference request audit logging.
+                  Managed writes openshiftConfig.enableAuditLogging=true on inferenceservice-config.
+                  Removed writes openshiftConfig.enableAuditLogging=false.
+                enum:
+                - Managed
+                - Removed
+                type: string
               enableLLMInferenceServiceConsoleDashboards:
                 description: |-
                   Enables OpenShift Developer Console dashboards for LLMInferenceService.

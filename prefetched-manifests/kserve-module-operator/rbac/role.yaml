@@ -300,6 +300,7 @@ rules:
   - kserve-view
   - metrics-reader
   - model-serving-api
+  - odh-model-controller-openshift-distro-role
   - odh-model-controller-role
   - openshift-ai-inferenceservice-image-volume-scc
   - openshift-ai-llminferenceservice-scc
@@ -343,6 +344,7 @@ rules:
 - apiGroups:
   - serving.kserve.io
   resources:
+  - clusterservingruntimes
   - clusterstoragecontainers
   - llminferenceserviceconfigs
   - localmodelnodegroups
