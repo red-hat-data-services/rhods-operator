@@ -1048,8 +1048,9 @@ spec:
                     - "file:///mlflow/artifacts"
                 type: string
               env:
-                description: Env is a list of environment variables to set in the
-                  MLflow container
+                description: |-
+                  Env is a list of environment variables to set in the MLflow container,
+                  garbage collection CronJob, and trace-archival CronJob.
                 items:
                   description: EnvVar represents an environment variable present in
                     a Container.
@@ -2446,6 +2447,16 @@ spec:
                   through the MLflow server's REST API instead of directly accessing the artifact storage.
                   When disabled, ArtifactsDestination is ignored and clients must have direct access to artifact storage.
                 type: boolean
+              serviceAccountAnnotations:
+                additionalProperties:
+                  type: string
+                description: |-
+                  ServiceAccountAnnotations are annotations applied to every ServiceAccount
+                  the operator creates: the main MLflow ServiceAccount, plus the garbage
+                  collection and trace-archival ServiceAccounts when those workloads are enabled.
+                  Use this for cloud workload identity federation such as AWS IRSA
+                  (eks.amazonaws.com/role-arn).
+                type: object
               serviceAccountName:
                 default: mlflow-sa
                 description: |-

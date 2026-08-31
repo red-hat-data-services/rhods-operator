@@ -86,12 +86,19 @@ spec:
     - secretRef:
         name: aws-credentials  # Contains AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 
-  # Environment variables
+  # Environment variables applied to the MLflow Deployment, garbage collection
+  # CronJob, and trace-archival CronJob (when enabled).
   env:
     - name: MLFLOW_LOGGING_LEVEL
       value: INFO
     - name: AWS_DEFAULT_REGION
       value: us-east-1
+
+  # Cloud workload identity (optional alternative to static AWS keys in envFrom).
+  # Annotations are applied to mlflow-sa, mlflow-gc-sa, and mlflow-trace-archival-sa
+  # (the latter two only when those workloads are enabled).
+  # serviceAccountAnnotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/mlflow-s3
 
   # Garbage collection
   garbageCollection:
