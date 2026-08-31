@@ -6,6 +6,9 @@ resources:
   - ../../base
   # Include Prometheus ServiceMonitor (OpenShift has Prometheus Operator pre-installed)
   - ../../prometheus
+  # OpenShift-only RBAC for reading TLS profile configuration
+  - tls_clusterrole.yaml
+  - tls_clusterrolebinding.yaml
 
 # OpenShift-specific patches for secure metrics using service serving certificates
 patches:
