@@ -165,6 +165,15 @@ rules:
       - update
       - watch
   - apiGroups:
+      - kubeflow.org
+    resources:
+      - workspacekinds
+    verbs:
+      - create
+      - delete
+      - list
+      - patch
+  - apiGroups:
       - networking.k8s.io
     resources:
       - networkpolicies
