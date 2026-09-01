@@ -1,0 +1,371 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+  name: monitorings.services.platform.opendatahub.io
+spec:
+  group: services.platform.opendatahub.io
+  names:
+    kind: Monitoring
+    listKind: MonitoringList
+    plural: monitorings
+    singular: monitoring
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: Ready
+      jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - description: Reason
+      jsonPath: .status.conditions[?(@.type=="Ready")].reason
+      name: Reason
+      type: string
+    - description: URL
+      jsonPath: .status.url
+      name: URL
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Monitoring is the Schema for the monitorings API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MonitoringSpec defines the desired state of Monitoring.
+            properties:
+              alerting:
+                description: Alerting configures Prometheus alerting rules.
+                type: object
+              collectorReplicas:
+                description: |-
+                  CollectorReplicas specifies the number of replicas in the OpenTelemetry collector.
+                  Defaults to 1 on single-node clusters and 2 on multi-node clusters.
+                format: int32
+                minimum: 0
+                type: integer
+              managementState:
+                default: Managed
+                description: |-
+                  ManagementState controls whether the operator actively manages the
+                  component (Managed) or removes it (Removed).
+                enum:
+                - Managed
+                - Removed
+                type: string
+              metrics:
+                description: Metrics configures metrics collection via the MonitoringStack
+                  operator.
+                properties:
+                  exporters:
+                    additionalProperties:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    description: |-
+                      Exporters defines custom metrics exporters for external observability tools.
+                      The configuration follows the OpenTelemetry Collector exporter format.
+                      Reserved names 'prometheus' and 'otlp/tempo' cannot be used.
+                      Maximum 10 exporters allowed.
+                    type: object
+                    x-kubernetes-validations:
+                    - message: exporter name 'prometheus' is reserved and cannot be
+                        used
+                      rule: '!(''prometheus'' in self)'
+                    - message: exporter name 'otlp/tempo' is reserved and cannot be
+                        used
+                      rule: '!(''otlp/tempo'' in self)'
+                    - message: maximum 10 exporters allowed
+                      rule: size(self) <= 10
+                  replicas:
+                    description: Replicas specifies the number of replicas in the
+                      MonitoringStack.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  storage:
+                    description: MetricsStorage defines the storage configuration
+                      for the MonitoringStack.
+                    properties:
+                      retention:
+                        description: Retention specifies how long metrics data is
+                          retained (e.g. "1d", "2w").
+                        type: string
+                      size:
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        description: Size specifies the PVC storage size (e.g. "5Gi",
+                          "10Mi").
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                    type: object
+                type: object
+                x-kubernetes-validations:
+                - message: Non-zero replicas require metrics.storage to be configured
+                  rule: has(self.storage) || !has(self.replicas) || self.replicas
+                    == 0
+              namespace:
+                default: opendatahub
+                description: Namespace is the target namespace where monitoring resources
+                  are deployed.
+                maxLength: 63
+                pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
+                type: string
+                x-kubernetes-validations:
+                - message: Namespace is immutable
+                  rule: self == oldSelf
+              traces:
+                description: Traces configures distributed tracing via the Tempo operator.
+                properties:
+                  exporters:
+                    additionalProperties:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    description: Exporters defines custom trace exporters for external
+                      observability tools.
+                    type: object
+                  sampleRatio:
+                    description: SampleRatio determines the sampling rate for traces
+                      (0.0–1.0).
+                    pattern: ^(0(\.[0-9]+)?|1(\.0+)?)$
+                    type: string
+                  storage:
+                    description: TracesStorage defines the storage backend for Tempo.
+                    properties:
+                      backend:
+                        description: 'Backend defines the storage type: "pv", "s3",
+                          or "gcs".'
+                        enum:
+                        - pv
+                        - s3
+                        - gcs
+                        type: string
+                      retention:
+                        description: Retention specifies how long trace data is retained
+                          (e.g. "60m", "10h").
+                        type: string
+                      secret:
+                        description: Secret is the name of the Secret with storage
+                          credentials (non-PV backends).
+                        type: string
+                      size:
+                        description: Size specifies storage size (PV backend only).
+                        type: string
+                    required:
+                    - backend
+                    type: object
+                    x-kubernetes-validations:
+                    - message: When backend is s3 or gcs, the 'secret' field must
+                        be specified and non-empty
+                      rule: 'self.backend != ''pv'' ? (has(self.secret) && self.secret
+                        != "") : true'
+                    - message: Size is supported when backend is pv only
+                      rule: 'self.backend != ''pv'' ? !has(self.size) : true'
+                  tls:
+                    description: TLS configures TLS for Tempo gRPC connections.
+                    properties:
+                      caConfigMap:
+                        description: CAConfigMap is the name of the ConfigMap containing
+                          the CA certificate.
+                        type: string
+                      certificateSecret:
+                        description: CertificateSecret is the name of the Secret containing
+                          TLS certificates.
+                        type: string
+                      enabled:
+                        description: Enabled enables TLS for Tempo OTLP ingestion
+                          (gRPC/HTTP) and query APIs.
+                        type: boolean
+                    type: object
+                required:
+                - storage
+                type: object
+              usageLogs:
+                description: UsageLogs configures usage log collection and forwarding
+                  to Loki.
+                properties:
+                  storage:
+                    description: |-
+                      Storage configures the LokiStack storage backend (S3).
+                      When configured, the operator deploys a LokiStack instance and auto-configures the collector endpoint.
+                    properties:
+                      credentialMode:
+                        default: static
+                        description: |-
+                          CredentialMode specifies how credentials are provided to LokiStack.
+                          Valid values: "static", "token", "token-cco".
+                        enum:
+                        - static
+                        - token
+                        - token-cco
+                        type: string
+                      secretName:
+                        description: |-
+                          SecretName is the name of the Secret containing storage credentials.
+                          For S3: must contain keys: access_key_id, access_key_secret, bucketnames, endpoint, region, insecure, s3ForcePathStyle
+                        maxLength: 253
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                        type: string
+                      storageClassName:
+                        default: gp3-csi
+                        description: StorageClassName specifies the storage class
+                          for LokiStack PVCs.
+                        maxLength: 253
+                        type: string
+                      type:
+                        description: 'Type specifies the storage backend: "s3".'
+                        enum:
+                        - s3
+                        type: string
+                    required:
+                    - secretName
+                    - type
+                    type: object
+                required:
+                - storage
+                type: object
+            type: object
+            x-kubernetes-validations:
+            - message: Alerting configuration requires metrics.storage to be configured
+              rule: 'has(self.alerting) ? (has(self.metrics) && has(self.metrics.storage))
+                : true'
+            - message: CollectorReplicas can only be set when metrics.storage or traces
+                are configured, and must be > 0
+              rule: '!has(self.collectorReplicas) || (self.collectorReplicas > 0 &&
+                ((has(self.metrics) && self.metrics.storage != null) || self.traces
+                != null))'
+          status:
+            description: MonitoringStatus defines the observed state of Monitoring.
+            properties:
+              conditions:
+                description: Conditions is the set of condition observations for this
+                  module.
+                items:
+                  description: |-
+                    Condition represents an observation of a module's state at a point in time.
+                    Module controllers set conditions to communicate health signals to the
+                    orchestrator and to human operators.
+                  properties:
+                    lastHeartbeatTime:
+                      description: |-
+                        Deprecated: LastHeartbeatTime is present only for backward
+                        compatibility with existing CRDs. New code should not set this field.
+                      format: date-time
+                      type: string
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from
+                        one status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human-readable message indicating details about the
+                        transition.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the
+                        condition was set based upon. If this does not match the resource's
+                        current generation, the condition is likely stale.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for
+                        the condition's last transition. The value should be a CamelCase
+                        string.
+                      type: string
+                    severity:
+                      description: |-
+                        Severity indicates whether this condition represents an error or is
+                        purely informational. Empty string (default) indicates error severity.
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-type: atomic
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the most recent .metadata.generation observed
+                  by the controller. It allows consumers to determine whether the
+                  controller has processed the latest spec changes.
+                format: int64
+                type: integer
+              phase:
+                description: Phase is the top-level lifecycle phase of the module.
+                type: string
+              releases:
+                description: Releases is the list of deployed component releases.
+                items:
+                  description: ComponentRelease describes a single software component's
+                    release metadata.
+                  properties:
+                    name:
+                      description: Name is the component name, used as the merge key
+                        in lists.
+                      type: string
+                    repoUrl:
+                      description: RepoURL is the source repository URL for this component
+                        release.
+                      type: string
+                    version:
+                      description: Version is the semantic version of the component.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+              url:
+                description: URL is the dashboard endpoint when available.
+                type: string
+              usageLogsEndpoint:
+                description: |-
+                  UsageLogsEndpoint is the Loki OTLP endpoint for sending usage logs.
+                  Populated when usageLogs is configured.
+                type: string
+            type: object
+        type: object
+        x-kubernetes-validations:
+        - message: Monitoring name must be default-monitoring
+          rule: self.metadata.name == 'default-monitoring'
+    served: true
+    storage: true
+    subresources:
+      status: {}
