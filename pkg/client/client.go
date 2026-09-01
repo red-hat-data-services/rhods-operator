@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -18,11 +19,20 @@ import (
 // This ensures a unified caching strategy where all non-exempted resources
 // go through the unstructured cache path.
 type Client struct {
-	inner client.Client
+	inner    client.Client
+	uncached client.Reader
 }
 
 // Option configures the UnstructuredClient.
 type Option func(*Client)
+
+// WithUncachedReader sets a reader used when the cache-backed client rejects a
+// Get/List because the object's namespace is not in the informer cache.
+func WithUncachedReader(r client.Reader) Option {
+	return func(c *Client) {
+		c.uncached = r
+	}
+}
 
 // New creates a new Client that wraps the given client.
 // By default, all Get/List operations use unstructured resources unless the GVK
@@ -58,7 +68,7 @@ func (c *Client) Get(ctx context.Context, key client.ObjectKey, obj client.Objec
 			"gvk", gvk, "key", key, "inputType", "typed", "cacheType", "unstructured", "converted", true)
 		u := &unstructured.Unstructured{}
 		u.SetGroupVersionKind(gvk)
-		if err := c.inner.Get(ctx, key, u, opts...); err != nil {
+		if err := c.get(ctx, key, u, gvk, opts...); err != nil {
 			return err
 		}
 		// Convert unstructured result back to typed
@@ -72,7 +82,7 @@ func (c *Client) Get(ctx context.Context, key client.ObjectKey, obj client.Objec
 		// No conversion needed - input type matches cache type
 		log.V(1).Info("Client.Get: no conversion needed - input type matches cache type",
 			"gvk", gvk, "key", key, "isUnstructured", isUnstructured, "converted", false)
-		return c.inner.Get(ctx, key, obj, opts...)
+		return c.get(ctx, key, obj, gvk, opts...)
 	}
 }
 
@@ -97,7 +107,7 @@ func (c *Client) List(ctx context.Context, list client.ObjectList, opts ...clien
 			"gvk", gvk, "inputType", "typed", "cacheType", "unstructured", "converted", true)
 		ul := &unstructured.UnstructuredList{}
 		ul.SetGroupVersionKind(gvk)
-		if err := c.inner.List(ctx, ul, opts...); err != nil {
+		if err := c.list(ctx, ul, gvk, opts...); err != nil {
 			return err
 		}
 		// Convert unstructured result back to typed
@@ -111,8 +121,41 @@ func (c *Client) List(ctx context.Context, list client.ObjectList, opts ...clien
 		// No conversion needed - input type matches cache type
 		log.V(1).Info("Client.List: no conversion needed - input type matches cache type",
 			"gvk", gvk, "isUnstructuredList", isUnstructuredList, "converted", false)
-		return c.inner.List(ctx, list, opts...)
+		return c.list(ctx, list, gvk, opts...)
 	}
+}
+
+func (c *Client) get(ctx context.Context, key client.ObjectKey, obj client.Object, gvk schema.GroupVersionKind, opts ...client.GetOption) error {
+	err := c.inner.Get(ctx, key, obj, opts...)
+	if err == nil || c.uncached == nil || !isUnknownNamespaceForCache(err) {
+		return err
+	}
+
+	logf.FromContext(ctx).Info("cache does not include namespace, retrying with uncached client",
+		"namespace", key.Namespace,
+		"name", key.Name,
+		"gvk", gvk,
+	)
+	return c.uncached.Get(ctx, key, obj, opts...)
+}
+
+func (c *Client) list(ctx context.Context, list client.ObjectList, gvk schema.GroupVersionKind, opts ...client.ListOption) error {
+	err := c.inner.List(ctx, list, opts...)
+	if err == nil || c.uncached == nil || !isUnknownNamespaceForCache(err) {
+		return err
+	}
+
+	listOpts := client.ListOptions{}
+	listOpts.ApplyOptions(opts)
+	logf.FromContext(ctx).Info("cache does not include namespace, retrying with uncached client",
+		"namespace", listOpts.Namespace,
+		"gvk", gvk,
+	)
+	return c.uncached.List(ctx, list, opts...)
+}
+
+func isUnknownNamespaceForCache(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "unknown namespace for the cache")
 }
 
 // Create saves the object in the Kubernetes cluster.

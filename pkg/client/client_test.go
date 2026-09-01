@@ -2,6 +2,7 @@ package client_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	opclient "github.com/opendatahub-io/opendatahub-operator/v2/pkg/client"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
@@ -349,4 +351,84 @@ func TestClient_Scheme(t *testing.T) {
 func TestClient_ImplementsClientInterface(t *testing.T) {
 	// Compile-time check that UnstructuredClient implements client.Client
 	var _ client.Client = (*opclient.Client)(nil)
+}
+
+func TestClient_Get_UnknownNamespaceFallsBackToUncached(t *testing.T) {
+	g := NewWithT(t)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "rhods-dashboard-notebooks",
+			Namespace: "custom-notebooks",
+		},
+		Data: map[string]string{"key": "value"},
+	}
+
+	cacheErr := fmt.Errorf("unable to get: %s/%s because of unknown namespace for the cache", cm.Namespace, cm.Name)
+
+	cached, err := fakeclient.New(fakeclient.WithInterceptorFuncs(interceptor.Funcs{
+		Get: func(_ context.Context, _ client.WithWatch, _ client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
+			return cacheErr
+		},
+	}))
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	uncached, err := fakeclient.New(fakeclient.WithObjects(cm))
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	wrappedClient := opclient.New(cached, opclient.WithUncachedReader(uncached))
+
+	result := &corev1.ConfigMap{}
+	err = wrappedClient.Get(t.Context(), types.NamespacedName{Name: cm.Name, Namespace: cm.Namespace}, result)
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(result.Data["key"]).Should(Equal("value"))
+}
+
+func TestClient_Get_UnknownNamespaceWithoutUncachedReader(t *testing.T) {
+	g := NewWithT(t)
+
+	cacheErr := fmt.Errorf("unable to get: custom/rhods-dashboard-notebooks because of unknown namespace for the cache")
+	cached, err := fakeclient.New(fakeclient.WithInterceptorFuncs(interceptor.Funcs{
+		Get: func(_ context.Context, _ client.WithWatch, _ client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
+			return cacheErr
+		},
+	}))
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	wrappedClient := opclient.New(cached)
+
+	result := &corev1.ConfigMap{}
+	err = wrappedClient.Get(t.Context(), types.NamespacedName{Name: "rhods-dashboard-notebooks", Namespace: "custom"}, result)
+	g.Expect(err).Should(MatchError(ContainSubstring("unknown namespace for the cache")))
+}
+
+func TestClient_List_UnknownNamespaceFallsBackToUncached(t *testing.T) {
+	g := NewWithT(t)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "rhods-dashboard-model-registries",
+			Namespace: "custom-model-registries",
+		},
+	}
+
+	cacheErr := fmt.Errorf("unable to list: %s because of unknown namespace for the cache", cm.Namespace)
+
+	cached, err := fakeclient.New(fakeclient.WithInterceptorFuncs(interceptor.Funcs{
+		List: func(_ context.Context, _ client.WithWatch, _ client.ObjectList, _ ...client.ListOption) error {
+			return cacheErr
+		},
+	}))
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	uncached, err := fakeclient.New(fakeclient.WithObjects(cm))
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	wrappedClient := opclient.New(cached, opclient.WithUncachedReader(uncached))
+
+	list := &corev1.ConfigMapList{}
+	err = wrappedClient.List(t.Context(), list, client.InNamespace(cm.Namespace))
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(list.Items).To(HaveLen(1))
+	g.Expect(list.Items[0].Name).To(Equal(cm.Name))
 }

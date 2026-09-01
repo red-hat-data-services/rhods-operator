@@ -31,7 +31,7 @@ type Manager struct {
 // New creates a new Manager that wraps the given manager and
 // returns the wrapped client from GetClient().
 func New(mgr manager.Manager, opts ...Option) *Manager {
-	wrappedClient := opclient.New(mgr.GetClient())
+	wrappedClient := opclient.New(mgr.GetClient(), opclient.WithUncachedReader(mgr.GetAPIReader()))
 
 	m := &Manager{
 		Manager:       mgr,

@@ -27,6 +27,10 @@ func (m *mockManager) GetClient() client.Client {
 	return m.client
 }
 
+func (m *mockManager) GetAPIReader() client.Reader {
+	return nil
+}
+
 func TestNew_CreatesManagerWithWrappedClient(t *testing.T) {
 	g := NewWithT(t)
 

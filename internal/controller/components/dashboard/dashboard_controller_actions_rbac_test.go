@@ -61,11 +61,12 @@ func newModelRegistry(ns string) *componentApi.ModelRegistry {
 
 func TestEnsureNamespacedRBAC(t *testing.T) {
 	tests := []struct {
-		name              string
-		platform          common.Platform
-		objects           []client.Object
-		expectedCount     int
-		expectedRoleNames []string
+		name               string
+		platform           common.Platform
+		objects            []client.Object
+		expectedCount      int
+		expectedRoleNames  []string
+		expectedNamespaces map[string]string
 	}{
 		{
 			name:     "both components enabled with namespaces present",
@@ -80,6 +81,28 @@ func TestEnsureNamespacedRBAC(t *testing.T) {
 			},
 			expectedCount:     4,
 			expectedRoleNames: []string{"rhods-dashboard-notebooks", "rhods-dashboard-model-registries"},
+			expectedNamespaces: map[string]string{
+				"rhods-dashboard-notebooks":        "rhods-notebooks",
+				"rhods-dashboard-model-registries": "rhoai-model-registries",
+			},
+		},
+		{
+			name:     "custom workbench and model-registry namespaces",
+			platform: cluster.SelfManagedRhoai,
+			objects: []client.Object{
+				newDSCI("redhat-ods-applications"),
+				newNamespace("redhat-ods-applications"),
+				newNamespace("custom-notebooks"),
+				newNamespace("custom-model-registries"),
+				newWorkbenches("custom-notebooks"),
+				newModelRegistry("custom-model-registries"),
+			},
+			expectedCount:     4,
+			expectedRoleNames: []string{"rhods-dashboard-notebooks", "rhods-dashboard-model-registries"},
+			expectedNamespaces: map[string]string{
+				"rhods-dashboard-notebooks":        "custom-notebooks",
+				"rhods-dashboard-model-registries": "custom-model-registries",
+			},
 		},
 		{
 			name:     "only workbenches enabled",
@@ -172,6 +195,9 @@ func TestEnsureNamespacedRBAC(t *testing.T) {
 				foundRoleBinding := false
 				for _, res := range rr.Resources {
 					if res.GetName() == expectedName {
+						if ns, ok := tt.expectedNamespaces[expectedName]; ok {
+							g.Expect(res.GetNamespace()).To(Equal(ns), "resource %s/%s is in unexpected namespace", res.GetKind(), res.GetName())
+						}
 						switch res.GetKind() {
 						case "Role":
 							foundRole = true

@@ -316,7 +316,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 		os.Exit(1)
 	}
 
-	oDHCache, err := createODHGeneralCacheConfig(platform)
+	oDHCache, err := createODHGeneralCacheConfig(ctx, setupClient, platform)
 	if err != nil {
 		setupLog.Error(err, "unable to get application namespace into cache")
 		os.Exit(1)
@@ -589,7 +589,7 @@ func createSecretCacheConfig(platform common.Platform) (map[string]cache.Config,
 	return namespaceConfigs, nil
 }
 
-func createODHGeneralCacheConfig(platform common.Platform) (map[string]cache.Config, error) {
+func createODHGeneralCacheConfig(ctx context.Context, cli client.Client, platform common.Platform) (map[string]cache.Config, error) {
 	namespaceConfigs, err := getCommonCache(platform)
 	if err != nil {
 		return nil, err
@@ -608,6 +608,16 @@ func createODHGeneralCacheConfig(platform common.Platform) (map[string]cache.Con
 		namespaceConfigs[cluster.DefaultNotebooksNamespaceODH] = cache.Config{}
 	}
 	namespaceConfigs[modelregistry.DefaultModelRegistriesNamespace] = cache.Config{}
+
+	// Include configured (possibly non-default) workbench and model-registry
+	// namespaces from the existing DSC. Defaults above are not sufficient when
+	// spec.components.workbenches.workbenchNamespace or
+	// spec.components.modelregistry.registriesNamespace differ from the
+	// platform defaults (RHOAIENG-89623).
+	for _, ns := range cluster.ConfiguredComponentCacheNamespaces(ctx, cli) {
+		setupLog.Info("adding configured component namespace to cache", "namespace", ns)
+		namespaceConfigs[ns] = cache.Config{}
+	}
 
 	return namespaceConfigs, nil
 }
