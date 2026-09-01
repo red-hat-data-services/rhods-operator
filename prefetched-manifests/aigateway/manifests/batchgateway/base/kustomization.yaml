@@ -16,6 +16,11 @@ patches:
   - path: manager_metrics_patch.yaml
     target:
       kind: Deployment
+      name: llm-d-batch-gateway-operator
+  - path: cert_metrics_manager_patch.yaml
+    target:
+      kind: Deployment
+      name: llm-d-batch-gateway-operator
 
 configMapGenerator:
   - name: batch-gateway-operator-params
