@@ -50,6 +50,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/fields"
+	k8slabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -106,6 +107,7 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/initialinstall"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/logger"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/manager"
+	odhlabels "github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/operatorconfig"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/resources"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/upgrade"
@@ -322,6 +324,21 @@ func main() { //nolint:funlen,maintidx,gocyclo
 		os.Exit(1)
 	}
 
+	// rbacCache extends oDHCache with a catch-all entry that watches Role and
+	// RoleBinding objects in any namespace, but only those labelled
+	// platform.opendatahub.io/part-of=dashboard. The deploy action stamps that
+	// label on every Role/RoleBinding it creates, so the informer picks them up
+	// regardless of which namespace they land in (default or custom). Named
+	// namespace entries in oDHCache take precedence over the AllNamespaces entry,
+	// so platform-namespace Roles remain fully cached and cluster-wide fan-out
+	// from tenant Role events is bounded to dashboard-labelled objects only.
+	rbacCache := maps.Clone(oDHCache)
+	rbacCache[cache.AllNamespaces] = cache.Config{
+		LabelSelector: k8slabels.SelectorFromSet(map[string]string{
+			odhlabels.PlatformPartOf: strings.ToLower(componentApi.DashboardKind),
+		}),
+	}
+
 	cacheOptions := cache.Options{
 		Scheme: scheme,
 		ByObject: map[client.Object]cache.ByObject{
@@ -342,10 +359,10 @@ func main() { //nolint:funlen,maintidx,gocyclo
 				Namespaces: oDHCache,
 			},
 			&rbacv1.Role{}: {
-				Namespaces: oDHCache,
+				Namespaces: rbacCache,
 			},
 			&rbacv1.RoleBinding{}: {
-				Namespaces: oDHCache,
+				Namespaces: rbacCache,
 			},
 		},
 		DefaultTransform: func(in any) (any, error) {
