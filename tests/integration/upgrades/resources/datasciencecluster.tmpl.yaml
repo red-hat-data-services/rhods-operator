@@ -1,0 +1,18 @@
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: {{ .Name }}
+{{- if .ComponentStates }}
+spec:
+  components:
+{{- range $component, $state := .ComponentStates }}
+    {{ $component }}:
+      managementState: {{ $state }}
+{{- end }}
+{{- end }}
+{{- if .Version }}
+status:
+  release:
+    name: {{ .Platform }}
+    version: "{{ .Version }}"
+{{- end }}

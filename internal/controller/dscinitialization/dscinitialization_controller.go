@@ -49,7 +49,9 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/gates"
 	rp "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/predicates/resources"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/provision"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/logger"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/operatorconfig"
@@ -161,15 +163,36 @@ func (r *DSCInitializationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// upgrade case to update release version in status
 	if !instance.Status.Release.Version.Equals(currentOperatorRelease.Version.Version) {
-		message := "Updating DSCInitialization status"
-		instance, err := status.UpdateWithRetry(ctx, r.Client, instance, func(saved *dsciv2.DSCInitialization) {
-			saved.Status.Release = currentOperatorRelease
-		})
-		if err != nil {
-			log.Error(err, "Failed to update release version for DSCInitialization resource.", "DSCInitialization", req.Namespace, "Request.Name", req.Name)
-			r.Recorder.Eventf(instance, nil, corev1.EventTypeWarning, "DSCInitializationReconcileError", "Reconcile",
-				"%s for instance %s: %v", message, instance.Name, err)
-			return reconcile.Result{}, err
+		ns, nsErr := cluster.GetOperatorNamespace()
+		if nsErr != nil {
+			return reconcile.Result{}, nsErr
+		}
+		targetVersion, gateErr := provision.ResolveUpgradeGateVersion(ctx, r.Client, ns, instance.Status.Release, currentOperatorRelease)
+		if gateErr != nil {
+			log.Error(gateErr, "Failed to resolve upgrade gate version")
+			return reconcile.Result{}, gateErr
+		}
+		cleared, gateErr := gates.AllGatesAcknowledged(ctx, r.Client, ns, targetVersion)
+		if gateErr != nil {
+			log.Error(gateErr, "Failed to check upgrade gates")
+			return reconcile.Result{}, gateErr
+		}
+
+		if !cleared {
+			log.Info("deferring version stamp until upgrade gates are acknowledged",
+				"from", instance.Status.Release.Version.String(),
+				"to", currentOperatorRelease.Version.String())
+		} else {
+			message := "Updating DSCInitialization status"
+			instance, err := status.UpdateWithRetry(ctx, r.Client, instance, func(saved *dsciv2.DSCInitialization) {
+				saved.Status.Release = currentOperatorRelease
+			})
+			if err != nil {
+				log.Error(err, "Failed to update release version for DSCInitialization resource.", "DSCInitialization", req.Namespace, "Request.Name", req.Name)
+				r.Recorder.Eventf(instance, nil, corev1.EventTypeWarning, "DSCInitializationReconcileError", "Reconcile",
+					"%s for instance %s: %v", message, instance.Name, err)
+				return reconcile.Result{}, err
+			}
 		}
 	}
 
@@ -362,6 +385,11 @@ func (r *DSCInitializationReconciler) SetupWithManager(ctx context.Context, mgr 
 				rp.CreatedOrUpdatedName("acceleratorprofiles.dashboard.opendatahub.io"),
 				rp.CreatedOrUpdatedName("hardwareprofiles.dashboard.opendatahub.io"),
 			)),
+		).
+		Watches(
+			&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(r.watchUpgradeAcksConfigMap),
+			builder.WithPredicates(rp.CreatedOrUpdatedOrDeletedNamed(gates.AcksConfigMap)),
 		).
 		Complete(r)
 }
@@ -605,6 +633,19 @@ func (r *DSCInitializationReconciler) CreateGatewayConfig(ctx context.Context, i
 		return err
 	}
 	return nil
+}
+
+func (r *DSCInitializationReconciler) watchUpgradeAcksConfigMap(ctx context.Context, _ client.Object) []reconcile.Request {
+	log := logf.FromContext(ctx)
+	instanceList := &dsciv2.DSCInitializationList{}
+	if err := r.Client.List(ctx, instanceList); err != nil {
+		log.Error(err, "Failed to list DSCInitialization instances")
+		return nil
+	}
+	if len(instanceList.Items) == 0 {
+		return nil
+	}
+	return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: instanceList.Items[0].Name}}}
 }
 
 // watchHWProfileCRDResource triggers DSCI reconciliation when Dashboard AcceleratorProfile/HWProfile CRDs are created.

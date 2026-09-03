@@ -62,11 +62,19 @@ func getChartsBasePath(mgr manager.Manager) string {
 
 type ReconcilerOpt func(*Reconciler)
 
+type PostStatusFn func(context.Context, *types.ReconciliationRequest, bool) error
+
 func WithConditionsManagerFactory(happy string, dependents ...string) ReconcilerOpt {
 	return func(reconciler *Reconciler) {
 		reconciler.conditionsManagerFactory = func(accessor common.ConditionsAccessor) *conditions.Manager {
 			return conditions.NewManager(accessor, happy, dependents...)
 		}
+	}
+}
+
+func withPostStatusFn(fn PostStatusFn) ReconcilerOpt {
+	return func(reconciler *Reconciler) {
+		reconciler.postStatusFns = append(reconciler.postStatusFns, fn)
 	}
 }
 
@@ -104,6 +112,7 @@ const platformFinalizer = "platform.opendatahub.io/finalizer"
 // Reconciler provides generic reconciliation functionality for ODH objects.
 type Reconciler struct {
 	Client          client.Client
+	APIReader       client.Reader
 	discoveryClient discovery.DiscoveryInterface
 	dynamicClient   dynamic.Interface
 
@@ -127,6 +136,7 @@ type Reconciler struct {
 	excludeFromDynamicOwnership map[schema.GroupVersionKind]struct{}
 	skipConditionCleanup        bool
 	skipStatusConditionsFn      func() bool
+	postStatusFns               []PostStatusFn
 }
 
 // NewReconciler creates a new reconciler for the given type.
@@ -142,6 +152,7 @@ func NewReconciler[T common.PlatformObject](mgr manager.Manager, name string, ob
 
 	cc := Reconciler{
 		Client:            mgr.GetClient(),
+		APIReader:         mgr.GetAPIReader(),
 		Scheme:            mgr.GetScheme(),
 		Log:               ctrl.Log.WithName("controllers").WithName(name),
 		Recorder:          mgr.GetEventRecorder(name),
@@ -185,6 +196,10 @@ func (r *Reconciler) GetLogger() logr.Logger {
 
 func (r *Reconciler) GetClient() client.Client {
 	return r.Client
+}
+
+func (r *Reconciler) GetAPIReader() client.Reader { //nolint:ireturn // controller interface requires reader
+	return r.APIReader
 }
 
 func (r *Reconciler) GetDiscoveryClient() discovery.DiscoveryInterface {
@@ -428,11 +443,19 @@ func (r *Reconciler) apply(ctx context.Context, res common.PlatformObject) (time
 		}
 
 		if provisionErr != nil {
-			rr.Conditions.MarkFalse(
-				status.ConditionTypeProvisioningSucceeded,
-				conditions.WithError(provisionErr),
-				conditions.WithObservedGeneration(rr.Instance.GetGeneration()),
-			)
+			// Upgrade-gate actions set ProvisioningSucceeded with
+			// AdminAckRequired before returning StopError. Don't
+			// overwrite that with a generic error condition. Other
+			// StopErrors still get the default failure status.
+			skipStatus := errors.As(provisionErr, &odherrors.StopError{}) &&
+				rr.Conditions.WasSet(status.ConditionTypeProvisioningSucceeded)
+			if !skipStatus {
+				rr.Conditions.MarkFalse(
+					status.ConditionTypeProvisioningSucceeded,
+					conditions.WithError(provisionErr),
+					conditions.WithObservedGeneration(rr.Instance.GetGeneration()),
+				)
+			}
 		} else {
 			rr.Conditions.MarkTrue(
 				status.ConditionTypeProvisioningSucceeded,
@@ -463,6 +486,12 @@ func (r *Reconciler) apply(ctx context.Context, res common.PlatformObject) (time
 		is.ObservedGeneration = rr.Instance.GetGeneration()
 	}
 
+	for i := range r.postStatusFns {
+		if err := r.postStatusFns[i](ctx, &rr, rr.Conditions.IsHappy()); err != nil {
+			return 0, fmt.Errorf("failed to run post-status hook: %w", err)
+		}
+	}
+
 	if r.skipStatusConditionsFn != nil && r.skipStatusConditionsFn() {
 		is.Conditions = nil
 		is.Phase = ""
@@ -491,12 +520,20 @@ func (r *Reconciler) apply(ctx context.Context, res common.PlatformObject) (time
 	}
 
 	if provisionErr != nil {
+		reason := "ProvisioningError"
+		action := "Provision"
+
+		if errors.As(provisionErr, &odherrors.StopError{}) {
+			reason = "AdminAckRequired"
+			action = "UpgradeGate"
+		}
+
 		r.Recorder.Eventf(
 			res,
 			nil,
 			corev1.EventTypeWarning,
-			"ProvisioningError",
-			"Provision",
+			reason,
+			action,
 			provisionErr.Error(),
 		)
 

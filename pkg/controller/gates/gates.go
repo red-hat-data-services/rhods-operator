@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/blang/semver/v4"
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,31 +47,17 @@ type UnackedGate struct {
 }
 
 // EnsureGates writes gate descriptions into the odh-upgrade-acks
-// ConfigMap for all entries matching the version prefix
-// "ack-<version>-". Entries already set to "true" (admin-acknowledged)
-// are never overwritten. Returns the list of unacknowledged gates.
+// ConfigMap. Entries already set to "true" (admin-acknowledged) are
+// never overwritten. Returns the list of unacknowledged gates.
 //
-// This single method replaces the former AggregateGates + CheckGates
-// two-ConfigMap flow. The acks ConfigMap now serves double duty: its
-// values are either a descriptive message (unacked) or "true" (acked).
-func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]string, version string) ([]UnackedGate, error) {
-	if version == "" {
-		return nil, errors.New("version must not be empty")
-	}
-
-	versionPrefix := "ack-" + version + "-"
-
-	filtered := make(map[string]string)
-	for k, v := range gateEntries {
-		if strings.HasPrefix(k, versionPrefix) {
-			filtered[k] = v
-		}
-	}
-
-	if len(filtered) == 0 {
-		return nil, nil
-	}
-
+// When called with an empty/nil map the ConfigMap is still created
+// (if absent) to signal that gate evaluation has completed. Component
+// controllers wait for the ConfigMap to exist before proceeding.
+//
+// The caller is responsible for assembling the correct set of gate
+// entries: in-tree gates (unfiltered) and module/cluster gates
+// (version-filtered). EnsureGates does not perform version filtering.
+func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]string) ([]UnackedGate, error) {
 	cm := &corev1.ConfigMap{}
 	err := gc.client.Get(ctx, client.ObjectKey{
 		Name:      AcksConfigMap,
@@ -78,9 +65,6 @@ func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]s
 	}, cm)
 
 	if k8serr.IsNotFound(err) {
-		// No OwnerReference: the acks ConfigMap is a cluster singleton
-		// whose lifecycle is independent of any CR. Admin acknowledgments
-		// must survive CR deletion and re-creation.
 		cm = &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      AcksConfigMap,
@@ -89,9 +73,9 @@ func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]s
 					ManagedByAnnotation: "opendatahub-operator",
 				},
 			},
-			Data: make(map[string]string, len(filtered)),
+			Data: make(map[string]string, len(gateEntries)),
 		}
-		for k, v := range filtered {
+		for k, v := range gateEntries {
 			cm.Data[k] = v
 		}
 		if createErr := gc.client.Create(ctx, cm); createErr != nil {
@@ -102,25 +86,23 @@ func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]s
 				return nil, fmt.Errorf("failed to get %s ConfigMap after race: %w", AcksConfigMap, err)
 			}
 		} else {
-			return gc.collectUnacked(cm, filtered), nil
+			return gc.collectUnacked(cm, gateEntries), nil
 		}
 	} else if err != nil {
 		return nil, fmt.Errorf("failed to get %s ConfigMap: %w", AcksConfigMap, err)
 	}
 
 	if cm.Data == nil {
-		cm.Data = make(map[string]string, len(filtered))
+		cm.Data = make(map[string]string, len(gateEntries))
 	}
 
 	dirty := false
-	for k, v := range filtered {
-		if cm.Data[k] == "true" {
+	for k, v := range gateEntries {
+		if _, exists := cm.Data[k]; exists {
 			continue
 		}
-		if cm.Data[k] != v {
-			cm.Data[k] = v
-			dirty = true
-		}
+		cm.Data[k] = v
+		dirty = true
 	}
 
 	if dirty {
@@ -129,7 +111,7 @@ func (gc *GateChecker) EnsureGates(ctx context.Context, gateEntries map[string]s
 		}
 	}
 
-	return gc.collectUnacked(cm, filtered), nil
+	return gc.collectUnacked(cm, gateEntries), nil
 }
 
 func (gc *GateChecker) collectUnacked(cm *corev1.ConfigMap, filtered map[string]string) []UnackedGate {
@@ -147,28 +129,19 @@ func (gc *GateChecker) collectUnacked(cm *corev1.ConfigMap, filtered map[string]
 	return unacked
 }
 
-// IsGateConfigMap returns true if the given ConfigMap has the upgrade gate
-// label, indicating it should be extracted during chart rendering.
-func IsGateConfigMap(cm *corev1.ConfigMap) bool {
-	if cm == nil || cm.Labels == nil {
-		return false
-	}
-	return cm.Labels[UpgradeGateLabel] == "true"
-}
-
-// LoadInTreeGates reads embedded YAML gate definitions from the
-// resources/ directory and returns all gate entries whose key starts
-// with the version prefix "ack-<version>-". This provides gate
-// definitions for components that have not yet migrated to modules.
+// LoadInTreeGates reads all embedded YAML gate definitions from the
+// resources/ directory. These gates are baked into the operator binary
+// and always apply when upgrading from 2.x, regardless of the
+// runtime-reported operator version (which can be incorrect during
+// OLM's two-step CSV transition).
 //
 // Temporary: remove when all components are modules.
-func LoadInTreeGates(version string) (map[string]string, error) {
+func LoadInTreeGates() (map[string]string, error) {
 	entries, err := gateResourcesFS.ReadDir("resources")
 	if err != nil {
 		return nil, fmt.Errorf("failed to read embedded gate resources: %w", err)
 	}
 
-	prefix := "ack-" + version + "-"
 	result := make(map[string]string)
 
 	for _, entry := range entries {
@@ -192,14 +165,108 @@ func LoadInTreeGates(version string) (map[string]string, error) {
 			}
 
 			for k, v := range cm.Data {
-				if strings.HasPrefix(k, prefix) {
-					result[k] = v
-				}
+				result[k] = v
 			}
 		}
 	}
 
 	return result, nil
+}
+
+// MatchGateKey reports whether key applies to version and returns the gate
+// name following the version scope. Supported key formats are:
+//
+//   - ack-<major>.<minor>-<gate-name>
+//   - ack-<major>.<minor>.<patch>-<gate-name>
+//
+// Minor-scoped gates apply to every patch in that minor release. Exact gates
+// apply only to the specified patch. Prerelease and build metadata in version
+// do not affect matching.
+func MatchGateKey(key string, version string) (string, bool) {
+	const prefix = "ack-"
+
+	if !strings.HasPrefix(key, prefix) {
+		return "", false
+	}
+
+	current, err := semver.Parse(version)
+	if err != nil {
+		return "", false
+	}
+
+	remainder := strings.TrimPrefix(key, prefix)
+	separator := strings.IndexByte(remainder, '-')
+	if separator <= 0 || separator == len(remainder)-1 {
+		return "", false
+	}
+
+	target, ok := parseGateTarget(remainder[:separator])
+	if !ok || target.major != current.Major || target.minor != current.Minor {
+		return "", false
+	}
+	if target.hasPatch && target.patch != current.Patch {
+		return "", false
+	}
+
+	return remainder[separator+1:], true
+}
+
+type versionCore struct {
+	major    uint64
+	minor    uint64
+	patch    uint64
+	hasPatch bool
+}
+
+func parseGateTarget(value string) (versionCore, bool) {
+	parts := strings.Split(value, ".")
+	if len(parts) != 2 && len(parts) != 3 {
+		return versionCore{}, false
+	}
+
+	result := versionCore{hasPatch: len(parts) == 3}
+	normalized := value
+	if len(parts) == 2 {
+		normalized += ".0"
+	}
+
+	parsed, err := semver.Parse(normalized)
+	if err != nil || len(parsed.Pre) > 0 || len(parsed.Build) > 0 {
+		return versionCore{}, false
+	}
+
+	result.major = parsed.Major
+	result.minor = parsed.Minor
+	result.patch = parsed.Patch
+
+	return result, true
+}
+
+// AllGatesAcknowledged returns true when the odh-upgrade-acks
+// ConfigMap exists and every gate entry matching the target version is set to
+// "true". Entries for other versions are ignored. Returns false when the
+// ConfigMap does not exist (the modules controller has not yet evaluated gates)
+// or when an applicable entry remains unacknowledged. An empty or out-of-scope
+// ConfigMap is considered fully acknowledged.
+func AllGatesAcknowledged(ctx context.Context, cli client.Client, namespace string, targetVersion string) (bool, error) {
+	cm := &corev1.ConfigMap{}
+	if err := cli.Get(ctx, client.ObjectKey{Name: AcksConfigMap, Namespace: namespace}, cm); err != nil {
+		if k8serr.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get %s ConfigMap: %w", AcksConfigMap, err)
+	}
+
+	for key, val := range cm.Data {
+		if _, matches := MatchGateKey(key, targetVersion); !matches {
+			continue
+		}
+		if val != "true" {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 // DiscoverGates lists ConfigMaps in the operator namespace that carry

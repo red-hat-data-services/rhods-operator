@@ -16,6 +16,7 @@ import (
 	odherrors "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/errors"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/gates"
 	odhtype "github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/flags"
 )
 
 // ExtractUpgradeGates scans rr.Resources for ConfigMaps carrying the
@@ -70,6 +71,68 @@ func ExtractUpgradeGates(ctx context.Context, rr *odhtype.ReconciliationRequest)
 	return nil
 }
 
+// ComponentUpgradeGateAction is an actions.Fn suitable for component
+// controller action chains. It blocks reconciliation when the
+// odh-upgrade-acks ConfigMap has unacknowledged entries, or when the
+// ConfigMap does not yet exist (the modules controller has not yet
+// completed its gate evaluation). This is a lightweight read-only
+// check — it never creates or modifies the ConfigMap.
+func ComponentUpgradeGateAction(ctx context.Context, rr *odhtype.ReconciliationRequest) error {
+	if !flags.IsDSCEnabled() {
+		return nil
+	}
+
+	ns, err := cluster.GetOperatorNamespace()
+	if err != nil {
+		return nil //nolint:nilerr // operator NS not initialized (e.g. tests); skip gracefully
+	}
+
+	deployed, err := cluster.GetDeployedRelease(ctx, rr.Client)
+	if err != nil {
+		return fmt.Errorf("failed to determine deployed release for upgrade gates: %w", err)
+	}
+	targetVersion, err := ResolveUpgradeGateVersion(ctx, rr.Client, ns, deployed, rr.Release)
+	if err != nil {
+		return fmt.Errorf("failed to resolve upgrade gate version: %w", err)
+	}
+
+	return ComponentUpgradeGateCheck(ctx, rr.Client, ns, targetVersion, rr.Conditions)
+}
+
+// ComponentUpgradeGateCheck is the namespace-explicit variant of
+// ComponentUpgradeGateAction, suitable for direct testing.
+func ComponentUpgradeGateCheck(
+	ctx context.Context,
+	cli client.Client,
+	namespace string,
+	targetVersion string,
+	conditions ConditionWriter,
+) error {
+	cleared, err := gates.AllGatesAcknowledged(ctx, cli, namespace, targetVersion)
+	if err != nil {
+		return fmt.Errorf("failed to check upgrade gates: %w", err)
+	}
+
+	if !cleared {
+		conditions.SetCondition(common.Condition{
+			Type:    status.ConditionTypeProvisioningProgress,
+			Status:  metav1.ConditionFalse,
+			Reason:  status.AdminAckRequiredReason,
+			Message: "Waiting for upgrade gates to be acknowledged",
+		})
+		conditions.SetCondition(common.Condition{
+			Type:    status.ConditionTypeProvisioningSucceeded,
+			Status:  metav1.ConditionFalse,
+			Reason:  status.AdminAckRequiredReason,
+			Message: "Waiting for upgrade gates to be acknowledged",
+		})
+
+		return odherrors.NewStopError("waiting for upgrade gates to be acknowledged")
+	}
+
+	return nil
+}
+
 // CheckUpgradeGates evaluates admin-acknowledgment gates for the current
 // operator version. It collects gates from all sources (in-tree, labeled
 // cluster ConfigMaps, chart-extracted entries), writes their descriptions
@@ -85,7 +148,9 @@ func CheckUpgradeGates(ctx context.Context, cli client.Client, release common.Re
 }
 
 // CheckUpgradeGatesInNamespace is the namespace-explicit variant of
-// CheckUpgradeGates.
+// CheckUpgradeGates. Gates apply when upgrading to any newer release; equal
+// versions, downgrades, and fresh installs are allowed through without
+// blocking.
 func CheckUpgradeGatesInNamespace(
 	ctx context.Context, cli client.Client, namespace string,
 	release common.Release, conditions ConditionWriter,
@@ -94,11 +159,34 @@ func CheckUpgradeGatesInNamespace(
 	log := logf.FromContext(ctx)
 
 	gc := gates.NewGateChecker(cli, namespace)
-	version := release.Version.String()
+
+	deployed, err := cluster.GetDeployedRelease(ctx, cli)
+	if err != nil {
+		return fmt.Errorf("cannot determine deployed release for upgrade gate check: %w", err)
+	}
+
+	targetVersion, err := ResolveUpgradeGateVersion(ctx, cli, namespace, deployed, release)
+	if err != nil {
+		return fmt.Errorf("failed to resolve upgrade gate version: %w", err)
+	}
+
+	if !isVersionUpgrade(deployed.Version.Version, targetVersion) {
+		// Not a version upgrade — create empty ConfigMap to signal
+		// "gate evaluation complete, no gates needed" so component
+		// controllers waiting on the ConfigMap can proceed.
+		if _, err := gc.EnsureGates(ctx, nil); err != nil {
+			return fmt.Errorf("failed to create empty upgrade gates ConfigMap: %w", err)
+		}
+		return nil
+	}
 
 	allGates := make(map[string]string)
 
-	intreeGates, err := gates.LoadInTreeGates(version)
+	// In-tree gates are embedded in the binary and are already scoped by the
+	// gate definitions. This ensures they are evaluated even when OLM's
+	// two-step CSV rollout causes the running release to temporarily report an
+	// old version.
+	intreeGates, err := gates.LoadInTreeGates()
 	if err != nil {
 		return fmt.Errorf("failed to load in-tree gates: %w", err)
 	}
@@ -106,19 +194,25 @@ func CheckUpgradeGatesInNamespace(
 		allGates[k] = v
 	}
 
+	// Cluster-labeled and chart-extracted gates are version-filtered
+	// to avoid stale entries from previous upgrades blocking a new one.
 	clusterGates, err := gc.DiscoverGates(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to discover cluster gates: %w", err)
 	}
 	for k, v := range clusterGates {
-		allGates[k] = v
+		if _, matches := gates.MatchGateKey(k, targetVersion); matches {
+			allGates[k] = v
+		}
 	}
 
 	for k, v := range chartGates {
-		allGates[k] = v
+		if _, matches := gates.MatchGateKey(k, targetVersion); matches {
+			allGates[k] = v
+		}
 	}
 
-	unacked, err := gc.EnsureGates(ctx, allGates, version)
+	unacked, err := gc.EnsureGates(ctx, allGates)
 	if err != nil {
 		return fmt.Errorf("failed to ensure upgrade gates: %w", err)
 	}
@@ -133,7 +227,7 @@ func CheckUpgradeGatesInNamespace(
 	}
 
 	log.Info("provisioning blocked by unacknowledged upgrade gates",
-		"version", version,
+		"version", targetVersion,
 		"unacked_gates", keys,
 	)
 
@@ -144,5 +238,5 @@ func CheckUpgradeGatesInNamespace(
 		Message: fmt.Sprintf("Upgrade gates not acknowledged: %s", strings.Join(keys, ", ")),
 	})
 
-	return odherrors.NewStopError("provisioning blocked: %d unacknowledged upgrade gate(s) for version %s", len(unacked), version)
+	return odherrors.NewStopError("provisioning blocked: %d unacknowledged upgrade gate(s) for version %s", len(unacked), targetVersion)
 }
