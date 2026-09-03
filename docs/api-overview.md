@@ -19,11 +19,7 @@ Package v1 contains API Schema definitions for the components v1 API group
 ### Resource Types
 - [DataSciencePipelines](#datasciencepipelines)
 - [Kueue](#kueue)
-- [ModelRegistry](#modelregistry)
 - [Ray](#ray)
-- [SparkOperator](#sparkoperator)
-- [Trainer](#trainer)
-- [TrainingOperator](#trainingoperator)
 - [TrustyAI](#trustyai)
 
 
@@ -1149,27 +1145,6 @@ _Appears in:_
 | `nodeSelector` _[LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#labelselector-v1-meta)_ | NodeSelector is a label selector that identifies nodes for model caching<br />using pre-existing node labels (e.g., nvidia.com/gpu).<br />The operator will label matching nodes with kserve/localmodel=worker.<br />Mutually exclusive with NodeNames. |  | Optional: \{\} <br /> |
 
 
-#### ModelRegistry
-
-
-
-ModelRegistry is the Schema for the modelregistries API
-
-
-
-
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `apiVersion` _string_ | `components.platform.opendatahub.io/v1alpha1` | | |
-| `kind` _string_ | `ModelRegistry` | | |
-| `kind` _string_ | Kind is a string value representing the REST resource this object represents.<br />Servers may infer this from the endpoint the client submits requests to.<br />Cannot be updated.<br />In CamelCase.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds |  |  |
-| `apiVersion` _string_ | APIVersion defines the versioned schema of this representation of an object.<br />Servers should convert recognized schemas to the latest internal value, and<br />may reject unrecognized values.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources |  |  |
-| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
-| `spec` _[ModelRegistrySpec](#modelregistryspec)_ |  |  |  |
-| `status` _[ModelRegistryStatus](#modelregistrystatus)_ |  |  |  |
-
-
 #### ModelRegistryCommonSpec
 
 
@@ -1180,7 +1155,6 @@ ModelRegistryCommonSpec spec defines the shared desired state of ModelRegistry (
 
 _Appears in:_
 - [DSCModelRegistry](#dscmodelregistry)
-- [ModelRegistrySpec](#modelregistryspec)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
@@ -1197,40 +1171,6 @@ ModelRegistryCommonStatus defines the shared observed state of ModelRegistry
 
 _Appears in:_
 - [DSCModelRegistryStatus](#dscmodelregistrystatus)
-- [ModelRegistryStatus](#modelregistrystatus)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `registriesNamespace` _string_ |  |  |  |
-
-
-#### ModelRegistrySpec
-
-
-
-ModelRegistrySpec defines the desired state of ModelRegistry (ModelRegistry CR only).
-
-
-
-_Appears in:_
-- [ModelRegistry](#modelregistry)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `registriesNamespace` _string_ | Namespace for model registries to be installed, configurable only once when model registry is enabled, defaults to "odh-model-registries" | odh-model-registries | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
-| `gateway` _[GatewaySpec](#gatewayspec)_ | Gateway configuration for model registry ingress (synced from GatewayConfig by the DSC controller when creating the ModelRegistry CR). |  |  |
-
-
-#### ModelRegistryStatus
-
-
-
-ModelRegistryStatus defines the observed state of ModelRegistry
-
-
-
-_Appears in:_
-- [ModelRegistry](#modelregistry)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
@@ -1407,27 +1347,6 @@ _Appears in:_
 
 
 
-#### SparkOperator
-
-
-
-SparkOperator is the Schema for the sparkoperators API
-
-
-
-
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `apiVersion` _string_ | `components.platform.opendatahub.io/v1alpha1` | | |
-| `kind` _string_ | `SparkOperator` | | |
-| `kind` _string_ | Kind is a string value representing the REST resource this object represents.<br />Servers may infer this from the endpoint the client submits requests to.<br />Cannot be updated.<br />In CamelCase.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds |  |  |
-| `apiVersion` _string_ | APIVersion defines the versioned schema of this representation of an object.<br />Servers should convert recognized schemas to the latest internal value, and<br />may reject unrecognized values.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources |  |  |
-| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
-| `spec` _[SparkOperatorSpec](#sparkoperatorspec)_ |  |  |  |
-| `status` _[SparkOperatorStatus](#sparkoperatorstatus)_ |  |  |  |
-
-
 #### SparkOperatorCommonSpec
 
 
@@ -1438,7 +1357,6 @@ SparkOperator is the Schema for the sparkoperators API
 
 _Appears in:_
 - [DSCSparkOperator](#dscsparkoperator)
-- [SparkOperatorSpec](#sparkoperatorspec)
 
 
 
@@ -1452,55 +1370,7 @@ SparkOperatorCommonStatus defines the shared observed state
 
 _Appears in:_
 - [DSCSparkOperatorStatus](#dscsparkoperatorstatus)
-- [SparkOperatorStatus](#sparkoperatorstatus)
 
-
-
-#### SparkOperatorSpec
-
-
-
-SparkOperatorSpec defines the desired state of SparkOperator
-
-
-
-_Appears in:_
-- [SparkOperator](#sparkoperator)
-
-
-
-#### SparkOperatorStatus
-
-
-
-SparkOperatorStatus defines the observed state
-
-
-
-_Appears in:_
-- [SparkOperator](#sparkoperator)
-
-
-
-#### Trainer
-
-
-
-Trainer is the Schema for the trainers API
-
-
-
-
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `apiVersion` _string_ | `components.platform.opendatahub.io/v1alpha1` | | |
-| `kind` _string_ | `Trainer` | | |
-| `kind` _string_ | Kind is a string value representing the REST resource this object represents.<br />Servers may infer this from the endpoint the client submits requests to.<br />Cannot be updated.<br />In CamelCase.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds |  |  |
-| `apiVersion` _string_ | APIVersion defines the versioned schema of this representation of an object.<br />Servers should convert recognized schemas to the latest internal value, and<br />may reject unrecognized values.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources |  |  |
-| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
-| `spec` _[TrainerSpec](#trainerspec)_ |  |  |  |
-| `status` _[TrainerStatus](#trainerstatus)_ |  |  |  |
 
 
 #### TrainerCommonSpec
@@ -1513,7 +1383,6 @@ Trainer is the Schema for the trainers API
 
 _Appears in:_
 - [DSCTrainer](#dsctrainer)
-- [TrainerSpec](#trainerspec)
 
 
 
@@ -1527,55 +1396,7 @@ TrainerCommonStatus defines the shared observed state of Trainer
 
 _Appears in:_
 - [DSCTrainerStatus](#dsctrainerstatus)
-- [TrainerStatus](#trainerstatus)
 
-
-
-#### TrainerSpec
-
-
-
-TrainerSpec defines the desired state of Trainer
-
-
-
-_Appears in:_
-- [Trainer](#trainer)
-
-
-
-#### TrainerStatus
-
-
-
-TrainerStatus defines the observed state of Trainer
-
-
-
-_Appears in:_
-- [Trainer](#trainer)
-
-
-
-#### TrainingOperator
-
-
-
-TrainingOperator is the Schema for the trainingoperators API
-
-
-
-
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `apiVersion` _string_ | `components.platform.opendatahub.io/v1alpha1` | | |
-| `kind` _string_ | `TrainingOperator` | | |
-| `kind` _string_ | Kind is a string value representing the REST resource this object represents.<br />Servers may infer this from the endpoint the client submits requests to.<br />Cannot be updated.<br />In CamelCase.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds |  |  |
-| `apiVersion` _string_ | APIVersion defines the versioned schema of this representation of an object.<br />Servers should convert recognized schemas to the latest internal value, and<br />may reject unrecognized values.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources |  |  |
-| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
-| `spec` _[TrainingOperatorSpec](#trainingoperatorspec)_ |  |  |  |
-| `status` _[TrainingOperatorStatus](#trainingoperatorstatus)_ |  |  |  |
 
 
 #### TrainingOperatorCommonSpec
@@ -1588,7 +1409,6 @@ TrainingOperator is the Schema for the trainingoperators API
 
 _Appears in:_
 - [DSCTrainingOperator](#dsctrainingoperator)
-- [TrainingOperatorSpec](#trainingoperatorspec)
 
 
 
@@ -1602,33 +1422,6 @@ TrainingOperatorCommonStatus defines the shared observed state of TrainingOperat
 
 _Appears in:_
 - [DSCTrainingOperatorStatus](#dsctrainingoperatorstatus)
-- [TrainingOperatorStatus](#trainingoperatorstatus)
-
-
-
-#### TrainingOperatorSpec
-
-
-
-TrainingOperatorSpec defines the desired state of TrainingOperator
-
-
-
-_Appears in:_
-- [TrainingOperator](#trainingoperator)
-
-
-
-#### TrainingOperatorStatus
-
-
-
-TrainingOperatorStatus defines the observed state of TrainingOperator
-
-
-
-_Appears in:_
-- [TrainingOperator](#trainingoperator)
 
 
 
@@ -2797,7 +2590,6 @@ Package v1 contains API Schema definitions for the services v1 API group
 ### Resource Types
 - [Auth](#auth)
 - [GatewayConfig](#gatewayconfig)
-- [Monitoring](#monitoring)
 
 
 
@@ -2812,7 +2604,6 @@ Alerting configuration for Prometheus
 _Appears in:_
 - [DSCIMonitoring](#dscimonitoring)
 - [MonitoringCommonSpec](#monitoringcommonspec)
-- [MonitoringSpec](#monitoringspec)
 
 
 
@@ -2952,6 +2743,7 @@ _Appears in:_
 | `providerCASecretName` _string_ | ProviderCASecretName is the name of the secret containing the CA certificate for the authentication provider<br />Used when the OAuth/OIDC provider uses a self-signed or custom CA certificate.<br />Secret must exist in the openshift-ingress namespace and contain a 'ca.crt' key with the PEM-encoded CA certificate. |  |  |
 | `verifyProviderCertificate` _boolean_ | VerifyProviderCertificate controls TLS certificate verification for the authentication provider.<br />When true (default), certificates are verified against the system trust store and providerCASecretName.<br />When false, certificate verification is disabled (development/testing only).<br />WARNING: Setting this to false disables security and should only be used in non-production environments.<br />For production use with self-signed certificates, use ProviderCASecretName instead. | true |  |
 | `enableK8sTokenValidation` _boolean_ | EnableK8sTokenValidation enables Kubernetes service account token validation via TokenReview API.<br />When enabled, kube-auth-proxy validates bearer tokens as service account tokens alongside OAuth/OIDC authentication.<br />This allows service accounts to authenticate via bearer tokens while human users authenticate via OAuth/OIDC. | true |  |
+| `tokenReview` _[TokenReviewConfig](#tokenreviewconfig)_ | TokenReview configures the rate limiting and caching behavior of Kubernetes TokenReview API calls<br />used for service account token validation.<br />If not set, kube-auth-proxy uses built-in defaults (QPS=50, Burst=100, CacheTTL=10s).<br />These settings only take effect when EnableK8sTokenValidation is true. |  |  |
 
 
 #### GatewayConfigStatus
@@ -3015,7 +2807,6 @@ Metrics defines the desired state of metrics for the monitoring service
 _Appears in:_
 - [DSCIMonitoring](#dscimonitoring)
 - [MonitoringCommonSpec](#monitoringcommonspec)
-- [MonitoringSpec](#monitoringspec)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
@@ -3041,27 +2832,6 @@ _Appears in:_
 | `retention` _string_ | Retention specifies how long metrics data should be retained (e.g., "1d", "2w") |  |  |
 
 
-#### Monitoring
-
-
-
-Monitoring is the Schema for the monitorings API
-
-
-
-
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `apiVersion` _string_ | `services.platform.opendatahub.io/v1alpha1` | | |
-| `kind` _string_ | `Monitoring` | | |
-| `kind` _string_ | Kind is a string value representing the REST resource this object represents.<br />Servers may infer this from the endpoint the client submits requests to.<br />Cannot be updated.<br />In CamelCase.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds |  |  |
-| `apiVersion` _string_ | APIVersion defines the versioned schema of this representation of an object.<br />Servers should convert recognized schemas to the latest internal value, and<br />may reject unrecognized values.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources |  |  |
-| `metadata` _[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
-| `spec` _[MonitoringSpec](#monitoringspec)_ |  |  |  |
-| `status` _[MonitoringStatus](#monitoringstatus)_ |  |  |  |
-
-
 #### MonitoringCommonSpec
 
 
@@ -3072,7 +2842,6 @@ MonitoringCommonSpec spec defines the shared desired state of Monitoring
 
 _Appears in:_
 - [DSCIMonitoring](#dscimonitoring)
-- [MonitoringSpec](#monitoringspec)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
@@ -3081,42 +2850,6 @@ _Appears in:_
 | `traces` _[Traces](#traces)_ | Tracing configuration for OpenTelemetry instrumentation |  |  |
 | `alerting` _[Alerting](#alerting)_ | Alerting configuration for Prometheus |  |  |
 | `collectorReplicas` _integer_ | CollectorReplicas specifies the number of replicas in opentelemetry-collector. If not set, it defaults<br />to 1 on single-node clusters and 2 on multi-node clusters. |  |  |
-
-
-#### MonitoringSpec
-
-
-
-MonitoringSpec defines the desired state of Monitoring
-
-
-
-_Appears in:_
-- [Monitoring](#monitoring)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `namespace` _string_ | monitoring spec exposed to DSCI api<br />Namespace for monitoring if it is enabled | opendatahub | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
-| `metrics` _[Metrics](#metrics)_ | metrics collection |  |  |
-| `traces` _[Traces](#traces)_ | Tracing configuration for OpenTelemetry instrumentation |  |  |
-| `alerting` _[Alerting](#alerting)_ | Alerting configuration for Prometheus |  |  |
-| `collectorReplicas` _integer_ | CollectorReplicas specifies the number of replicas in opentelemetry-collector. If not set, it defaults<br />to 1 on single-node clusters and 2 on multi-node clusters. |  |  |
-
-
-#### MonitoringStatus
-
-
-
-MonitoringStatus defines the observed state of Monitoring
-
-
-
-_Appears in:_
-- [Monitoring](#monitoring)
-
-| Field | Description | Default | Validation |
-| --- | --- | --- | --- |
-| `url` _string_ |  |  |  |
 
 
 #### NetworkPolicyConfig
@@ -3156,6 +2889,24 @@ _Appears in:_
 | `secretNamespace` _string_ | Namespace where the client secret is located<br />If not specified, defaults to openshift-ingress |  |  |
 
 
+#### TokenReviewConfig
+
+
+
+TokenReviewConfig defines rate limiting and caching settings for TokenReview API calls.
+
+
+
+_Appears in:_
+- [GatewayConfigSpec](#gatewayconfigspec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `qps` _integer_ | QPS is the maximum queries per second to the Kubernetes API for TokenReview calls.<br />Higher values allow more concurrent token validation requests.<br />If not set, kube-auth-proxy uses its built-in default (50). |  | Minimum: 1 <br /> |
+| `burst` _integer_ | Burst is the maximum burst of requests to the Kubernetes API for TokenReview calls.<br />Should be equal to or greater than QPS.<br />If not set, kube-auth-proxy uses its built-in default (100). |  | Minimum: 1 <br /> |
+| `cacheTTL` _[Duration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#duration-v1-meta)_ | CacheTTL is how long validated token results are cached before re-validation (e.g., "10s", "30s").<br />If not set, kube-auth-proxy uses its built-in default (10s). |  |  |
+
+
 #### Traces
 
 
@@ -3167,7 +2918,6 @@ Traces enables and defines the configuration for traces collection
 _Appears in:_
 - [DSCIMonitoring](#dscimonitoring)
 - [MonitoringCommonSpec](#monitoringcommonspec)
-- [MonitoringSpec](#monitoringspec)
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |

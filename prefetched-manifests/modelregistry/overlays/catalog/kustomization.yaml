@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: opendatahub
+
+resources:
+- aihub.opendatahub.io_catalogs.yaml
+- manager.yaml
+- rbac/
+- webhook.yaml
+- webhook_service.yaml
+
+configMapGenerator:
+- envs:
+    - params.env
+  name: catalog-operator-parameters
+generatorOptions:
+  disableNameSuffixHash: true
+replacements:
+- path: replacements.yaml

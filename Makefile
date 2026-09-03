@@ -89,6 +89,8 @@ else
 	CCM_LOCAL_OVERLAY=rhoai
 endif
 
+MANAGER_FILE ?= $(CONFIG_DIR)/manager/manager.yaml
+
 IMAGE_BUILDER ?= podman
 DEFAULT_MANIFESTS_PATH ?= opt/manifests
 DEFAULT_CHARTS_PATH ?= opt/charts
@@ -370,7 +372,7 @@ update-refs-rhoai-branch: ## Update all RHOAI refs to a new branch (requires GIT
 
 .PHONY: apply-image-overrides
 apply-image-overrides: ## Apply image overrides to manager.yaml (for make deploy)
-	go run -C ./cmd/manifest-tools main.go apply-deploy --config $(CURDIR)/manifests-config.yaml --platform $(ODH_PLATFORM_TYPE) --manager-file $(CURDIR)/config/manager/manager.yaml
+	go run -C ./cmd/manifest-tools main.go apply-deploy --config $(CURDIR)/manifests-config.yaml --platform $(ODH_PLATFORM_TYPE) --manager-file $(CURDIR)/$(MANAGER_FILE)
 
 .PHONY: apply-image-overrides-olm
 apply-image-overrides-olm: ## Apply image overrides to OLM Subscription (for operator-sdk run bundle)
@@ -472,10 +474,16 @@ deploy: prepare ## Deploy controller to the K8s cluster specified in ~/.kube/con
 	$(KUSTOMIZE) build $(CONFIG_DIR)/default | kubectl apply --namespace $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: deploy-rhaii
+ifndef SKIP_IMAGE_OVERRIDES
+deploy-rhaii: apply-image-overrides
+endif
 deploy-rhaii: prepare ## Deploy controller in rhaii mode (only KServe) to the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build $(RHAII_DEFAULT_CONFIG_DIR) | $(SED_COMMAND) 's/REPLACE_RHAI_VERSION/$(VERSION)/g' | kubectl apply --namespace $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: deploy-rhaii-local
+ifndef SKIP_IMAGE_OVERRIDES
+deploy-rhaii-local: apply-image-overrides
+endif
 deploy-rhaii-local: prepare ## Deploy controller in rhaii mode (only KServe, local image pull policy) to the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build $(RHAII_LOCAL_CONFIG_DIR) | $(SED_COMMAND) 's/REPLACE_RHAI_VERSION/$(VERSION)/g' | kubectl apply --namespace $(OPERATOR_NAMESPACE) -f -
 
@@ -571,7 +579,7 @@ CLEANFILES += rhoai-bundle odh-bundle
 .PHONY: bundle-all
 bundle-all:
 	$(MAKE) bundle
-	$(MAKE) bundle ODH_PLATFORM_TYPE=rhoai
+	$(MAKE) bundle ODH_PLATFORM_TYPE=rhoai OPERATOR_PACKAGE=rhods-operator BUNDLE_DIR=rhoai-bundle
 
 # The bundle image is multi-stage to preserve the ability to build without invoking make
 # We use build args to ensure the variables are passed to the underlying internal make invocation
@@ -857,7 +865,7 @@ e2e-setup-cluster:
 		-e E2E_TEST_CLEAN_UP_PREVIOUS_RESOURCES=true
 
 .PHONY: e2e-test-xks
-e2e-test-xks: ## Run e2e tests on external Kubernetes (KinD, AKS, CoreWeave, etc.)
+e2e-test-xks: ## Run e2e tests on external Kubernetes (KinD, AKS, CoreWeave, etc.). Image overrides are applied at deploy (see deploy-rhaii-local).
 	@$(MAKE) e2e-test \
 		-e E2E_TEST_CLEAN_UP_PREVIOUS_RESOURCES=false \
 		-e E2E_TEST_DEPENDANT_OPERATORS_MANAGEMENT=false \
