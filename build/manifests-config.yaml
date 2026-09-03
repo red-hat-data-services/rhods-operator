@@ -72,6 +72,12 @@ map:
     dest: ogx
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
     git.commit: 272995db8e97792c4d7f42a8bd5ad1d6e20354df
+  odh-observability:
+    src: charts/odh-observability
+    dest: odh-observability
+    type: chart
+    git.url: https://github.com/red-hat-data-services/odh-observability
+    git.commit: bc85fa66082b1b71b0001cc2eb45d29394cb9c13
 additional_meta:
   odh-ai-gateway-payload-processing:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -268,9 +274,6 @@ additional_meta:
   odh-notebook-controller:
     git.url: https://github.com/red-hat-data-services/kubeflow
     git.commit: 9525dc31c8ebf98b91ef659acc092fd0c13f1d1d
-  odh-observability:
-    git.url: https://github.com/red-hat-data-services/odh-observability
-    git.commit: bc85fa66082b1b71b0001cc2eb45d29394cb9c13
   odh-ogx-core:
     git.url: https://github.com/red-hat-data-services/ogx-distribution
     git.commit: 666774ff97ff7d5de762572d8689f221ccf70d8c
