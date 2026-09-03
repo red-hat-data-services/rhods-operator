@@ -79,29 +79,3 @@
         name: aihub-controller-manager
       fieldPaths:
         - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_ODH_MODEL_REGISTRY_JOB_ASYNC_UPLOAD_IMAGE].value
-- source:
-    kind: Service
-    name: aihub-controller-manager-metrics-service
-    fieldPath: metadata.name
-  targets:
-    - select:
-        kind: ServiceMonitor
-        name: aihub-controller-manager-metrics-monitor
-      fieldPaths:
-        - spec.endpoints.0.tlsConfig.serverName
-      options:
-        delimiter: "."
-        index: 0
-- source:
-    kind: Service
-    name: aihub-controller-manager-metrics-service
-    fieldPath: metadata.namespace
-  targets:
-    - select:
-        kind: ServiceMonitor
-        name: aihub-controller-manager-metrics-monitor
-      fieldPaths:
-        - spec.endpoints.0.tlsConfig.serverName
-      options:
-        delimiter: "."
-        index: 1
