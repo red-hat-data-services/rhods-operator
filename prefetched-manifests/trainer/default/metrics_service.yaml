@@ -1,6 +1,12 @@
+# OpenShift service-ca watches this annotation and writes
+# trainer-operator-metrics-tls. Do not deploy a ConfigMap named
+# openshift-service-ca.crt with inject-cabundle — the platform already
+# creates it; owning it loops.
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: trainer-operator-metrics-tls
   labels:
     control-plane: controller-manager
     app.kubernetes.io/name: trainer-operator
@@ -9,10 +15,10 @@ metadata:
   namespace: system
 spec:
   ports:
-  - name: http
-    port: 8080
+  - name: metrics
+    port: 8443
     protocol: TCP
-    targetPort: 8080
+    targetPort: metrics
   selector:
     control-plane: controller-manager
     app.kubernetes.io/name: trainer-operator

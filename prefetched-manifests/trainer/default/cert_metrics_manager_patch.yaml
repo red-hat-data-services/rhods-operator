@@ -1,0 +1,19 @@
+# Mount the OpenShift service-ca secret. optional: true so the pod can
+# start on Kind/xKS before the secret exists; GetCertificate loads it
+# on handshake instead of pinning a self-signed cert at listener create.
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --metrics-cert-path=/tmp/k8s-metrics-server/metrics-certs
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts/-
+  value:
+    mountPath: /tmp/k8s-metrics-server/metrics-certs
+    name: metrics-certs
+    readOnly: true
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: metrics-certs
+    secret:
+      secretName: trainer-operator-metrics-tls
+      optional: true

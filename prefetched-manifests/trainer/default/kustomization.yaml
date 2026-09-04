@@ -7,9 +7,10 @@ resources:
 - ../rbac
 - ../manager
 - metrics_service.yaml
+- ../network-policy
 
 patches:
-- path: manager_metrics_patch.yaml
+- path: cert_metrics_manager_patch.yaml
   target:
     kind: Deployment
 

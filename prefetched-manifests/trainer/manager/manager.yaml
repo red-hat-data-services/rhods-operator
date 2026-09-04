@@ -30,10 +30,15 @@ spec:
         - /manager
         args:
           - --health-probe-bind-address=:8081
+          - --metrics-bind-address=:8443
+          - --metrics-secure=true
           - --zap-log-level=info
         image: REPLACED_BY_KUSTOMIZE
         name: manager
-        ports: []
+        ports:
+        - name: metrics
+          containerPort: 8443
+          protocol: TCP
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
