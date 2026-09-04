@@ -81,6 +81,14 @@ rules:
 - apiGroups:
   - mlflow.kubeflow.org
   resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
   - mlflowconfigs
   verbs:
   - get
