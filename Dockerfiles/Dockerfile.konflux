@@ -60,7 +60,7 @@ RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOEXPERIMENT=strictfipsr
 # Build cloudmanager binary
 RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o cloudmanager ./cmd/cloudmanager/
 ################################################################################
-FROM registry.redhat.io/ubi9/ubi-minimal-pqc@sha256:8a842ac769de709143e4edeace516f2008dfdc431b64670ad3353fa323b44736
+FROM registry.redhat.io/ubi9/ubi-minimal-pqc@sha256:3e009398a8aa8eec621393fbf308c5e622f174900e44e8d5fe224c637920924a
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/cloudmanager .
