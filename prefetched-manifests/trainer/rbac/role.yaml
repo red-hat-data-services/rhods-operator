@@ -248,8 +248,7 @@ rules:
   resourceNames:
   - kubeflow-trainer-controller-manager
   - kubeflow-trainer-view
-  - trainer-metrics-auth
-  - trainer-metrics-reader
+  - trainer-tls-profile
   resources:
   - clusterrolebindings
   verbs:
@@ -276,8 +275,7 @@ rules:
   - kubeflow-trainer-controller-manager
   - kubeflow-trainer-edit
   - kubeflow-trainer-view
-  - trainer-metrics-auth
-  - trainer-metrics-reader
+  - trainer-tls-profile
   - training-admin
   - training-edit
   - training-view
