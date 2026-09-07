@@ -39,19 +39,19 @@ RUN apt-get update -y && \
     mv kubectl /usr/local/bin/ && \
     apt-get clean all
 
-# install gotestsum and build test2json
-RUN go install gotest.tools/gotestsum@latest \
+# install test reporting tools and build test2json
+RUN go install gotest.tools/gotestsum@v1.13.0 \
+ && go install github.com/jstemmer/go-junit-report/v2@v2.1.0 \
  && go build -o /usr/local/bin/test2json cmd/test2json
 
 WORKDIR /e2e
 
 COPY --from=builder /workspace/e2e-tests .
+COPY tests/e2e/scripts/run_e2e_tests.sh /e2e/run_e2e_tests.sh
 
-RUN chmod +x ./e2e-tests
+RUN chmod +x ./e2e-tests /e2e/run_e2e_tests.sh
 
 RUN mkdir -p results
 
-CMD gotestsum --junitfile-project-name odh-operator-e2e --junitfile results/xunit_report.xml --format testname --raw-command \
--- test2json -p e2e ./e2e-tests --test.parallel=1 --test.v=test2json --deletion-policy=never \
---operator-namespace=$E2E_TEST_OPERATOR_NAMESPACE --applications-namespace=$E2E_TEST_APPLICATIONS_NAMESPACE \
---workbenches-namespace=$E2E_TEST_WORKBENCHES_NAMESPACE --dsc-monitoring-namespace=$E2E_TEST_DSC_MONITORING_NAMESPACE
+# run main go command
+ENTRYPOINT ["/e2e/run_e2e_tests.sh"]
