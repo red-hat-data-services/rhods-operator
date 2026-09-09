@@ -159,6 +159,18 @@ rules:
   verbs:
   - create
 - apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - batch
   resources:
   - cronjobs
@@ -425,6 +437,7 @@ rules:
   resources:
   - aitenants/status
   - configs/status
+  - externalmodels/status
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status
