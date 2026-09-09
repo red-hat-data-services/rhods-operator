@@ -8,7 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: |-
-      false
+      "non-existent-file.non-existent-ext".pathChanged() && false
   labels:
     appstudio.openshift.io/application: rhoai-v3-5
     appstudio.openshift.io/component: odh-operator-v3-5
