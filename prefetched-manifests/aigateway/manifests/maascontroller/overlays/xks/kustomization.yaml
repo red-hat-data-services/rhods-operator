@@ -56,7 +56,7 @@ replacements:
           - spec.template.spec.containers.[name=manager].env.[name=GATEWAY_NAMESPACE].value
 
 patches:
-  # Remove OCP service-serving cert annotations (cert-manager handles TLS on xKS)
+  # Remove OCP service-serving cert annotation (cert-manager handles TLS on xKS)
   - target:
       kind: Service
       name: maas-controller-webhook-service
@@ -65,12 +65,6 @@ patches:
         path: /metadata/annotations/service.beta.openshift.io~1serving-cert-secret-name
       - op: remove
         path: /metadata/annotations/service.beta.openshift.io~1inject-cabundle
-  - target:
-      kind: Service
-      name: maas-controller-metrics
-    patch: |
-      - op: remove
-        path: /metadata/annotations/service.beta.openshift.io~1serving-cert-secret-name
 
   # Replace OCP CA injection with cert-manager CA injection on webhook
   - target:

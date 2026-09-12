@@ -132,6 +132,7 @@ rules:
   - apps
   resources:
   - deployments
+  - statefulsets
   verbs:
   - create
   - delete
@@ -264,15 +265,6 @@ rules:
   - list
   - patch
   - update
-  - watch
-- apiGroups:
-  - config.openshift.io
-  resources:
-  - apiservers
-  - authentications
-  verbs:
-  - get
-  - list
   - watch
 - apiGroups:
   - coordination.k8s.io
@@ -437,6 +429,7 @@ rules:
   resources:
   - aitenants/status
   - configs/status
+  - externalmodels/status
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status

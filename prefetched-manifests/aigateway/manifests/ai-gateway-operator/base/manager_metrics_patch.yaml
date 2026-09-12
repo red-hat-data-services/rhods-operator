@@ -1,7 +1,18 @@
-# This patch configures the metrics endpoint address via environment variable.
-# The operator reads this through viper with the ODH_MODULE_OPERATOR_ prefix.
+# Metrics bind address, SecureServing, and service-ca cert dir.
+# The operator reads these through viper with the ODH_MODULE_OPERATOR_ prefix.
+# Set ODH_MODULE_OPERATOR_METRICS_SECURE=false for xKS/HTTP when service-ca is absent.
 - op: add
   path: /spec/template/spec/containers/0/env/-
   value:
     name: ODH_MODULE_OPERATOR_METRICS_BIND_ADDRESS
     value: ":8443"
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: ODH_MODULE_OPERATOR_METRICS_SECURE
+    value: "true"
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: ODH_MODULE_OPERATOR_METRICS_CERT_PATH
+    value: "/tmp/k8s-metrics-server/metrics-certs"

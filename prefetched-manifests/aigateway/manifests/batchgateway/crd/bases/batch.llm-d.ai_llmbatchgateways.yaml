@@ -637,11 +637,23 @@ spec:
                               attempts on transient errors.
                             format: int32
                             type: integer
+                          requestQueueName:
+                            description: |-
+                              RequestQueueName is the Redis request queue used in async dispatch mode.
+                              Set together with resultQueueName to override the queue derived from inferencePoolName.
+                            maxLength: 253
+                            type: string
                           requestTimeout:
                             description: RequestTimeout is the maximum time to wait
                               for a single inference response (e.g. "5m").
                             maxLength: 32
                             pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                            type: string
+                          resultQueueName:
+                            description: |-
+                              ResultQueueName is the Redis result queue base used in async dispatch mode.
+                              Set together with requestQueueName.
+                            maxLength: 253
                             type: string
                           tlsCACertFile:
                             description: TLSCACertFile is the path to a custom CA
@@ -1012,14 +1024,13 @@ spec:
                         description: EnablePprof enables the Go pprof profiling HTTP
                           endpoints.
                         type: boolean
-                      heartbeatInterval:
-                        default: 5m
+                      inferenceObjective:
                         description: |-
-                          HeartbeatInterval is how often the processor refreshes in-flight job entries
-                          to signal liveness. Must be shorter than gc.config.reconciler.interval to
-                          prevent active jobs from being misidentified as orphans.
-                        maxLength: 32
-                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                          InferenceObjective is applied to globalInferenceGateway and to every
+                          modelGateways entry that does not set its own inferenceObjective.
+
+                          Deprecated: set inferenceObjective on the gateway instead.
+                        maxLength: 253
                         type: string
                       logging:
                         description: Logging configures log verbosity for the processor.
@@ -1040,6 +1051,14 @@ spec:
                           state is retained before being considered stale.
                         format: int64
                         type: integer
+                      routeKeyMethod:
+                        description: |-
+                          RouteKeyMethod controls how modelGateways lookup keys are built.
+                          Empty uses the model ID. "tenant" uses "<tenantID>/<modelID>".
+                        enum:
+                        - ""
+                        - tenant
+                        type: string
                       sendFairnessHeader:
                         description: |-
                           SendFairnessHeader controls whether the processor sends a fairness header
@@ -1090,11 +1109,23 @@ spec:
                           on transient errors.
                         format: int32
                         type: integer
+                      requestQueueName:
+                        description: |-
+                          RequestQueueName is the Redis request queue used in async dispatch mode.
+                          Set together with resultQueueName to override the queue derived from inferencePoolName.
+                        maxLength: 253
+                        type: string
                       requestTimeout:
                         description: RequestTimeout is the maximum time to wait for
                           a single inference response (e.g. "5m").
                         maxLength: 32
                         pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                        type: string
+                      resultQueueName:
+                        description: |-
+                          ResultQueueName is the Redis result queue base used in async dispatch mode.
+                          Set together with requestQueueName.
+                        maxLength: 253
                         type: string
                       tlsCACertFile:
                         description: TLSCACertFile is the path to a custom CA certificate
@@ -1169,11 +1200,23 @@ spec:
                             on transient errors.
                           format: int32
                           type: integer
+                        requestQueueName:
+                          description: |-
+                            RequestQueueName is the Redis request queue used in async dispatch mode.
+                            Set together with resultQueueName to override the queue derived from inferencePoolName.
+                          maxLength: 253
+                          type: string
                         requestTimeout:
                           description: RequestTimeout is the maximum time to wait
                             for a single inference response (e.g. "5m").
                           maxLength: 32
                           pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                          type: string
+                        resultQueueName:
+                          description: |-
+                            ResultQueueName is the Redis result queue base used in async dispatch mode.
+                            Set together with requestQueueName.
+                          maxLength: 253
                           type: string
                         tlsCACertFile:
                           description: TLSCACertFile is the path to a custom CA certificate
@@ -1402,10 +1445,6 @@ spec:
             x-kubernetes-validations:
             - message: spec.secretRef.name is required
               rule: size(self.secretRef.name) > 0
-            - message: processor.config.heartbeatInterval must be shorter than gc.config.reconciler.interval
-              rule: '!has(self.processor.config) || !has(self.processor.config.heartbeatInterval)
-                || !has(self.gc.config) || !has(self.gc.config.reconciler) || !has(self.gc.config.reconciler.interval)
-                || duration(self.processor.config.heartbeatInterval) < duration(self.gc.config.reconciler.interval)'
           status:
             description: Status defines the observed state of LLMBatchGateway.
             properties:
@@ -1471,7 +1510,7 @@ spec:
                     type: object
                   processor:
                     description: Processor reports the replica status of the processor
-                      Deployment.
+                      StatefulSet.
                     properties:
                       readyReplicas:
                         description: ReadyReplicas is the number of pods that have

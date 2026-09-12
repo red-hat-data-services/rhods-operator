@@ -1,3 +1,12 @@
+# Must live in config/base, not overlays/odh or overlays/rhoai.
+# ai-gateway-operator deploys this operator from SourcePath "base" only
+# (see INFERENG-10350 / #106). Overlay-only args/RBAC never reach the cluster.
 - op: add
-  path: /spec/template/spec/containers/0/args/0
+  path: /spec/template/spec/containers/0/args/-
   value: --metrics-bind-address=:8443
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --metrics-secure=true
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: --metrics-cert-path=/tmp/k8s-metrics-server/metrics-certs

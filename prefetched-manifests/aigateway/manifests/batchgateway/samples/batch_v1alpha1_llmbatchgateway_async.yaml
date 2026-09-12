@@ -37,10 +37,25 @@ spec:
         requestPathURL: /v1/completions
         pollIntervalMs: 1000
         batchSize: 10
-        gateType: prometheus-saturation
-        gateParams:
-          prometheus_url: http://prometheus:9090
-          saturation_threshold: "0.8"
+        # One entry per processor.modelGateways entry, named
+        # llm-d-async:requests:<inferencePoolName>. Without these the
+        # async-processor polls its own default queue and never sees the
+        # requests the processor enqueues.
+        # Note: gateType/gateParams move here; setting them alongside
+        # queuesConfig fails the chart render.
+        queuesConfig:
+        - name: "llm-d-async:requests:llama-pool"
+          workerPoolID: default
+          gateType: prometheus-saturation
+          gateParams:
+            prometheus_url: http://prometheus:9090
+            saturation_threshold: "0.8"
+        - name: "llm-d-async:requests:whisper-pool"
+          workerPoolID: default
+          gateType: prometheus-saturation
+          gateParams:
+            prometheus_url: http://prometheus:9090
+            saturation_threshold: "0.8"
       workerPools:
       - name: default
         workers: 4
