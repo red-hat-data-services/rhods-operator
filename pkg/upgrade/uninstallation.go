@@ -16,6 +16,7 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	dscv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v2"
 	dsciv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/dscinitialization/v2"
+	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/modules"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
 )
@@ -109,6 +110,17 @@ func removeDSC(ctx context.Context, cli client.Client) error {
 
 	if err := cli.DeleteAllOf(ctx, instance, client.PropagationPolicy(metav1.DeletePropagationForeground)); err != nil {
 		return fmt.Errorf("failure deleting DSC: %w", err)
+	}
+
+	// Foreground propagation cascades a deletionTimestamp onto module CRs (owned
+	// by the DSC) immediately, but only the out-of-tree module operator can
+	// normally remove their finalizer -- and that operator's own Deployment/RBAC,
+	// also owned by the DSC, race away in the very same cascade with no
+	// finalizer of their own to delay them. So nothing is left running to
+	// complete the module contract. Force the finalizers off every module CR
+	// here so the CRs (and therefore the DSC) can actually finish deleting.
+	if err := modules.ForceDeleteAllModuleCRs(ctx, cli); err != nil {
+		return fmt.Errorf("failure force-deleting module CRs: %w", err)
 	}
 
 	// The DSCI validating webhook denies DSCI deletion while any DSC still exists.
