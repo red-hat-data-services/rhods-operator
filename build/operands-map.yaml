@@ -6,9 +6,9 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_AI_GATEWAY_PAYLOAD_PROCESSING_IMAGE
   value: "quay.io/rhoai/odh-ai-gateway-payload-processing-rhel9@sha256:fed66745791a97d9e5568662763d49258ad57eb95d697aa97f1b382737e6e83b"
 - name: RELATED_IMAGE_ODH_AUTOML_IMAGE
-  value: "quay.io/rhoai/odh-automl-rhel9@sha256:241ab169439a9a9493db02675be712d20295595be4b699b71f69840d064ce4d8"
+  value: "quay.io/rhoai/odh-automl-rhel9@sha256:e5efc701accd3688a0e4f3aa2d3a7bacb11a14d49696b081327752cf57218fb5"
 - name: RELATED_IMAGE_ODH_AUTORAG_IMAGE
-  value: "quay.io/rhoai/odh-autorag-rhel9@sha256:5ea2d55ab5f65dc4f9cbdf7211c9645d020097098823681f25398b573ff65b69"
+  value: "quay.io/rhoai/odh-autorag-rhel9@sha256:7e6a8f3bace650ab556f7429c8d7128ee61d165f5f993a4af7a332c65057a990"
 - name: RELATED_IMAGE_ODH_BUILT_IN_DETECTOR_IMAGE
   value: "quay.io/rhoai/odh-built-in-detector-rhel9@sha256:4a2fbc100b89769879ecdbaa2c8ab9427e9dcb74d6f14e266ccee2a2e25c8b38"
 - name: RELATED_IMAGE_ODH_CLI_IMAGE
@@ -36,7 +36,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_FEAST_OPERATOR_IMAGE
   value: "quay.io/rhoai/odh-feast-operator-rhel9@sha256:b0d529e47c2393e1bfd3e648bf893ff8bdbe6f1686744fe12fa76e34527b9e98"
 - name: RELATED_IMAGE_ODH_FEATURE_SERVER_IMAGE
-  value: "quay.io/rhoai/odh-feature-server-rhel9@sha256:fc4222e579e21bf6bdd761e91e6cc464425f5cfd6e9cf64698c0213e0bbc24d6"
+  value: "quay.io/rhoai/odh-feature-server-rhel9@sha256:4d711030fe8b6bb057f6484ca70df2f1edfcff24067606c1370593ce0731e228"
 - name: RELATED_IMAGE_ODH_FMS_GUARDRAILS_ORCHESTRATOR_IMAGE
   value: "quay.io/rhoai/odh-fms-guardrails-orchestrator-rhel9@sha256:90dea69ec938a80469fb07a1dea77ad614417e15c1d1d1baac01dc282fc19c25"
 - name: RELATED_IMAGE_ODH_GUARDRAILS_DETECTOR_HUGGINGFACE_RUNTIME_IMAGE
@@ -188,7 +188,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_SPARK_OPERATOR_MODULE_IMAGE
   value: "quay.io/rhoai/odh-spark-operator-module-rhel9@sha256:9661b74bb6184b3c8b85a946466c8af81d0d8e8686a11d572b07d4f5a7754a9d"
 - name: RELATED_IMAGE_ODH_TA_LMES_DRIVER_IMAGE
-  value: "quay.io/rhoai/odh-ta-lmes-driver-rhel9@sha256:79bf52c5814b19309e0768670dc42ea61ed9c40769616b1884eaf84fe1180046"
+  value: "quay.io/rhoai/odh-ta-lmes-driver-rhel9@sha256:7220316ed3e46fc6ad4e15e11c34800f121f0bd1482e8dcce0db11a5ad38b950"
 - name: RELATED_IMAGE_ODH_TA_LMES_JOB_IMAGE
   value: "quay.io/rhoai/odh-ta-lmes-job-rhel9@sha256:dd1016e4799dc30b8750adb07e28aa2f9220094f3220eac79158e80c16b29c83"
 - name: RELATED_IMAGE_ODH_TH_TORCH_CPU_PY312_IMAGE
@@ -206,17 +206,11 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_TRUSTYAI_NEMO_GUARDRAILS_SERVER_IMAGE
   value: "quay.io/rhoai/odh-trustyai-nemo-guardrails-server-rhel9@sha256:9eb5b30a15d542ce88df56c6cf6deb8acd983a90475005500f65539b7aaac4d7"
 - name: RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_OPERATOR_IMAGE
-  value: "quay.io/rhoai/odh-trustyai-service-operator-rhel9@sha256:0a7a6ec37937e777b6a774914fa719cec68f21e051d6f8ef397bfe3ac6f10bfc"
+  value: "quay.io/rhoai/odh-trustyai-service-operator-rhel9@sha256:57ddfb86d7894844aef705352f45267e716eb55b78084ead686022e17b2980cc"
 - name: RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_PY_IMAGE
   value: "quay.io/rhoai/odh-trustyai-service-py-rhel9@sha256:5ca6723df945355189d65162ce9397cea959a77b23fb91a23d011d7637e1c253"
 - name: RELATED_IMAGE_ODH_TRUSTYAI_VLLM_ORCHESTRATOR_GATEWAY_IMAGE
   value: "quay.io/rhoai/odh-trustyai-vllm-orchestrator-gateway-rhel9@sha256:db88e0f38bd517dbb265d04e1491e1c94459cfce76fabc715a10996fd21196a3"
-- name: RELATED_IMAGE_ODH_VLLM_CPU_FAST_1_IMAGE
-  value: "quay.io/rhoai/odh-vllm-cpu-rhel9@sha256:16abe4a180ff867f5bb05e1d9ef9eca16c7e933568cb4faeb52ece123d3e65d4"
-- name: RELATED_IMAGE_ODH_VLLM_CPU_FAST_2_IMAGE
-  value: "quay.io/rhoai/odh-vllm-cpu-rhel9@sha256:16abe4a180ff867f5bb05e1d9ef9eca16c7e933568cb4faeb52ece123d3e65d4"
-- name: RELATED_IMAGE_ODH_VLLM_CPU_IMAGE
-  value: "quay.io/rhoai/odh-vllm-cpu-rhel9@sha256:16abe4a180ff867f5bb05e1d9ef9eca16c7e933568cb4faeb52ece123d3e65d4"
 - name: RELATED_IMAGE_ODH_WORKBENCHES_CONTROLLER_IMAGE
   value: "quay.io/rhoai/odh-workbenches-controller-rhel9@sha256:068d010ab4cda205279e4c9fc61fef1d544f186384508b73bb6880a1827903c9"
 - name: RELATED_IMAGE_ODH_WORKBENCHES_OPERATOR_IMAGE
