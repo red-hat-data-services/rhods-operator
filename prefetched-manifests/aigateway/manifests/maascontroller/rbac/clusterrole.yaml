@@ -1,3 +1,4 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -289,6 +290,7 @@ rules:
   resources:
   - aitenants/status
   - configs/status
+  - externalmodels/status
   - maasauthpolicies/status
   - maasmodelrefs/status
   - maassubscriptions/status

@@ -23,10 +23,14 @@ rules:
       - notebook-controller-kubeflow-notebooks-view
       - notebook-controller-role
       - notebook-controller-proxy-role
+      - notebook-controller-metrics-auth
+      - notebook-controller-openshift-config-reader
       - odh-notebook-controller-notebooks-admin
       - odh-notebook-controller-notebooks-edit
       - odh-notebook-controller-notebooks-view
       - odh-notebook-controller-manager-role
+      - odh-notebook-controller-metrics-auth
+      - odh-notebook-controller-openshift-config-reader
       # workspaces-controller ClusterRoles (workbenches-v2 gateway overlay, no namePrefix)
       - workspaces-manager-role
       - kubeflow-workspaces-admin

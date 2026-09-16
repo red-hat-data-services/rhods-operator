@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../rbac
+  - ../manager
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: ai-gateway-controller
+      app.kubernetes.io/component: ai-gateway-controller
+      app.kubernetes.io/part-of: aigateway
+
+configMapGenerator:
+  # Keep a stable name because manager.yaml references this ConfigMap directly
+  # through configMapKeyRef.
+  - name: ai-gateway-controller-parameters
+    envs:
+      - params.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: ai-gateway-controller-parameters
+      fieldPath: data.ai-gateway-controller-image
+    targets:
+      - select:
+          kind: Deployment
+          name: ai-gateway-controller
+        fieldPaths:
+          - spec.template.spec.containers.[name=manager].image

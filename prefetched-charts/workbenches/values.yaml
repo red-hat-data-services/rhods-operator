@@ -28,14 +28,14 @@ replicaCount: 1
 
 # Default manager image — must stay in sync with params.env key workbenches-operator-image.
 params:
-  workbenchesOperatorImage: quay.io/opendatahub/odh-workbenches-operator:odh-stable
+  workbenchesOperatorImage: quay.io/opendatahub/odh-workbenches-operator:v1.1.0
 
 # Manager container image. repository/tag mirror params.env; digest overrides when set.
 # In product builds, opendatahub-operator injectModuleEnv replaces the container image
 # field from ModuleConfig.ControllerImage (RELATED_IMAGE_* on the platform operator).
 image:
   repository: quay.io/opendatahub/odh-workbenches-operator
-  tag: odh-stable
+  tag: v1.1.0
   digest: ""
   pullPolicy: IfNotPresent
 
