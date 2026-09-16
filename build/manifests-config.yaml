@@ -82,6 +82,9 @@ map:
     src: charts/ray-module-operator
     dest: ray-module-operator
     type: chart
+  odh-trustyai-module-operator:
+    src: trustyai-operator-module/config/manifests-template
+    dest: trustyai-operator-module
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
