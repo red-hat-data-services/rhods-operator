@@ -1,0 +1,850 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: rays.components.platform.opendatahub.io
+spec:
+  group: components.platform.opendatahub.io
+  names:
+    kind: Ray
+    listKind: RayList
+    plural: rays
+    singular: ray
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .status.conditions[?(@.type=="Ready")].status
+          name: Ready
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+          name: Reason
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          type: string
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Ray is the module CR reconciled by the Ray module operator.
+          properties:
+            apiVersion:
+              description: |-
+                APIVersion defines the versioned schema of this representation of an object.
+                Servers should convert recognized schemas to the latest internal value, and
+                may reject unrecognized values.
+                More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+              type: string
+            kind:
+              description: |-
+                Kind is a string value representing the REST resource this object represents.
+                Servers may infer this from the endpoint the client submits requests to.
+                Cannot be updated.
+                In CamelCase.
+                More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: RaySpec defines the desired state of the Ray module.
+              properties:
+                applicationsNamespace:
+                  description: |-
+                    ApplicationsNamespace is the namespace where the module operator deploys
+                    operand resources. Projected by the platform operator; immutable once set.
+                  type: string
+                managementState:
+                  default: Managed
+                  description: |-
+                    ManagementState controls whether the operator actively manages the
+                    component (Managed) or removes it (Removed).
+                  enum:
+                    - Managed
+                    - Removed
+                  type: string
+              type: object
+            status:
+              description: RayStatus defines the observed state of the Ray module.
+              properties:
+                conditions:
+                  description: Conditions is the set of condition observations for this module.
+                  items:
+                    description: |-
+                      Condition represents an observation of a module's state at a point in time.
+                      Module controllers set conditions to communicate health signals to the
+                      orchestrator and to human operators.
+                    properties:
+                      lastHeartbeatTime:
+                        description: |-
+                          Deprecated: LastHeartbeatTime is present only for backward
+                          compatibility with existing CRDs. New code should not set this field.
+                        format: date-time
+                        type: string
+                      lastTransitionTime:
+                        description: |-
+                          lastTransitionTime is the last time the condition transitioned from
+                          one status to another.
+                        format: date-time
+                        type: string
+                      message:
+                        description: |-
+                          message is a human-readable message indicating details about the
+                          transition.
+                        type: string
+                      observedGeneration:
+                        description: |-
+                          observedGeneration represents the .metadata.generation that the
+                          condition was set based upon. If this does not match the resource's
+                          current generation, the condition is likely stale.
+                        format: int64
+                        minimum: 0
+                        type: integer
+                      reason:
+                        description: |-
+                          reason contains a programmatic identifier indicating the reason for
+                          the condition's last transition. The value should be a CamelCase
+                          string.
+                        type: string
+                      severity:
+                        description: |-
+                          Severity indicates whether this condition represents an error or is
+                          purely informational. Empty string (default) indicates error severity.
+                        type: string
+                      status:
+                        description: status of the condition, one of True, False, Unknown.
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                        type: string
+                      type:
+                        description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                        maxLength: 316
+                        pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                        type: string
+                    required:
+                      - status
+                      - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-type: atomic
+                distribution:
+                  description: Distribution is the platform distribution context this module is aligned to.
+                  properties:
+                    name:
+                      description: Name is the distribution name (e.g., SelfManagedRHOAI, OpenDataHub, Standalone).
+                      type: string
+                    version:
+                      description: Version is the distribution version (e.g., 3.5.1, 0.0.0).
+                      type: string
+                  type: object
+                observedGeneration:
+                  description: |-
+                    ObservedGeneration is the most recent .metadata.generation observed
+                    by the controller. It allows consumers to determine whether the
+                    controller has processed the latest spec changes.
+                  format: int64
+                  type: integer
+                phase:
+                  description: Phase is the top-level lifecycle phase of the module.
+                  type: string
+                releases:
+                  description: Releases is the list of deployed component releases.
+                  items:
+                    description: ComponentRelease describes a single software component's release metadata.
+                    properties:
+                      name:
+                        description: Name is the component name, used as the merge key in lists.
+                        type: string
+                      repoUrl:
+                        description: RepoURL is the source repository URL for this component release.
+                        type: string
+                      version:
+                        description: Version is the semantic version of the component.
+                        type: string
+                    required:
+                      - name
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                    - name
+                  x-kubernetes-list-type: map
+              type: object
+          type: object
+          x-kubernetes-validations:
+            - message: Ray name must be default-ray
+              rule: self.metadata.name == 'default-ray'
+            - message: applicationsNamespace is immutable once set
+              rule: '!has(oldSelf.spec.applicationsNamespace) || oldSelf.spec.applicationsNamespace == '''' || self.spec.applicationsNamespace == oldSelf.spec.applicationsNamespace'
+      served: true
+      storage: true
+      subresources:
+        status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-controller-manager
+  namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-leader-election-role
+  namespace: __OPERATOR_NAMESPACE__
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-manager-role
+  namespace: __OPERATOR_NAMESPACE__
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-manager-role
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - events
+      - serviceaccounts
+      - services
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/proxy
+      - pods/resize
+      - pods/status
+      - secrets
+      - services/proxy
+      - services/status
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingwebhookconfigurations
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - create
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificates
+      - issuers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificates/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - config.openshift.io
+    resources:
+      - apiservers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gateways
+      - httproutes
+      - referencegrants
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingressclasses
+      - ingresses
+      - networkpolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - operator.openshift.io
+    resources:
+      - kubeapiservers
+      - kubeapiservers/status
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ray.io
+    resources:
+      - rayclusters
+      - raycronjobs
+      - rayjobs
+      - rayservices
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ray.io
+    resources:
+      - rayclusters/finalizers
+      - raycronjobs/finalizers
+      - rayjobs/finalizers
+      - rayservices/finalizers
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ray.io
+    resources:
+      - rayclusters/status
+      - raycronjobs/status
+      - rayservices/status
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+  - apiGroups:
+      - ray.io
+    resources:
+      - rayjobs/status
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - clusterrolebindings
+      - clusterroles
+      - rolebindings
+      - roles
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-metrics-auth-role
+rules:
+  - apiGroups:
+      - authentication.k8s.io
+    resources:
+      - tokenreviews
+    verbs:
+      - create
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-metrics-reader
+rules:
+  - nonResourceURLs:
+      - /metrics
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-ray-admin-role
+rules:
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays/status
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-ray-editor-role
+rules:
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays/status
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-ray-viewer-role
+rules:
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - components.platform.opendatahub.io
+    resources:
+      - rays/status
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-leader-election-rolebinding
+  namespace: __OPERATOR_NAMESPACE__
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ray-module-operator-leader-election-role
+subjects:
+  - kind: ServiceAccount
+    name: ray-module-operator-controller-manager
+    namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-manager-rolebinding
+  namespace: __OPERATOR_NAMESPACE__
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ray-module-operator-manager-role
+subjects:
+  - kind: ServiceAccount
+    name: ray-module-operator-controller-manager
+    namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ray-module-operator-manager-role
+subjects:
+  - kind: ServiceAccount
+    name: ray-module-operator-controller-manager
+    namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ray-module-operator-metrics-auth-role
+subjects:
+  - kind: ServiceAccount
+    name: ray-module-operator-controller-manager
+    namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: v1
+data:
+  namespace: __APPLICATION_NAMESPACE__
+  odh-kube-rbac-proxy-image: __KUBE_RBAC_PROXY_IMAGE__
+  odh-kuberay-operator-controller-image: __KUBERAY_OPERATOR_IMAGE__
+  odh-ray-module-operator-image: __OPERATOR_IMAGE__
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+  name: ray-module-operator-config-67g9t7kg4t
+  namespace: __OPERATOR_NAMESPACE__
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: ray-module-operator
+    control-plane: controller-manager
+  name: ray-module-operator-controller-manager-metrics-service
+  namespace: __OPERATOR_NAMESPACE__
+spec:
+  ports:
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+  selector:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/name: ray-module-operator
+    control-plane: controller-manager

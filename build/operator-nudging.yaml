@@ -159,8 +159,6 @@ relatedImages:
   value: quay.io/rhoai/odh-openvino-model-server-rhel9@sha256:9d692e92d33f0557f0bb3e57a1ef678c7490c86d2a5fd37da14f149c9d562c28
 - name: RELATED_IMAGE_ODH_PIPELINES_COMPONENTS_IMAGE
   value: quay.io/rhoai/odh-pipelines-components-rhel9@sha256:21c8a21a9fcce0d828edd73aea8d3a5033534c00ca7b4b3682760fef0d7592c2
-- name: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_BASELINE_CPU_PY312_IMAGE
-  value: quay.io/rhoai/odh-pipeline-runtime-baseline-cpu-py312-rhel9@sha256:dad6f1454b65414fd7ea57a0d8ade5a048cc50432bdb6962e8087de96fffcf88
 - name: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_DATASCIENCE_CPU_PY312_IMAGE
   value: quay.io/rhoai/odh-pipeline-runtime-datascience-cpu-py312-rhel9@sha256:77d21c742596b6f395a861f5e42374ea4846683789390785d1a394e4f11a17b2
 - name: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_MINIMAL_CPU_PY312_IMAGE
@@ -205,6 +203,8 @@ relatedImages:
   value: quay.io/rhoai/odh-trainer-operator-rhel9@sha256:7b607773939bf30e4b25af7e194cee7cce07316751f34da5e48bf6e58e78e75c
 - name: RELATED_IMAGE_ODH_TRUSTYAI_GARAK_LLS_PROVIDER_DSP_IMAGE
   value: quay.io/rhoai/odh-trustyai-garak-lls-provider-dsp-rhel9@sha256:f471285bdab59839da947a1b0020abd428347f6f943b9a88631cc80d48fb181d
+- name: RELATED_IMAGE_ODH_TRUSTYAI_MODULE_OPERATOR_IMAGE
+  value: quay.io/rhoai/odh-trustyai-module-operator-rhel9@sha256:51384d96109de664f0f854e6b7fc66243f71300c864ff0079c6b0dbfecb92a35
 - name: RELATED_IMAGE_ODH_TRUSTYAI_NEMO_GUARDRAILS_SERVER_IMAGE
   value: quay.io/rhoai/odh-trustyai-nemo-guardrails-server-rhel9@sha256:9eb5b30a15d542ce88df56c6cf6deb8acd983a90475005500f65539b7aaac4d7
 - name: RELATED_IMAGE_ODH_TRUSTYAI_SERVICE_OPERATOR_IMAGE
@@ -217,12 +217,8 @@ relatedImages:
   value: quay.io/rhoai/odh-workbenches-controller-rhel9@sha256:068d010ab4cda205279e4c9fc61fef1d544f186384508b73bb6880a1827903c9
 - name: RELATED_IMAGE_ODH_WORKBENCHES_OPERATOR_IMAGE
   value: quay.io/rhoai/odh-workbenches-operator-rhel9@sha256:5904101c0b3f4d746397559e7e82cb72a76cc13f08226b8dbfdcd94526c96078
-- name: RELATED_IMAGE_ODH_WORKBENCH_CODESERVER_BASELINE_CPU_PY312_IMAGE
-  value: quay.io/rhoai/odh-workbench-codeserver-baseline-cpu-py312-rhel9@sha256:b83750b472dda4be52137948ae52b68bfd99c79ff8f87ecb7efe0489b527d517
 - name: RELATED_IMAGE_ODH_WORKBENCH_CODESERVER_DATASCIENCE_CPU_PY312_IMAGE
   value: quay.io/rhoai/odh-workbench-codeserver-datascience-cpu-py312-rhel9@sha256:7a79af3740c6e52b4657f071a5bcf8b3639ebdc7ee6154b31032617ab5446ef0
-- name: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_BASELINE_CPU_PY312_IMAGE
-  value: quay.io/rhoai/odh-workbench-jupyter-baseline-cpu-py312-rhel9@sha256:9743405a176d755a63b7b9b90a7e5fa52fb0e30585ba9d9cd0328874f7a61fac
 - name: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_DATASCIENCE_CPU_PY312_IMAGE
   value: quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:ba095054018a00a565874783923f16f424c47db57efc4627725abf651fa4e937
 - name: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_MINIMAL_CPU_PY312_IMAGE

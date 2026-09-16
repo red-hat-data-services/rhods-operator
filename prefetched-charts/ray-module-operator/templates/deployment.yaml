@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ray-module-operator-controller-manager
+  namespace: {{ include "ray-module-operator.namespace" . }}
+  labels:
+    app.kubernetes.io/component: ray-module-operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ray-module-operator
+    control-plane: controller-manager
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: ray-module-operator
+      app.kubernetes.io/name: ray-module-operator
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        app.kubernetes.io/component: ray-module-operator
+        app.kubernetes.io/name: ray-module-operator
+        control-plane: controller-manager
+    spec:
+      containers:
+        - name: manager
+          command: [/manager]
+          args: [--metrics-bind-address=:8443, --leader-elect, --health-probe-bind-address=:8081]
+          image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APPLICATION_NAMESPACE
+              value: {{ .Values.applicationsNamespace }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE
+              value: {{ .Values.relatedImages.kuberayOperator }}
+            - name: RELATED_IMAGE_ODH_KUBE_RBAC_PROXY_IMAGE
+              value: {{ .Values.relatedImages.kubeRbacProxy }}
+          ports:
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8081}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8081}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      serviceAccountName: ray-module-operator-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir: {}
