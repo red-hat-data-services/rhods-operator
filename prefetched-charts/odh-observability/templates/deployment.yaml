@@ -36,6 +36,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: OPERATOR_VERSION
               value: {{ .Chart.AppVersion | quote }}
+            - name: MONITORING_NAMESPACE
+              value: {{ include "odh-observability.monitoringNamespace" . | quote }}
             {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

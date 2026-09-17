@@ -17,7 +17,7 @@ rules:
       - escalate
     resourceNames:
       # Must match ClusterRoles in baked /opt/manifests/workbenches/* operands.
-      # Sync when get_all_manifests.sh pins change; see config/rbac/rbac_escalate_role.yaml.
+      # Sync when opt/manifest-sources.sh pins change; see config/rbac/rbac_escalate_role.yaml.
       - notebook-controller-kubeflow-notebooks-admin
       - notebook-controller-kubeflow-notebooks-edit
       - notebook-controller-kubeflow-notebooks-view
