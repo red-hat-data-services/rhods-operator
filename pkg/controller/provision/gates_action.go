@@ -148,9 +148,8 @@ func CheckUpgradeGates(ctx context.Context, cli client.Client, release common.Re
 }
 
 // CheckUpgradeGatesInNamespace is the namespace-explicit variant of
-// CheckUpgradeGates. Gates apply when upgrading to any newer release; equal
-// versions, downgrades, and fresh installs are allowed through without
-// blocking.
+// CheckUpgradeGates. Gates apply only when upgrading from a 2.x release;
+// same-major upgrades, downgrades, and fresh installs are allowed through.
 func CheckUpgradeGatesInNamespace(
 	ctx context.Context, cli client.Client, namespace string,
 	release common.Release, conditions ConditionWriter,
@@ -170,10 +169,9 @@ func CheckUpgradeGatesInNamespace(
 		return fmt.Errorf("failed to resolve upgrade gate version: %w", err)
 	}
 
-	if !isVersionUpgrade(deployed.Version.Version, targetVersion) {
-		// Not a version upgrade — create empty ConfigMap to signal
-		// "gate evaluation complete, no gates needed" so component
-		// controllers waiting on the ConfigMap can proceed.
+	if deployed.Version.Major != 2 || !isVersionUpgrade(deployed.Version.Version, targetVersion) {
+		// Not an upgrade from 2.x — create an empty ConfigMap when absent to
+		// signal that gate evaluation completed with no gates needed.
 		if _, err := gc.EnsureGates(ctx, nil); err != nil {
 			return fmt.Errorf("failed to create empty upgrade gates ConfigMap: %w", err)
 		}
