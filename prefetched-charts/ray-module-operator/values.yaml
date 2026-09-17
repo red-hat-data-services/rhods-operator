@@ -1,0 +1,28 @@
+image:
+  repository: quay.io/opendatahub/odh-ray-module-operator
+  tag: latest
+  pullPolicy: IfNotPresent
+
+operatorNamespace: ray-module-operator-system
+applicationsNamespace: opendatahub
+
+# OpenShift-only security context constraint. Disable for Kubernetes clusters
+# such as Kind.
+scc:
+  enabled: true
+
+relatedImages:
+  # Matches the vendored KubeRay fallback used by the Kustomize path.
+  # Platform deployments may override this with their approved image.
+  kuberayOperator: quay.io/opendatahub/kuberay-operator:v1.6.2
+  kubeRbacProxy: quay.io/opendatahub/odh-kube-rbac-proxy:odh-stable
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 2Gi
+  requests:
+    cpu: 10m
+    memory: 256Mi
