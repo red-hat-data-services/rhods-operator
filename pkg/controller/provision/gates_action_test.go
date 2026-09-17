@@ -132,7 +132,7 @@ func TestCheckUpgradeGates_SameVersionCreatesEmptyCM(t *testing.T) {
 	assert.Empty(t, cm.Data)
 }
 
-func TestCheckUpgradeGates_SameMajorPatchUpgradeEvaluatesGates(t *testing.T) {
+func TestCheckUpgradeGates_SameMajorPatchUpgradeBypassesGates(t *testing.T) {
 	t.Parallel()
 
 	source := &corev1.ConfigMap{
@@ -142,27 +142,28 @@ func TestCheckUpgradeGates_SameMajorPatchUpgradeEvaluatesGates(t *testing.T) {
 			Labels:    map[string]string{gates.UpgradeGateLabel: "true"},
 		},
 		Data: map[string]string{
-			"ack-3.5.2-patch-change": "Patch release requires migration",
+			"ack-3.5.1-patch-change": "Patch release requires migration",
 		},
 	}
 	cli := fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(
-		dsciWithVersion("3.5.1"),
-		acksCM(ackedInTreeGates(t)),
+		dsciWithVersion("3.5.0"),
+		acksCM(nil),
 		source,
 	).Build()
 	conds := &condRecorder{}
 
 	err := provision.CheckUpgradeGatesInNamespace(
-		context.Background(), cli, "test-ns", releaseForVersion("3.5.2"), conds, nil,
+		context.Background(), cli, "test-ns", releaseForVersion("3.5.1"), conds, nil,
 	)
 
-	require.Error(t, err)
+	require.NoError(t, err)
+	assert.Empty(t, conds.conditions)
 
 	cm := &corev1.ConfigMap{}
 	require.NoError(t, cli.Get(context.Background(), client.ObjectKey{
 		Name: gates.AcksConfigMap, Namespace: "test-ns",
 	}, cm))
-	assert.Equal(t, "Patch release requires migration", cm.Data["ack-3.5.2-patch-change"])
+	assert.Empty(t, cm.Data)
 }
 
 func TestCheckUpgradeGates_BlocksOnUpgradeFrom2x(t *testing.T) {
