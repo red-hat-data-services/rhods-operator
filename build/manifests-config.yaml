@@ -82,6 +82,9 @@ map:
     src: charts/ray-module-operator
     dest: ray-module-operator
     type: chart
+  odh-trustyai-module-operator:
+    src: trustyai-operator-module/config/manifests-template
+    dest: trustyai-operator-module
     git.url: https://github.com/red-hat-data-services/ray-module-operator
     git.commit: 15c46e6a20d6fb13c807d96b1650f30c9f0af54e
 additional_meta:
