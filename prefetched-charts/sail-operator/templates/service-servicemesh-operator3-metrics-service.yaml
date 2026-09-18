@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
+  creationTimestamp: null
   labels:
     app.kubernetes.io/component: sail-operator
     app.kubernetes.io/created-by: servicemeshoperator3
@@ -14,9 +15,11 @@ metadata:
 spec:
   ipFamilyPolicy: PreferDualStack
   ports:
-    - name: https
-      port: 8443
-      protocol: TCP
-      targetPort: 8443
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
   selector:
     control-plane: servicemesh-operator3
+status:
+  loadBalancer: {}

@@ -8,6 +8,6 @@ roleRef:
   kind: Role
   name: servicemesh-operator3-role
 subjects:
-  - kind: ServiceAccount
-    name: servicemesh-operator3
-    namespace: {{ .Values.namespace }}
+- kind: ServiceAccount
+  name: servicemesh-operator3
+  namespace: {{ .Values.namespace }}
