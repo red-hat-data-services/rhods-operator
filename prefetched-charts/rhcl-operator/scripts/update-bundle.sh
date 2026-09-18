@@ -133,6 +133,8 @@ find "$CHART_DIR/crds" -name "*.yaml" -delete 2>/dev/null || true
 find "$CHART_DIR/templates" -name "*.yaml" \
   ! -name "namespace.yaml" \
   ! -name "serviceaccount-components.yaml" \
+  ! -name "serviceaccount-default-operand.yaml" \
+  ! -name "pull-secret.yaml" \
   ! -name "kuadrant.yaml" \
   -delete 2>/dev/null || true
 
@@ -212,6 +214,7 @@ for doc in docs:
             # Templatize namespace references
             content = doc.strip()
             content = content.replace('namespace: kuadrant-operators', 'namespace: {{ .Values.operatorNamespace }}')
+            content = content.replace('namespace: dns-operator-system', 'namespace: {{ .Values.operatorNamespace }}')
             content = content.replace('namespace: kuadrant-system', 'namespace: {{ .Values.operandNamespace }}')
             # Add imagePullSecrets to ServiceAccounts
             if kind == 'ServiceAccount':
