@@ -9,77 +9,77 @@ map:
     src: config
     dest: kserve
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: 4a95454ada155592e286a1cd85286b03b139874f
+    git.commit: 97d0f9e7f9cd17099c5f695b7b04f89603139498
   odh-kf-notebook-controller:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 9786cd862d4cb8a52fe655cc29d014f3299decb8
+    git.commit: 7f76460c71d5bc7eb47a2469b09775d6efd40163
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 9786cd862d4cb8a52fe655cc29d014f3299decb8
+    git.commit: 7f76460c71d5bc7eb47a2469b09775d6efd40163
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: ad2f5134802f421d20eae8b751bdc8fae14015b8
+    git.commit: 819990a53253759ac2d5309fe5edcb942b3e2202
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 3e49da54d1179a820da223774c2e7eb1ad999a6d
+    git.commit: 4d9e1ccec931613c35612481ca65c416d4830a0a
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 5936d6f54bb83e1299707a14366bcc09e863af5d
+    git.commit: ac015d95cf41d87248eb12864ea590756b261317
   odh-model-controller:
     src: config
     dest: modelcontroller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: 2b83054c7b424d68c2e8ae6e0fdc8c00c082d8db
+    git.commit: d4e15d0f9f464b5e587101383f2e3fced4d0a954
   odh-model-registry-operator:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 3c35f75f39cb69a1a8297d847aa29b02461712b2
+    git.commit: ebafb444a3184e01f581107d29917d9eff5bc4b8
   odh-dashboard:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 3a95c83fe84d3b84e01835a1144430a13bdaffab
+    git.commit: 0280a5a053698c772f9922a8cc243b358e8239b9
   odh-training-operator:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 937632c66dc81029784ee07a62a09ce32e79103e
+    git.commit: b5fb964e7739984fc30b1f3d71ea6010ba9f4c4f
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: a5a4beb9e9c5b3819781677e5018911f0a40ccbb
+    git.commit: 3377453cedce9ad5cb4c6dcb0118cc040ccc3b0b
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 3e5529bcf537d4632fcfffcf33757eb687687eeb
+    git.commit: f8f66c939ffa312db300dc3f3bdf75d3ac0d3b1d
   odh-trainer:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: f1a3ac4bd6a740a17424cd7ea21e1540c3918719
+    git.commit: 65be2692d18d39fc4c783c2f981f12273b1f7601
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: 86504797bdad883704788c7e22970f15aa7cc196
+    git.commit: 82e0bcce50c0ea623964d5b2c5649ef400d6fb22
   odh-maas-api:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 109d2249f6311a618e2a69042626ba64c9fd8a07
+    git.commit: c119e68eb78de8b2ab0741bf3589469078b3459d
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
