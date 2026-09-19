@@ -1,6 +1,7 @@
-# Permissions ai-gateway-controller needs to watch AITenant and, per
-# opted-in tenant, render+apply a per-tenant copy of the vendored
-# praxis-extproc overlay (config/manifests/praxis-extproc/overlays/odh).
+# Permissions ai-gateway-controller needs to primarily watch MaasTenantConfig
+# (mirroring maas-controller's own TenantReconciler) and, per opted-in
+# tenant, render+apply a per-tenant copy of the vendored praxis-extproc
+# overlay (config/manifests/praxis-extproc/overlays/odh).
 # Verified against a live OpenShift cluster; every Kind here is one this
 # controller actually creates/updates/deletes, no wildcard groups/resources.
 apiVersion: rbac.authorization.k8s.io/v1
@@ -8,18 +9,27 @@ kind: ClusterRole
 metadata:
   name: ai-gateway-controller-role
 rules:
-# Drives the per-tenant fan-out: watch AITenant for the
-# maas.opendatahub.io/payload-processing-type annotation and
-# status.{phase,gatewayRef}. This controller does not write AITenant
-# status (maas-controller's own AITenant reconciler owns that) or any
-# other field, only metadata.finalizers (PraxisCleanupFinalizer), hence
-# update/patch here but no separate status subresource rule.
+# Primary watch target: MaasTenantConfig carries
+# maas.opendatahub.io/payload-processing-type and
+# maas.opendatahub.io/payload-processing-status (the payload-processing
+# backend swap handshake with maas-controller — see pkg/tenant/migration.go),
+# plus the aitenant-name/aitenant-namespace annotations used to resolve the
+# owning AITenant. This controller writes metadata.finalizers
+# (PraxisCleanupFinalizer) and the payload-processing-status annotation only,
+# hence update/patch (and get/list/watch) here but no separate status
+# subresource rule. patch is additionally required by the escalation check
+# for the resourceVersion-checked status claim, which uses update.
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["maastenantconfigs"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+# Secondary watch: resolve status.{phase,gatewayRef} for a MaasTenantConfig's
+# owning AITenant (neither field lives on MaasTenantConfig itself), and react
+# to AITenant changes that might affect readiness. This controller never
+# writes AITenant (status or otherwise) — maas-controller's own AITenant
+# reconciler owns it — hence get/list/watch only, no update/patch/finalizers.
 - apiGroups: ["maas.opendatahub.io"]
   resources: ["aitenants"]
-  verbs: ["get", "list", "watch", "update", "patch"]
-- apiGroups: ["maas.opendatahub.io"]
-  resources: ["aitenants/finalizers"]
-  verbs: ["update"]
+  verbs: ["get", "list", "watch"]
 # Resources rendered from the vendored overlay, one set per praxis tenant.
 - apiGroups: [""]
   resources: ["services", "serviceaccounts", "configmaps"]
@@ -61,10 +71,10 @@ rules:
   verbs: ["update"]
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["httproutes"]
-  verbs: ["get", "list", "watch", "create", "update", "delete"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["networking.istio.io"]
   resources: ["serviceentries"]
-  verbs: ["get", "list", "watch", "create", "update", "delete"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # destinationrules already covered above (full CRUD, needed for the
 # vendored overlay's own DestinationRule), so no separate mirror rule is
 # needed here.

@@ -467,23 +467,13 @@ rules:
   resources:
   - destinationrules
   - envoyfilters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - networking.istio.io
-  resources:
   - serviceentries
   verbs:
   - create
   - delete
   - get
   - list
+  - patch
   - update
   - watch
 - apiGroups:
