@@ -15,11 +15,6 @@ map:
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
     git.commit: db01ebe13fde89446df96b5e0e4b400ac92dfe9e
-  odh-trustyai-service-operator:
-    src: config
-    dest: trustyai
-    git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 9a3b7b9f4f936419451c833b70ba180fe03a3e61
   odh-model-registry-operator:
     src: config
     dest: modelregistry
@@ -79,8 +74,8 @@ map:
     git.url: https://github.com/red-hat-data-services/ray-module-operator
     git.commit: b985226dcdd2a178b2676f08ec59672d810bc9f7
   odh-trustyai-module-operator:
-    src: trustyai-operator-module/config/manifests-template
-    dest: trustyai-operator-module
+    src: trustyai-operator-module/config
+    dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
     git.commit: 9a3b7b9f4f936419451c833b70ba180fe03a3e61
 additional_meta:
@@ -354,6 +349,9 @@ additional_meta:
   odh-trustyai-nemo-guardrails-server:
     git.url: https://github.com/red-hat-data-services/NeMo-Guardrails
     git.commit: 9e10a02cc5998863acd8d21a6451c059b8459dc9
+  odh-trustyai-service-operator:
+    git.url: https://github.com/red-hat-data-services/trustyai-service-operator
+    git.commit: 9a3b7b9f4f936419451c833b70ba180fe03a3e61
   odh-trustyai-service-py:
     git.url: https://github.com/red-hat-data-services/trustyai-service
     git.commit: 06e78b2b2b9eb2285a7798c43e11c7c37fdfd492
