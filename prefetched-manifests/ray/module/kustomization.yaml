@@ -1,0 +1,9 @@
+# Source-of-truth for cluster-scoped and non-generated manifests that the
+# module operator deploys at runtime (SCCs, webhooks, etc.).
+# These are synced into internal/controller/manifests/ for embedding.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ray_operator_scc.yaml
+  - opendatahub_ray_config.yaml

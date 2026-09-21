@@ -1,10 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# The ODH operator sets this to the applications namespace at deploy time.
 namespace: opendatahub
 
 configMapGenerator:
-- name: ray-config
+- name: ray-module-operator-config
   envs:
     - params.env
 
@@ -15,58 +16,51 @@ vars:
 - name: namespace
   objref:
     kind: ConfigMap
-    name: ray-config
+    name: ray-module-operator-config
     apiVersion: v1
   fieldref:
     fieldpath: data.namespace
 - name: image
   objref:
     kind: ConfigMap
-    name: ray-config
+    name: ray-module-operator-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.odh-ray-module-operator-image
+- name: odh-kuberay-operator-controller-image
+  objref:
+    kind: ConfigMap
+    name: ray-module-operator-config
     apiVersion: v1
   fieldref:
     fieldpath: data.odh-kuberay-operator-controller-image
 - name: odh-kube-rbac-proxy-image
   objref:
     kind: ConfigMap
-    name: ray-config
+    name: ray-module-operator-config
     apiVersion: v1
   fieldref:
     fieldpath: data.odh-kube-rbac-proxy-image
 
 resources:
-- ray_operator_scc.yaml
 - ../default
-- webhook.yaml
-- certmanager.yaml
-- rbac/tls
+- ray_operator_scc.yaml
 
 commonLabels:
-  app.kubernetes.io/name: kuberay
-  app.kubernetes.io/component: kuberay-operator
+  app.kubernetes.io/name: ray-module-operator
+  app.kubernetes.io/component: ray-module-operator
 
 patches:
-- path: webhook-deployment-patch.yaml
-- path: kuberay-operator-image-patch.yaml
+- path: remove_default_namespace.yaml
+- path: controller-manager-image-patch.yaml
   target:
     group: apps
     version: v1
     kind: Deployment
-    name: kuberay-operator
-- path: gateway-env-patch.yaml
+    name: ray-module-operator-controller-manager
+- path: controller-manager-env-patch.yaml
   target:
     group: apps
     version: v1
     kind: Deployment
-    name: kuberay-operator
-- path: tls-metrics-patch.yaml
-  target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: kuberay-operator
-- path: tls-service-patch.yaml
-  target:
-    version: v1
-    kind: Service
-    name: kuberay-operator
+    name: ray-module-operator-controller-manager

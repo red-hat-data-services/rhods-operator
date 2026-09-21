@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ray-module-operator-controller-manager
+  namespace: system
+spec:
+  template:
+    spec:
+      containers:
+      - name: manager
+        env:
+        - name: APPLICATION_NAMESPACE
+          value: $(namespace)
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE
+          value: $(odh-kuberay-operator-controller-image)
+        - name: RELATED_IMAGE_ODH_KUBE_RBAC_PROXY_IMAGE
+          value: $(odh-kube-rbac-proxy-image)
