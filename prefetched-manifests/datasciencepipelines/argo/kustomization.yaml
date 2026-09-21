@@ -1,6 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: argo
+labels:
+- pairs:
+    app.opendatahub.io/data-science-pipelines-operator: "true"
+    dsp-version: v2
+commonAnnotations:
+  aipipelines.components.platform.opendatahub.io/argo-managed: "true"
 resources:
 # Deploy Argo Resources
 
@@ -16,13 +22,4 @@ resources:
 - serviceaccount.argo.yaml
 
 # CRDs only needed for PNS executors
-- crd.applications.yaml
-- crd.clusterworkflowtemplates.yaml
-- crd.cronworkflows.yaml
-- crd.viewers.yaml
-- crd.workflowartifactgctasks.yaml
-- crd.workfloweventbinding.yaml
-- crd.workflows.yaml
-- crd.workflowtaskresult.yaml
-- crd.workflowtaskset.yaml
-- crd.workflowtemplate.yaml
+- crds
