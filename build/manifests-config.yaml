@@ -15,11 +15,6 @@ map:
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
     git.commit: 6389255e2a5fbf34a1f602e83754611efd3c22ba
-  odh-kuberay-operator-controller:
-    src: ray-operator/config
-    dest: ray
-    git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: a7c13dbf30513ff947ea68f1b4fa69346dab9b5c
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -79,9 +74,8 @@ map:
     git.url: https://github.com/red-hat-data-services/odh-observability
     git.commit: 4a1ec5bbd1159c40ea50ade121d695aa0d572d9d
   odh-ray-module-operator:
-    src: charts/ray-module-operator
-    dest: ray-module-operator
-    type: chart
+    src: config
+    dest: ray
     git.url: https://github.com/red-hat-data-services/ray-module-operator
     git.commit: a6d98b3e47fc3eb9c49646e51792d8f51a9d0779
   odh-trustyai-module-operator:
@@ -174,6 +168,9 @@ additional_meta:
   odh-kube-rbac-proxy:
     git.url: https://github.com/red-hat-data-services/kube-rbac-proxy
     git.commit: 44effeefa975092198a827a4f2b3c548272703d4
+  odh-kuberay-operator-controller:
+    git.url: https://github.com/red-hat-data-services/kuberay
+    git.commit: a7c13dbf30513ff947ea68f1b4fa69346dab9b5c
   odh-llm-d-async:
     git.url: https://github.com/red-hat-data-services/llm-d-async
     git.commit: 93159246e432948aa3f18aaf253beee26c1eb8c0
