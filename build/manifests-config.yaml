@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: a9661dcffd52317e94cdd08a9922c8b302c9eeb9
+    git.commit: 7d78eb653792730175267b8804e8c69a22803fd3
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -64,12 +64,12 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 07c9bad88df2eb007879ed0a0aac09cbb5191113
+    git.commit: 137ca84cbe8efe879ca7e39fdc0b961d612fb5fc
   odh-trainer:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 69ad561dd94719fba003c38f30a25e392bc4b084
+    git.commit: 53699866b9d90ed00d7f47fa6608c11065db9a7e
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
@@ -89,7 +89,7 @@ map:
     src: config
     dest: wva
     git.url: https://github.com/red-hat-data-services/workload-variant-autoscaler
-    git.commit: a166dfb83b4607493c03a87821e41c996c7de513
+    git.commit: 540fefd72828c060008745f0ef3aeb606d37e49c
 additional_meta:
   odh-ai-gateway-payload-processing:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -171,7 +171,7 @@ additional_meta:
     git.commit: 5e817b17802c6e44b9c0473461e54a22c07d4464
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: f5a35b617f02123e8bd26d803c61762e1eb81970
+    git.commit: a53485be313585df840bdec076c47aae643f9e15
   odh-mlserver:
     git.url: https://github.com/red-hat-data-services/MLServer
     git.commit: b324e14947e0d15d8b5fb5b7a51487873add15a4
