@@ -9,6 +9,6 @@ metadata:
   {{- if .ServiceAccountAnnotations }}
   annotations:
     {{- range $key, $value := .ServiceAccountAnnotations }}
-    {{ $key }}: {{ printf "%q" $value }}
+    {{ printf "%q" $key }}: {{ printf "%q" $value }}
     {{- end }}
   {{- end }}

@@ -807,6 +807,11 @@ spec:
                     - host
                     - scheme
                     type: object
+                    x-kubernetes-validations:
+                    - message: s3CredentialsSecret is required unless credentialsMode.fromEnv
+                        is true
+                      rule: has(self.s3CredentialsSecret) || (has(self.credentialsMode)
+                        && self.credentialsMode.fromEnv)
                   minio:
                     description: Enable DS Pipelines Operator management of Minio.
                       Setting Deploy to false disables operator reconciliation.
