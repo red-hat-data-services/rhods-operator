@@ -1,0 +1,87 @@
+# Permissions ai-gateway-controller needs to primarily watch MaasTenantConfig
+# (mirroring maas-controller's own TenantReconciler) and, per opted-in
+# tenant, render+apply a per-tenant copy of the vendored praxis-extproc
+# overlay (config/manifests/praxis-extproc/overlays/odh).
+# Verified against a live OpenShift cluster; every Kind here is one this
+# controller actually creates/updates/deletes, no wildcard groups/resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ai-gateway-controller-role
+rules:
+# Primary watch target: MaasTenantConfig carries
+# maas.opendatahub.io/payload-processing-type and
+# maas.opendatahub.io/payload-processing-status (the payload-processing
+# backend swap handshake with maas-controller — see pkg/tenant/migration.go),
+# plus the aitenant-name/aitenant-namespace annotations used to resolve the
+# owning AITenant. This controller writes metadata.finalizers
+# (PraxisCleanupFinalizer) and the payload-processing-status annotation only,
+# hence update/patch (and get/list/watch) here but no separate status
+# subresource rule. patch is additionally required by the escalation check
+# for the resourceVersion-checked status claim, which uses update.
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["maastenantconfigs"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+# Secondary watch: resolve status.{phase,gatewayRef} for a MaasTenantConfig's
+# owning AITenant (neither field lives on MaasTenantConfig itself), and react
+# to AITenant changes that might affect readiness. This controller never
+# writes AITenant (status or otherwise) — maas-controller's own AITenant
+# reconciler owns it — hence get/list/watch only, no update/patch/finalizers.
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["aitenants"]
+  verbs: ["get", "list", "watch"]
+# Resources rendered from the vendored overlay, one set per praxis tenant.
+- apiGroups: [""]
+  resources: ["services", "serviceaccounts", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["envoyfilters", "destinationrules"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Manage the shared payload-processing-reader ClusterRole plus one
+# payload-processing-reader-{tenantID} ClusterRoleBinding per tenant. Names
+# are dynamic per tenant, so this can't be scoped down with resourceNames.
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Escalation-check mirror: ai-gateway-controller must hold every permission it
+# grants via payload-processing-reader.
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["externalmodels"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["externalmodels/finalizers"]
+  verbs: ["update"]
+- apiGroups: ["inference.opendatahub.io"]
+  resources: ["externalproviders", "externalmodels"]
+  verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: ["inference.opendatahub.io"]
+  resources: ["externalproviders/status", "externalmodels/status"]
+  verbs: ["get", "update", "patch"]
+- apiGroups: ["inference.opendatahub.io"]
+  resources: ["externalproviders/finalizers", "externalmodels/finalizers"]
+  verbs: ["update"]
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["httproutes"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["serviceentries"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# destinationrules already covered above (full CRUD, needed for the
+# vendored overlay's own DestinationRule), so no separate mirror rule is
+# needed here.
+# Leader election (--leader-elect) and event recording.
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]

@@ -1,0 +1,211 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spark-operator-module-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resourceNames:
+  - mutating-webhook-configuration
+  - spark-operator-webhook
+  - validating-webhook-configuration
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  - issuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - components.platform.opendatahub.io
+  resources:
+  - sparkoperators
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - components.platform.opendatahub.io
+  resourceNames:
+  - default-sparkoperator
+  resources:
+  - sparkoperators
+  - sparkoperators/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - components.platform.opendatahub.io
+  resourceNames:
+  - default-sparkoperator
+  resources:
+  - sparkoperators/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - podmonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  - clusterroles
+  - rolebindings
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings/finalizers
+  - clusterroles/finalizers
+  - rolebindings/finalizers
+  - roles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - spark-application
+  - spark-operator-controller
+  - spark-operator-manager-role
+  - spark-operator-proxy-role
+  - spark-operator-scheduledsparkapplication-editor-role
+  - spark-operator-scheduledsparkapplication-viewer-role
+  - spark-operator-sparkapplication-editor-role
+  - spark-operator-sparkapplication-viewer-role
+  - spark-operator-tls-profile
+  - spark-operator-webhook
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+  - escalate
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - leader-election-role
+  - spark-operator-controller
+  - spark-operator-leader-election-role
+  - spark-operator-webhook
+  - spark-role
+  resources:
+  - roles
+  verbs:
+  - bind
+  - escalate

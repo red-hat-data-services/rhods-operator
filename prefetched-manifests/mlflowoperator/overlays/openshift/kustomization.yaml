@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reference the base configuration
+resources:
+  - ../../base
+  # OpenShift-only RBAC for reading TLS profile configuration
+  - tls_clusterrole.yaml
+  - tls_clusterrolebinding.yaml
+
+# OpenShift-specific patches for secure metrics using service serving certificates
+patches:
+  - path: metrics_service_patch.yaml
+    target:
+      kind: Service
+      name: controller-manager-metrics-service
+  - path: manager_patch.yaml
+    target:
+      kind: Deployment
+      name: controller-manager
+
+# Kustomize replacements
+replacements:
+  # Replace controller-manager image for production deployments
+  - source:
+      kind: ConfigMap
+      name: operator-params
+      fieldPath: data.MLFLOW_OPERATOR_IMAGE
+    targets:
+      - select:
+          kind: Deployment
+          name: controller-manager
+        fieldPaths:
+          - spec.template.spec.containers.[name=manager].image
+
+  # Replace gateway-name in HTTPRoute
+  - source:
+      kind: ConfigMap
+      name: operator-params
+      fieldPath: data.gateway-name
+    targets:
+      - select:
+          kind: HTTPRoute
+          name: mlflow
+        fieldPaths:
+          - spec.parentRefs.0.name
+
+  # Replace mlflow-url in ConsoleLink
+  - source:
+      kind: ConfigMap
+      name: operator-params
+      fieldPath: data.mlflow-url
+    targets:
+      - select:
+          kind: ConsoleLink
+          name: mlflowlink
+        fieldPaths:
+          - spec.href

@@ -1,0 +1,81 @@
+# Default namespace: opendatahub, matching maas-controller (this controller is
+# deployed as its sibling — see DESIGN.md). Override via kustomize if needed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-gateway-controller
+  namespace: opendatahub
+  labels:
+    control-plane: ai-gateway-controller
+    app: ai-gateway-controller
+spec:
+  selector:
+    matchLabels:
+      control-plane: ai-gateway-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: ai-gateway-controller
+        app: ai-gateway-controller
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - command:
+        - /manager
+        args:
+          - --leader-elect
+          - --health-probe-bind-address=:8081
+          - --image=$(RELATED_IMAGE_ODH_PRAXIS_EXTPROC_IMAGE)
+        env:
+          - name: LOG_DEVELOPMENT
+            value: "false"
+          # Populated via configMapKeyRef (see config/self/default/kustomization.yaml
+          # + params.env) so the installed praxis-extproc image is configurable
+          # from ODH as a related image, matching maas-controller's
+          # RELATED_IMAGE_* pattern for maas-api / payload-processing.
+          - name: RELATED_IMAGE_ODH_PRAXIS_EXTPROC_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: praxis-extproc-image
+                name: ai-gateway-controller-parameters
+                optional: true
+        image: ai-gateway-controller
+        name: manager
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        - containerPort: 8081
+          name: health
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+          seccompProfile:
+            type: RuntimeDefault
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+      serviceAccountName: ai-gateway-controller
+      terminationGracePeriodSeconds: 30

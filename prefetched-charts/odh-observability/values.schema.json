@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the fully qualified app name"
+    },
+    "operatorNamespace": {
+      "type": "string",
+      "description": "Namespace for all operator resources"
+    },
+    "monitoringNamespace": {
+      "type": "string",
+      "description": "Namespace where Monitoring operands are deployed. Defaults to operatorNamespace when empty."
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Controller container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Controller container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      }
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of operator replicas"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        }
+      }
+    },
+    "leaderElect": {
+      "type": "boolean",
+      "description": "Enable leader election for HA"
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" }
+        }
+      },
+      "description": "Image pull secrets for private registries"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Node selector for pod scheduling"
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "operator": { "type": "string" },
+          "value": { "type": "string" },
+          "effect": { "type": "string" },
+          "tolerationSeconds": { "type": "integer" }
+        }
+      },
+      "description": "Tolerations for pod scheduling"
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod scheduling"
+    },
+    "webhook": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable the mutating admission webhook"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Webhook listener port"
+        }
+      }
+    },
+    "certManager": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable cert-manager for webhook TLS"
+        },
+        "certificateName": {
+          "type": "string",
+          "description": "cert-manager Certificate resource name"
+        },
+        "secretName": {
+          "type": "string",
+          "description": "TLS secret name for webhook certs"
+        }
+      }
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" },
+          "valueFrom": { "type": "object" }
+        },
+        "required": ["name"]
+      },
+      "description": "Extra environment variables for the controller"
+    }
+  },
+  "required": ["operatorNamespace"]
+}

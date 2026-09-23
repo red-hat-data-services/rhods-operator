@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Composes the model-registry-operator (core) and catalog operator deployments into
+# a single bundle for the ODH operator. No label/selector transformer is applied here:
+# `core` keeps its own labels transformer scoped to the model-registry-operator
+# resources, and `../catalog` keeps its own `control-plane: catalog-controller-manager`
+# identity. Applying a shared transformer at this level would overwrite the catalog
+# Deployment's pod selector to match the model-registry-operator one, colliding with it.
+resources:
+- core
+- ../catalog
