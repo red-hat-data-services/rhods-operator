@@ -34,7 +34,7 @@ map:
     src: config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 9802cb02692512e91634c53620f1bbd9b947f06f
+    git.commit: f403a7205637fd4e50b0ca45fea92b48e80ab604
   odh-model-controller:
     src: config
     dest: modelcontroller
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: cfbfa8632108bd33ee1b376e40fbf0a4f9540419
+    git.commit: 98aba733424336a8f7095d18d357400b454113ce
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 335a91a69ce0c403d82ec7264f3c46706076e8f1
+    git.commit: 509bc9fc68a1313702350bda73719eade7e64d93
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -64,12 +64,12 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 07cbf52e5e348a844e0b7ac90980707ec7df2e9a
+    git.commit: f6aa9e10839fb0b3e09d69ab933050104e433452
   odh-trainer:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 3cfe7c9f012fa33fcdaaffa4e2d3876204340df7
+    git.commit: 42d3de6ed2c094de9881f615d22996cada8d235f
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
@@ -155,7 +155,7 @@ additional_meta:
     git.commit: d586d9bebea23fb06b5eb26738bae05bb9641fd4
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: de8fa6968ea3ef84fcd25fac84b4942c242c60c3
+    git.commit: a13295ad044ac42ee5ce1ebc9a8b71d456d821a9
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
     git.commit: de8fa6968ea3ef84fcd25fac84b4942c242c60c3
@@ -197,7 +197,7 @@ additional_meta:
     git.commit: 42f209a476574fefc5d1fb3856039297814622d3
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 9802cb02692512e91634c53620f1bbd9b947f06f
+    git.commit: f403a7205637fd4e50b0ca45fea92b48e80ab604
   odh-ta-lmes-job:
     git.url: https://github.com/red-hat-data-services/lm-evaluation-harness
     git.commit: 8009ffcb18bb6c67cbd3d5b5dee0689bd43d4fdd
