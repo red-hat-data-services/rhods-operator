@@ -1,18 +1,13 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
-# konflux build manual retrigger
 metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    # Skip trigger when only these files/folders change:
-    #   bundle/, build/, .tekton/, .github/workflows/, Dockerfiles/bundle.Dockerfile
-    # Exception: always trigger for:
-    #   build/operands-map.yaml, .tekton/odh-operator-v3-3-push.yaml
     pipelinesascode.tekton.dev/on-cel-expression: |-
-      false
+      "non-existent-file.non-existent-ext".pathChanged() && false
   labels:
     appstudio.openshift.io/application: rhoai-v3-3
     appstudio.openshift.io/component: odh-operator-v3-3
