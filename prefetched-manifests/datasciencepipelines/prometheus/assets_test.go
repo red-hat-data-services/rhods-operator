@@ -19,7 +19,7 @@ package prometheus_test
 import (
 	"testing"
 
-	monitoringassets "github.com/opendatahub-io/data-science-pipelines-operator/config/prometheus"
+	monitoringassets "github.com/opendatahub-io/opendatahub-operator/v2/prefetched-manifests/datasciencepipelines/prometheus"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/kustomize/api/krusty"
