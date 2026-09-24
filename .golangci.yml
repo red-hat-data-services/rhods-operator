@@ -171,6 +171,11 @@ linters:
       - third_party$
       - builtin$
       - examples$
+      # Midstream-cached component trees (may include foreign Go tests/helpers).
+      - prefetched-manifests
+      - prefetched-charts
+      - opt/manifests
+      - opt/charts
 formatters:
   enable:
     - gci
@@ -192,3 +197,7 @@ formatters:
       - third_party$
       - builtin$
       - examples$
+      - prefetched-manifests
+      - prefetched-charts
+      - opt/manifests
+      - opt/charts
