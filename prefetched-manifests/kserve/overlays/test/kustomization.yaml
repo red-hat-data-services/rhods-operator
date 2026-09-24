@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
 - ../../default
-- minio
+- s3-local-backend
 
 patches:
 - path: configmap/inferenceservice.yaml
