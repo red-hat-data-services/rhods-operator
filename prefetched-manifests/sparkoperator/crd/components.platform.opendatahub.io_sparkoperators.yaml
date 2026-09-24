@@ -56,6 +56,24 @@ spec:
                 - Managed
                 - Removed
                 type: string
+              spark:
+                description: Spark configures Spark Operator job/webhook namespace
+                  scope.
+                properties:
+                  jobNamespaces:
+                    description: |-
+                      JobNamespaces is the list of namespaces whose SparkApplications (and
+                      Spark-launched pods) are admitted by the Spark Operator webhooks.
+                      When empty or omitted, the module defaults to ["default"] to match the
+                      upstream Helm / Kustomize factory setting.
+
+                      Unlike Helm's spark.jobNamespaces empty-string sentinel (all namespaces),
+                      an empty list here means the safe default, not cluster-wide admission.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                type: object
             type: object
           status:
             description: SparkOperatorStatus defines the observed state of SparkOperator.
