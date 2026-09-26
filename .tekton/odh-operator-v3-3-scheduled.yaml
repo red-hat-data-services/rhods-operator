@@ -61,12 +61,12 @@ spec:
   taskRunTemplate:
     serviceAccountName: build-pipeline-odh-operator-v3-3
   taskRunSpecs:
-  - pipelineTaskName: rpms-signature-scan
-    computeResources:
-      requests:
-        memory: 2Gi
-      limits:
-        memory: 2Gi
+  - pipelineTaskName: rpms-signature-scan
+    computeResources:
+      requests:
+        memory: 2Gi
+      limits:
+        memory: 2Gi
   workspaces:
   - name: git-auth
     secret:
