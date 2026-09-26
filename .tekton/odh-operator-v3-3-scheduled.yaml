@@ -18,7 +18,7 @@ metadata:
   namespace: rhoai-tenant
 spec:
   timeouts:
-    pipeline: 4h
+    pipeline: 8h
   params:
   - name: git-url
     value: '{{source_url}}'
@@ -60,6 +60,13 @@ spec:
       value: pipelines/multi-arch-container-build.yaml
   taskRunTemplate:
     serviceAccountName: build-pipeline-odh-operator-v3-3
+  taskRunSpecs:
+  - pipelineTaskName: rpms-signature-scan
+    computeResources:
+      requests:
+        memory: 2Gi
+      limits:
+        memory: 2Gi
   workspaces:
   - name: git-auth
     secret:
