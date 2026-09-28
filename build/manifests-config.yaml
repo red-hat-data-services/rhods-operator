@@ -14,7 +14,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 45ad63e691174e2c9f86dbdf7dfb9fffcb6a344a
+    git.commit: e0d76c066bc9c0da052e6cad891f029c8cf1dc9b
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -29,7 +29,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 7279e1ee24fc7ed5b5e0cdf28891527cc4b83466
+    git.commit: 3b646e46213e4e5052ff26ab7cda1466f21919dd
   odh-dashboard-operator:
     src: dashboard-operator/charts/dashboard
     dest: dashboard-operator
@@ -101,7 +101,7 @@ additional_meta:
     git.commit: bde785e292b5ec7545f2f6df363eecf60cb3066c
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: 6082166b8922469831a4988740fc1955d00a8ec2
+    git.commit: 7d070c0508ada9fde86b3e5524b3cb7de28ac7f2
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 7d070c0508ada9fde86b3e5524b3cb7de28ac7f2
@@ -125,10 +125,10 @@ additional_meta:
     git.commit: 30dea497575a053b3cfd7a5a2e8c4a5c936b9c22
   odh-kserve-agent:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: ebf9e4028f119c29dafc484ed3b392a7db33fcb3
+    git.commit: 42be457a2edac648b7fce31eb39d6c9c500592b1
   odh-kserve-autogluon-server:
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: ebf9e4028f119c29dafc484ed3b392a7db33fcb3
+    git.commit: 42be457a2edac648b7fce31eb39d6c9c500592b1
   odh-kserve-controller:
     git.url: https://github.com/red-hat-data-services/kserve
     git.commit: ebf9e4028f119c29dafc484ed3b392a7db33fcb3
@@ -152,7 +152,7 @@ additional_meta:
     git.commit: c991dcfa57ebfbab2f59046b3f7aab0e746be858
   odh-kube-rbac-proxy:
     git.url: https://github.com/red-hat-data-services/kube-rbac-proxy
-    git.commit: 894186509263156b9963ad28e83c7aaf82c69501
+    git.commit: 487769fd606c78e5f7ae26b09f9b2ae77b281c28
   odh-latency-predictor-prediction:
     git.url: https://github.com/red-hat-data-services/llm-d-latency-predictor
     git.commit: c427a69aede45c9958521d85636773ec3331d1ea
@@ -233,7 +233,7 @@ additional_meta:
     git.commit: ec001fa4cc6e348db7cc10b85cd69177f4659ff9
   odh-model-serving-api:
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: b456231b4fb0ea57132a67f70b009fcbfea8221b
+    git.commit: d2563961d6c321fbf8d1d93298043927cf17740b
   odh-mod-arch-agent-ops:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: bde785e292b5ec7545f2f6df363eecf60cb3066c
