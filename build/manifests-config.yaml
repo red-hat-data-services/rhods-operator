@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: e42e0d34e006522d1d17f97ab5fd053eeaf17053
+    git.commit: e1bc4bb1be3aa5982a038785782de20e20c45782
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -34,7 +34,7 @@ map:
     src: config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: f403a7205637fd4e50b0ca45fea92b48e80ab604
+    git.commit: 8a8fd8c89bfc82bddf716784b28546256693c535
   odh-model-controller:
     src: config
     dest: modelcontroller
@@ -44,7 +44,7 @@ map:
     src: config
     dest: modelregistry
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: 6358984d0c302615d980f766af8e0d4bdae98eb5
+    git.commit: 73c12cd8b5b8993f6c676d4f90bf54ca6c838945
   odh-dashboard:
     src: manifests
     dest: dashboard
@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: c6c9b630c6c7854ecf92d310a867c7c63d16d968
+    git.commit: 92e94674df1a31dd8c9c590dc5640413cad43622
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -64,12 +64,12 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 13953d8091329ea816f31a2aae21ee2969d1c096
+    git.commit: bd4e0695b10f381487263b31eddef8913d24d337
   odh-trainer:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: 37602823b1d75faadb339cc06850f221a3dc935d
+    git.commit: d81166e58715d8329930472acea15013b4c9db7e
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
@@ -79,7 +79,7 @@ map:
     src: deployment
     dest: maas
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 9235b78b505ca49af9cd69b96ae74b8ac808ba70
+    git.commit: ffa579c13c0c32de565f6ee268a75bd4123da887
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
@@ -128,7 +128,7 @@ additional_meta:
     git.commit: cd39f99ad5409b228d793d2c2f3a677238d00b2a
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: 58713a4965743146ca9b4a28f8b17da4b8fccbe3
+    git.commit: 8ac88a1ac1b4ae5b35cbc734639d37e505af69aa
   odh-mlserver:
     git.url: https://github.com/red-hat-data-services/MLServer
     git.commit: e90fad4908b39e4c652a01dbf174d3d622d43a07
@@ -155,7 +155,7 @@ additional_meta:
     git.commit: d586d9bebea23fb06b5eb26738bae05bb9641fd4
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: 3a04bd2418b41fc1e194977ecdb6aaa7fa86d22e
+    git.commit: 805670b3967d5447c8d393c58b4f36c3eb69c364
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
     git.commit: 3a04bd2418b41fc1e194977ecdb6aaa7fa86d22e
@@ -197,7 +197,7 @@ additional_meta:
     git.commit: d0e54a0740104f4e69b34455e11978d74d56e3d3
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: f403a7205637fd4e50b0ca45fea92b48e80ab604
+    git.commit: 8a8fd8c89bfc82bddf716784b28546256693c535
   odh-ta-lmes-job:
     git.url: https://github.com/red-hat-data-services/lm-evaluation-harness
     git.commit: 8009ffcb18bb6c67cbd3d5b5dee0689bd43d4fdd
