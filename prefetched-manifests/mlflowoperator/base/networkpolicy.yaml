@@ -10,10 +10,8 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    # Kubelet health probes may originate from the node network rather than a pod.
-    - ports:
-        - protocol: TCP
-          port: 8081
+    # NetworkPolicies always allow traffic from a Pod's node, including kubelet
+    # health probes: https://kubernetes.io/docs/concepts/services-networking/network-policies/
     # Permit metrics scraping only from the platform monitoring namespaces.
     - from:
         - namespaceSelector:
