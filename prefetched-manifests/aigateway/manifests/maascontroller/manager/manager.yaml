@@ -65,6 +65,12 @@ spec:
                 key: maas-api-image
                 name: maas-parameters
                 optional: true
+          - name: RELATED_IMAGE_ODH_MAAS_DISCOVERY_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: maas-discovery-image
+                name: maas-parameters
+                optional: true
           - name: RELATED_IMAGE_ODH_AI_GATEWAY_PAYLOAD_PROCESSING_IMAGE
             valueFrom:
               configMapKeyRef:
