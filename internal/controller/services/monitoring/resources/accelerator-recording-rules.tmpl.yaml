@@ -1,0 +1,32 @@
+{{- if .AcceleratorMetrics }}
+apiVersion: monitoring.rhobs/v1
+kind: PrometheusRule
+metadata:
+  name: data-science-accelerator-recording-rules
+  namespace: {{.Namespace}}
+  labels:
+    platform.opendatahub.io/part-of: monitoring
+spec:
+  groups:
+    - name: rhoai.accelerator.metrics
+      interval: 30s
+      rules:
+        # Perses dashboards expect accelerator_* names on the data-science MonitoringStack.
+        # Source series are normalized by the OTel collector DCGM scrape job.
+        - record: accelerator_gpu_utilization
+          expr: nvidia_gpu_utilization_ratio
+          labels:
+            vendor: nvidia
+        - record: accelerator_memory_used_bytes
+          expr: nvidia_gpu_memory_used_bytes
+          labels:
+            vendor: nvidia
+        - record: accelerator_temperature_celsius
+          expr: nvidia_gpu_temperature_celsius
+          labels:
+            vendor: nvidia
+        - record: accelerator_power_usage_watts
+          expr: nvidia_gpu_power_usage_watts
+          labels:
+            vendor: nvidia
+{{- end }}
