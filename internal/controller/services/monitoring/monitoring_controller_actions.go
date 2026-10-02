@@ -41,6 +41,7 @@ const (
 	PrometheusNetworkPolicyTemplate                  = "resources/data-science-prometheus-network-policy.tmpl.yaml"
 	PrometheusWebTLSServiceTemplate                  = "resources/prometheus-web-tls-service.tmpl.yaml"
 	PrometheusSelfServiceMonitorTemplate             = "resources/prometheus-self-servicemonitor.tmpl.yaml"
+	AcceleratorRecordingRulesTemplate                = "resources/accelerator-recording-rules.tmpl.yaml"
 	ThanosQuerierTemplate                            = "resources/thanos-querier-cr.tmpl.yaml"
 	ThanosQuerierRouteTemplate                       = "resources/thanos-querier-route.tmpl.yaml"
 	PersesTemplate                                   = "resources/perses.tmpl.yaml"
@@ -190,6 +191,7 @@ func deployMonitoringStackWithQuerierAndRestrictions(ctx context.Context, rr *od
 		{FS: resourcesFS, Path: PrometheusNamespaceProxyNetworkPolicyTemplate},
 		{FS: resourcesFS, Path: ThanosQuerierTemplate},
 		{FS: resourcesFS, Path: ThanosQuerierRouteTemplate},
+		{FS: resourcesFS, Path: AcceleratorRecordingRulesTemplate},
 	}
 
 	// Deploy all components atomically with the same generation annotation

@@ -846,6 +846,8 @@ func validateTemplates(t *testing.T, g Gomega, rr *odhtypes.ReconciliationReques
 			"Prometheus route template should be included when MonitoringStack enabled")
 		g.Expect(templatePaths).Should(ContainElement(PrometheusSelfServiceMonitorTemplate),
 			"Prometheus self ServiceMonitor template should be included when MonitoringStack enabled")
+		g.Expect(templatePaths).Should(ContainElement(AcceleratorRecordingRulesTemplate),
+			"Accelerator recording rules template should be included when MonitoringStack enabled")
 	} else {
 		g.Expect(templatePaths).ShouldNot(ContainElement(MonitoringStackTemplate),
 			"MonitoringStack template should be excluded when disabled")
@@ -855,6 +857,8 @@ func validateTemplates(t *testing.T, g Gomega, rr *odhtypes.ReconciliationReques
 			"Prometheus route template should be excluded when MonitoringStack disabled")
 		g.Expect(templatePaths).ShouldNot(ContainElement(PrometheusSelfServiceMonitorTemplate),
 			"Prometheus self ServiceMonitor template should be excluded when MonitoringStack disabled")
+		g.Expect(templatePaths).ShouldNot(ContainElement(AcceleratorRecordingRulesTemplate),
+			"Accelerator recording rules template should be excluded when MonitoringStack disabled")
 	}
 
 	if tt.expectedTQTemplates > 0 {
@@ -881,9 +885,10 @@ func TestMonitoringStackThanosQuerierIntegration(t *testing.T) {
 			hasThanosQuerierCRD:       true,
 			expectedMSConditionStatus: "True",
 			expectedTQConditionStatus: "True",
-			expectedMSTemplates:       9, // MonitoringStack + Alertmanager RBAC + PrometheusRoute +
+			expectedMSTemplates:       10, // MonitoringStack + Alertmanager RBAC + PrometheusRoute +
 			// PrometheusServiceOverride + PrometheusNetworkPolicy + PrometheusWebTLSService +
-			// PrometheusNamespaceProxy + PrometheusNamespaceProxyNetworkPolicy + PrometheusSelfServiceMonitor
+			// PrometheusNamespaceProxy + PrometheusNamespaceProxyNetworkPolicy + PrometheusSelfServiceMonitor +
+			// AcceleratorRecordingRules
 			expectedTQTemplates: 2, // ThanosQuerier + ThanosQuerierRoute
 			description:         "When both CRDs are available and metrics configured, both should be deployed",
 		},
@@ -1814,6 +1819,8 @@ func TestDCGMRenameRulesInMetricRelabelConfigs(t *testing.T) {
 
 	assert.NotContains(t, relabelSection, "__name__",
 		"relabel_configs must not reference __name__ (unavailable at target-discovery stage)")
+	assert.NotContains(t, metricRelabelSection, "__tmp_scale_needed",
+		"metric_relabel_configs must not add __tmp_scale_needed (rejected by OTel prometheus exporter)")
 }
 
 func extractSection(content, startMarker, endMarker string) string {
