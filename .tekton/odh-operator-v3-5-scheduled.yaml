@@ -73,6 +73,13 @@ spec:
       value: pipelines/multi-arch-container-build.yaml
   taskRunTemplate:
     serviceAccountName: build-pipeline-odh-operator-v3-5
+  taskRunSpecs:
+  - pipelineTaskName: rpms-signature-scan
+    computeResources:
+      requests:
+        memory: 2Gi
+      limits:
+        memory: 2Gi
   workspaces:
   - name: git-auth
     secret:
