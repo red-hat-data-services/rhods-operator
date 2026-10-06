@@ -217,6 +217,22 @@ rules:
   - get
   - update
 - apiGroups:
+  - node.k8s.io
+  resources:
+  - runtimeclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - opendatahub.io
   resources:
   - odhdashboardconfigs
@@ -281,6 +297,7 @@ rules:
   - account-viewer-role
   - kserve-admin
   - kserve-edit
+  - kserve-inferencegraph-distro-role
   - kserve-inferenceservice-distro-role
   - kserve-llmisvc-distro-role
   - kserve-llmisvc-manager-role
@@ -330,6 +347,14 @@ rules:
   - bind
   - escalate
 - apiGroups:
+  - resource.k8s.io
+  resources:
+  - resourceslices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - security.openshift.io
   resources:
   - securitycontextconstraints
@@ -341,6 +366,21 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - monitorings
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - services.platform.opendatahub.io
+  resourceNames:
+  - default-monitoring
+  resources:
+  - monitorings
+  verbs:
+  - get
 - apiGroups:
   - serving.kserve.io
   resources:
