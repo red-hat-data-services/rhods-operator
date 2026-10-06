@@ -38,12 +38,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - serviceaccounts/token
-  verbs:
-  - create
-- apiGroups:
-  - ""
-  resources:
   - services
   verbs:
   - create
@@ -72,12 +66,6 @@ rules:
   - list
   - patch
   - watch
-- apiGroups:
-  - authentication.k8s.io
-  resources:
-  - tokenreviews
-  verbs:
-  - create
 - apiGroups:
   - authorization.k8s.io
   resources:
