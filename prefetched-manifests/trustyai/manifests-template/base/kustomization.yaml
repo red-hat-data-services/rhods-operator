@@ -86,6 +86,13 @@ vars:
       apiVersion: v1
     fieldref:
       fieldpath: data.evalhub-provider-ibm-clear-image
+  - name: evalhub-provider-ifbench-image
+    objref:
+      kind: ConfigMap
+      name: config
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.evalhub-provider-ifbench-image
   - name: evalhub-provider-inspect-image
     objref:
       kind: ConfigMap
@@ -107,6 +114,13 @@ vars:
       apiVersion: v1
     fieldref:
       fieldpath: data.evalhub-provider-ragas-image
+  - name: evalhub-provider-ruler-image
+    objref:
+      kind: ConfigMap
+      name: config
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.evalhub-provider-ruler-image
   - name: lmes-pod-image
     objref:
       kind: ConfigMap
@@ -121,27 +135,6 @@ vars:
       apiVersion: v1
     fieldref:
       fieldpath: data.lmes-driver-image
-  - name: guardrails-orchestrator-image
-    objref:
-      kind: ConfigMap
-      name: config
-      apiVersion: v1
-    fieldref:
-      fieldpath: data.guardrails-orchestrator-image
-  - name: guardrails-built-in-detector-image
-    objref:
-      kind: ConfigMap
-      name: config
-      apiVersion: v1
-    fieldref:
-      fieldpath: data.guardrails-built-in-detector-image
-  - name: guardrails-sidecar-gateway-image
-    objref:
-      kind: ConfigMap
-      name: config
-      apiVersion: v1
-    fieldref:
-      fieldpath: data.guardrails-sidecar-gateway-image
   - name: nemo-guardrails-image
     objref:
       kind: ConfigMap
