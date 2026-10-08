@@ -14,6 +14,11 @@ patches:
     metadata:
       name: system
     $patch: delete
+# The base prometheus ServiceMonitor is pulled into this overlay directly (not via
+# ../../default), so it keeps the scaffold 'namespace: system' instead of the
+# transformed 'mcp-lifecycle-operator-system' that the metrics Service lands in.
+# Pin the monitor to the operator namespace so it can discover and scrape that
+# Service; without this the monitor sits in a different namespace and never scrapes.
 - target:
     kind: ServiceMonitor
     name: controller-manager-metrics-monitor
@@ -21,3 +26,33 @@ patches:
     - op: replace
       path: /metadata/name
       value: mcp-lifecycle-operator-controller-manager-metrics-monitor
+    - op: replace
+      path: /metadata/namespace
+      value: mcp-lifecycle-operator-system
+# Pin the operator metrics (8443) ingress to the concrete OpenShift monitoring
+# namespaces instead of the base policy's generic 'metrics: enabled' label, which
+# the real monitoring namespaces do not carry. Admit both platform monitoring and
+# user-workload monitoring, matching the opendatahub-operator convention.
+#
+# Only the 8443 rule's source is touched so this overlay does not duplicate the
+# base 8081/9443 rules (which would drift and cause merge conflicts on resync).
+# The base allow-metrics-traffic.yaml is resynced from upstream, so the replace is
+# guarded by a 'test' op asserting index 2 is still the 8443 rule: if upstream
+# reorders the ingress, the build fails loudly instead of silently patching the
+# wrong rule.
+- target:
+    kind: NetworkPolicy
+    name: allow-metrics-traffic
+  patch: |-
+    - op: test
+      path: /spec/ingress/2/ports/0/port
+      value: 8443
+    - op: replace
+      path: /spec/ingress/2/from
+      value:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring

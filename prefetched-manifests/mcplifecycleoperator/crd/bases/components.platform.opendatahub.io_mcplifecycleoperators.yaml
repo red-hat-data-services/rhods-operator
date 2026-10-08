@@ -63,6 +63,60 @@ spec:
             description: MCPLifecycleOperatorStatus defines the observed state of
               MCPLifecycleOperator.
             properties:
+              availableMCPGateways:
+                description: |-
+                  AvailableMCPGateways lists MCPGatewayExtension resources discovered on the
+                  cluster together with the listeners of their target Gateway. Empty when no
+                  MCPGatewayExtension CRD is installed or no instances exist.
+                items:
+                  description: MCPGatewayInfo describes a discovered MCPGatewayExtension
+                    and its target Gateway.
+                  properties:
+                    gateway:
+                      description: Gateway is the target Gateway referenced by the
+                        MCPGatewayExtension.
+                      properties:
+                        listeners:
+                          description: Listeners are the named listeners on the Gateway.
+                          items:
+                            description: ListenerRef identifies a single listener
+                              on a Gateway.
+                            properties:
+                              name:
+                                description: Name is the name of the listener.
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          type: array
+                        name:
+                          description: Name is the name of the Gateway resource.
+                          type: string
+                        namespace:
+                          description: Namespace is the namespace of the Gateway resource.
+                          type: string
+                      required:
+                      - name
+                      - namespace
+                      type: object
+                    name:
+                      description: Name is the name of the MCPGatewayExtension resource.
+                      type: string
+                    namespace:
+                      description: Namespace is the namespace of the MCPGatewayExtension
+                        resource.
+                      type: string
+                    ready:
+                      description: Ready indicates whether the MCPGatewayExtension
+                        has a Ready=True condition.
+                      type: boolean
+                  required:
+                  - gateway
+                  - name
+                  - namespace
+                  - ready
+                  type: object
+                type: array
               conditions:
                 description: Conditions is the set of condition observations for this
                   module.
