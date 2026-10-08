@@ -13,10 +13,12 @@ import (
 
 	oauthv1 "github.com/openshift/api/oauth/v1"
 	"gopkg.in/yaml.v3"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	gwapiv1 "sigs.k8s.io/gateway-api/apis/v1"
+	k8syaml "sigs.k8s.io/yaml"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	infrav1 "github.com/opendatahub-io/opendatahub-operator/v2/api/infrastructure/v1"
@@ -354,15 +356,23 @@ func TestCalculateRedirectConfigHash(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	hash1 := CalculateRedirectConfigHash(testHostnameDefault)
+	hash1, err := CalculateRedirectConfigHash(testHostnameDefault)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(hash1).To(MatchRegexp("^[0-9a-f]{64}$"), "hash should be 64 hex chars")
 	g.Expect(hash1).To(HaveLen(64))
 
-	hash2 := CalculateRedirectConfigHash(testHostnameCustom)
+	hash2, err := CalculateRedirectConfigHash(testHostnameCustom)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(hash2).NotTo(Equal(hash1), "different hostnames should produce different hashes")
 
-	hash3 := CalculateRedirectConfigHash(testHostnameDefault)
+	hash3, err := CalculateRedirectConfigHash(testHostnameDefault)
+	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(hash3).To(Equal(hash1), "same hostname should produce same hash")
+
+	config, err := gatewayResources.ReadFile(dashboardRedirectConfigMapTemplate)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(calculateRedirectConfigHash(testHostnameDefault, append(config, '\n'))).
+		NotTo(Equal(hash1), "changing the redirect configuration should roll the pods")
 }
 
 // TestIsGatewayReady tests the isGatewayReady helper function.
@@ -942,6 +952,26 @@ func TestAuthTemplatesCoverEveryManagedGateway(t *testing.T) {
 	networkPolicy = renderAuthProxyTemplate(g, networkPolicyTemplate, data)
 	g.Expect(networkPolicy).NotTo(ContainSubstring("- alpha"))
 	g.Expect(networkPolicy).To(ContainSubstring("- beta"))
+}
+
+func TestDefaultAuthProxyScaling(t *testing.T) {
+	for _, maximum := range []int32{0, 2, 4, 10} {
+		g := NewWithT(t)
+		config := &serviceApi.GatewayConfig{}
+		expected := maximum
+		if maximum == 0 {
+			expected = 10 // A nil field bypasses admission defaults in direct callers.
+		} else {
+			config.Spec.AuthProxyMaxReplicas = &maximum
+		}
+		data := authProxyTemplateData()
+		data["AuthProxyMaxReplicas"] = getGatewayAuthProxyMaxReplicas(config)
+		rendered := renderAuthProxyTemplate(g, kubeAuthProxyHPATemplate, data)
+		var hpa autoscalingv2.HorizontalPodAutoscaler
+		g.Expect(k8syaml.Unmarshal([]byte(rendered), &hpa)).To(Succeed())
+		g.Expect(hpa.Spec.MinReplicas).To(HaveValue(Equal(int32(2))))
+		g.Expect(hpa.Spec.MaxReplicas).To(Equal(expected))
+	}
 }
 
 // TestAuthProxyTemplatesErrorWhenTokenReviewKeysMissing documents the e2e bug:

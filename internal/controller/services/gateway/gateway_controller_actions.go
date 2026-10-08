@@ -21,6 +21,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"html"
 	"maps"
 	"strings"
 
@@ -440,6 +441,10 @@ func getTemplateData(ctx context.Context, rr *odhtypes.ReconciliationRequest) (m
 	// Compute legacy redirect info for template
 	legacyInfo := computeLegacyRedirectInfo(gatewayConfig, hostname)
 	gatewayFilters := gatewayEnvoyFilterTargets(gatewayConfig)
+	redirectConfigHash, err := CalculateRedirectConfigHash(hostname)
+	if err != nil {
+		return nil, err
+	}
 
 	templateData := map[string]any{
 		"IsOpenShift":              cluster.GetClusterInfo().Type != cluster.ClusterTypeKubernetes,
@@ -466,6 +471,7 @@ func getTemplateData(ctx context.Context, rr *odhtypes.ReconciliationRequest) (m
 		"CookieRefresh":            cookieRefresh,
 		"AuthConfigHash":           authConfigHash,
 		"AuthProxyTimeout":         getGatewayAuthProxyTimeout(gatewayConfig),
+		"AuthProxyMaxReplicas":     getGatewayAuthProxyMaxReplicas(gatewayConfig),
 		"ComponentLabelKey":        labels.K8SCommon.Component,
 		"ComponentLabelValue":      ComponentLabelValue,
 		"PartOfLabelKey":           labels.K8SCommon.PartOf,
@@ -481,12 +487,18 @@ func getTemplateData(ctx context.Context, rr *odhtypes.ReconciliationRequest) (m
 	}
 
 	// Add dashboard redirect template variables
+	productName := "Open Data Hub"
+	if rr.Release.Name == cluster.ManagedRhoai || rr.Release.Name == cluster.SelfManagedRhoai {
+		productName = "OpenShift AI"
+	}
 	templateData["DashboardRedirectNamespace"] = cluster.GetApplicationNamespace()
 	templateData["DashboardRedirectName"] = DashboardRedirectName
 	templateData["DashboardRedirectConfigName"] = DashboardRedirectConfigName
 	templateData["DashboardRouteName"] = GetDashboardRouteName()
 	templateData["DashboardRedirectImage"] = getDashboardRedirectImage()
-	templateData["RedirectConfigHash"] = CalculateRedirectConfigHash(hostname)
+	templateData["DashboardRedirectHostnameHTML"] = html.EscapeString(hostname)
+	templateData["DashboardRedirectProductName"] = productName
+	templateData["RedirectConfigHash"] = redirectConfigHash
 
 	// Add OIDC-specific fields only if OIDC config is present
 	if gatewayConfig.Spec.OIDC != nil {
