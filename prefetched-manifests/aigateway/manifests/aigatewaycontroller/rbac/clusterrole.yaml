@@ -1,7 +1,8 @@
 # Permissions ai-gateway-controller needs to primarily watch MaasTenantConfig
 # (mirroring maas-controller's own TenantReconciler) and, per opted-in
 # tenant, render+apply a per-tenant copy of the vendored praxis-extproc
-# overlay (config/manifests/praxis-extproc/overlays/odh).
+# overlay (config/manifests/external-model/overlays/odh), which composes the
+# pinned upstream praxis-extproc manifests with controller-owned patches.
 # Verified against a live OpenShift cluster; every Kind here is one this
 # controller actually creates/updates/deletes, no wildcard groups/resources.
 apiVersion: rbac.authorization.k8s.io/v1
@@ -64,11 +65,17 @@ rules:
   resources: ["externalproviders", "externalmodels"]
   verbs: ["get", "list", "watch", "create", "update"]
 - apiGroups: ["inference.opendatahub.io"]
+  resources: ["externalmodels"]
+  verbs: ["patch"]
+- apiGroups: ["inference.opendatahub.io"]
   resources: ["externalproviders/status", "externalmodels/status"]
   verbs: ["get", "update", "patch"]
 - apiGroups: ["inference.opendatahub.io"]
   resources: ["externalproviders/finalizers", "externalmodels/finalizers"]
   verbs: ["update"]
+- apiGroups: ["aigateway.opendatahub.io"]
+  resources: ["aiguardrails"]
+  verbs: ["get", "list", "watch"]
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["httproutes"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
