@@ -131,11 +131,6 @@ spec:
                   replacement: 'nvidia_gpu_memory_clock_mhz'
                   source_labels: [__name__]
                   target_label: __name__
-                # Convert DCGM percentage metrics to ratios (0-1 scale) for OCP compatibility
-                - source_labels: [__name__]
-                  regex: 'nvidia_gpu_(utilization|memory_utilization)_ratio'
-                  target_label: __tmp_scale_needed
-                  replacement: 'true'
                 - source_labels: [__name__]
                   regex: '(nvidia_gpu_temperature_celsius|nvidia_gpu_utilization_ratio|nvidia_gpu_memory_utilization_ratio|nvidia_gpu_memory_used_bytes|nvidia_gpu_memory_free_bytes|nvidia_gpu_power_usage_watts|nvidia_gpu_sm_clock_mhz|nvidia_gpu_memory_clock_mhz)'
                   action: keep
