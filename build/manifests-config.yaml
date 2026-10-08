@@ -17,7 +17,7 @@ map:
     dest: trustyai
   odh-model-registry-operator:
     src: config
-    dest: modelregistry
+    dest: aihub
   odh-dashboard-operator:
     src: dashboard-operator/charts/dashboard
     dest: dashboard-operator
@@ -39,7 +39,7 @@ map:
     dest: mcplifecycleoperator
   odh-feast-module-operator:
     src: config/chart
-    dest: feastoperator
+    dest: data
     type: chart
   odh-ogx-module-operator:
     src: ogx-module/config
