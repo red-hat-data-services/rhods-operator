@@ -82,10 +82,15 @@ spec:
                             description: ListenerRef identifies a single listener
                               on a Gateway.
                             properties:
+                              hostname:
+                                description: Hostname is the wildcard hostname of
+                                  the listener.
+                                type: string
                               name:
                                 description: Name is the name of the listener.
                                 type: string
                             required:
+                            - hostname
                             - name
                             type: object
                           type: array
