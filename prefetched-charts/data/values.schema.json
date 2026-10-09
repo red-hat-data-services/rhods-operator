@@ -113,10 +113,17 @@
           "type": "object"
         },
         "upgradeGates": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": ["object", "null"]
+          "oneOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false,
@@ -131,7 +138,8 @@
         "leaderElect",
         "serviceAccount",
         "imagePullSecret",
-        "config"
+        "config",
+        "upgradeGates"
       ]
     }
   }

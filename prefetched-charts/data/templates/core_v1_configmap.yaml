@@ -11,4 +11,4 @@ metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
   name: opendatahub-feast-config
-  namespace: {{ .Values.namespace }}
+  namespace: {{ default .Release.Namespace .Values.namespace }}

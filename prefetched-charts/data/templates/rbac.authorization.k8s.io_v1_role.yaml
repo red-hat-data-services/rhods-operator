@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
   name: opendatahub-feast-leader-election-role
-  namespace: {{ .Values.namespace }}
+  namespace: {{ default .Release.Namespace .Values.namespace }}
 rules:
 - apiGroups:
   - ""

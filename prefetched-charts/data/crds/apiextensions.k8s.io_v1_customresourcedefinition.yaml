@@ -47,6 +47,50 @@ spec:
           spec:
             description: FeastOperatorSpec defines the desired state of FeastOperator.
             properties:
+              capabilities:
+                description: |-
+                  Capabilities declares the desired state for Feature Store and Data Registry.
+                  When present, these values are authoritative and override process-level
+                  environment defaults. When absent, the module falls back to startup
+                  configuration (env vars) for backward compatibility.
+                properties:
+                  dataRegistry:
+                    description: |-
+                      DataRegistry controls Data Registry workload reconciliation and
+                      namespace provisioning. The namespace is always rhoai-data-registry.
+                    properties:
+                      managementState:
+                        description: |-
+                          CapabilityManagementState restricts the allowed management states for capability
+                          toggles to Managed or Removed. Unlike the platform's general ManagementState,
+                          Unmanaged and Force are not valid for capability toggles.
+                        enum:
+                        - Managed
+                        - Removed
+                        type: string
+                    required:
+                    - managementState
+                    type: object
+                  featureStore:
+                    description: FeatureStore controls standard FeatureStore workload
+                      reconciliation.
+                    properties:
+                      managementState:
+                        description: |-
+                          CapabilityManagementState restricts the allowed management states for capability
+                          toggles to Managed or Removed. Unlike the platform's general ManagementState,
+                          Unmanaged and Force are not valid for capability toggles.
+                        enum:
+                        - Managed
+                        - Removed
+                        type: string
+                    required:
+                    - managementState
+                    type: object
+                required:
+                - dataRegistry
+                - featureStore
+                type: object
               oidc:
                 description: |-
                   OIDC holds the OIDC issuer settings. When the cluster uses external OIDC
