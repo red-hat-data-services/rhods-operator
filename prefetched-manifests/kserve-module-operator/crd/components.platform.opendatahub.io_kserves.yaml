@@ -167,6 +167,19 @@ spec:
                     && size(self.nodeSelector.matchExpressions) > 0)))
                 - message: nodeNames and nodeSelector are mutually exclusive
                   rule: '!(has(self.nodeNames) && has(self.nodeSelector))'
+              modelExpress:
+                description: Installs the ModelExpress operator. Removed by default.
+                properties:
+                  managementState:
+                    default: Removed
+                    description: |-
+                      ManagementState defines whether a component is actively managed by the
+                      operator or scheduled for removal.
+                    enum:
+                    - Managed
+                    - Removed
+                    type: string
+                type: object
               modelRegistry:
                 properties:
                   managementState:
