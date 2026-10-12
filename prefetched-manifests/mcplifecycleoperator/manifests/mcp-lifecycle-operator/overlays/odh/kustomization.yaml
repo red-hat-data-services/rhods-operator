@@ -40,6 +40,13 @@ patches:
 # guarded by a 'test' op asserting index 2 is still the 8443 rule: if upstream
 # reorders the ingress, the build fails loudly instead of silently patching the
 # wrong rule.
+#
+# Also add allow-all egress so the operand controller-manager keeps working under
+# a namespace deny-all policy (platform NetworkPolicy contract / ODH-ADR-Operator-0016;
+# allow-all egress is permitted by the amendment in architecture-decision-records 173).
+# STOPGAP: when the upstream least-privilege egress (DNS + apiserver + mcp-server) lands
+# and is vendored, remove this allow-all egress, otherwise it additively overrides and
+# negates that restriction.
 - target:
     kind: NetworkPolicy
     name: allow-metrics-traffic
@@ -56,3 +63,20 @@ patches:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: openshift-user-workload-monitoring
+    # Guard the stopgap: assert the base still declares ingress-only egress posture
+    # before we add allow-all egress. If a future resync pulls an upstream egress
+    # policy into the base (e.g. the least-privilege DNS + apiserver + mcp-server
+    # rules), policyTypes will no longer equal [Ingress] and the build fails here,
+    # loudly signalling that this allow-all stopgap must be removed rather than
+    # silently overriding and negating the upstream restriction.
+    - op: test
+      path: /spec/policyTypes
+      value:
+        - Ingress
+    - op: add
+      path: /spec/policyTypes/-
+      value: Egress
+    - op: add
+      path: /spec/egress
+      value:
+        - {}
