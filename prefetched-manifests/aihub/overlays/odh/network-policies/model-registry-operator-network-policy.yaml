@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: model-registry-operator-controller-manager
+  labels:
+    app.kubernetes.io/name: model-registry-operator
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: model-registry-operator
+spec:
+  podSelector:
+    matchLabels:
+      control-plane: model-registry-operator
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Metrics (HTTPS, authn/authz enforced by the metrics server) only from the
+  # platform and RHOAI/ODH monitoring namespaces.
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-monitoring
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-user-workload-monitoring
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: redhat-ods-monitoring
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: opendatahub-monitoring
+    ports:
+    - protocol: TCP
+      port: 8443
+  # Admission webhooks are called by the API server, which runs on the host
+  # network on OpenShift.
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          policy-group.network.openshift.io/host-network: ""
+    ports:
+    - protocol: TCP
+      port: 9443
+  # Health probes (8081) need no rule: NetworkPolicy always allows traffic from
+  # the pod's own node, which is where kubelet probes originate.
+  #
+  # Egress is unrestricted. The operator only calls the Kubernetes API, but on
+  # OpenShift its endpoints are per-cluster control-plane host IPs that cannot be
+  # expressed in a static manifest, and no platform-standard API-server peer
+  # exists yet (RHOAIENG-90747).
+  egress:
+  - {}
