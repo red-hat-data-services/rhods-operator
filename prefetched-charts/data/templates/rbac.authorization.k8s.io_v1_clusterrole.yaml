@@ -334,6 +334,36 @@ rules:
   - update
   - watch
 - apiGroups:
+  - dataregistry.opendatahub.io
+  resources:
+  - registries
+  - namespaces
+  - tables
+  - volumes
+  - generic-tables
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - dataregistry.opendatahub.io
+  resources:
+  - connections
+  verbs:
+  - use
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - system:auth-delegator
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+- apiGroups:
   - route.openshift.io
   resources:
   - routes
