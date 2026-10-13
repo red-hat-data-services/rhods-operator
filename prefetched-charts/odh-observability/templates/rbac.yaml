@@ -123,7 +123,7 @@ rules:
   - apiGroups: ["route.openshift.io"]
     resources: ["routes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # OpenShift route TLS.DestinationCACertificate update needs create permission
+  # OpenShift requires this subresource permission to update a Route's TLS certificate fields.
   - apiGroups: ["route.openshift.io"]
     resources: ["routes/custom-host"]
     verbs: ["create"]
