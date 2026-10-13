@@ -49,6 +49,56 @@ spec:
           spec:
             description: MaaSSubscriptionSpec defines the desired state of MaaSSubscription
             properties:
+              guardrails:
+                description: |-
+                  Guardrails attaches reusable AIGuardrail policies for every model accessed
+                  through this subscription. References resolve in the AITenant target
+                  namespace; a namespace must not be specified on the reference. Selections
+                  are additive with the tenant baseline and cannot remove checks contributed
+                  by another scope.
+                items:
+                  description: |-
+                    GuardrailAttachment attaches an AIGuardrail policy to a MaaS resource and
+                    selects which of the policy's checks apply.
+
+                    Attachments are additive across scopes (tenant, subscription): the effective
+                    set of checks is the union of every scope's selection, and one scope cannot
+                    remove checks contributed by another. Multiple entries referencing the same
+                    policy contribute a union of their selected checks.
+                  properties:
+                    checks:
+                      description: |-
+                        Checks selects check names from the referenced AIGuardrail's spec.checks.
+                        An omitted or empty list selects every check in the policy, including
+                        checks added to the policy later. A non-empty list selects only the named
+                        checks. Names must be unique and must exist in the referenced policy.
+                      items:
+                        maxLength: 63
+                        minLength: 1
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        type: string
+                      maxItems: 64
+                      type: array
+                      x-kubernetes-list-type: set
+                    ref:
+                      description: Ref identifies the AIGuardrail policy to attach.
+                      properties:
+                        name:
+                          description: Name is the name of the AIGuardrail policy
+                            to attach.
+                          maxLength: 253
+                          minLength: 1
+                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                      required:
+                      - name
+                      type: object
+                  required:
+                  - ref
+                  type: object
+                maxItems: 64
+                type: array
+                x-kubernetes-list-type: atomic
               inferencePriority:
                 description: |-
                   InferencePriority is the scheduling priority applied to inference requests made under
@@ -78,6 +128,57 @@ spec:
                       required:
                       - perToken
                       type: object
+                    guardrails:
+                      description: |-
+                        Guardrails attaches reusable AIGuardrail policies for this specific model
+                        within the subscription. References resolve in the AITenant target
+                        namespace; a namespace must not be specified on the reference. Selections
+                        are additive with the subscription-wide guardrails and every other scope
+                        and cannot remove checks contributed elsewhere.
+                      items:
+                        description: |-
+                          GuardrailAttachment attaches an AIGuardrail policy to a MaaS resource and
+                          selects which of the policy's checks apply.
+
+                          Attachments are additive across scopes (tenant, subscription): the effective
+                          set of checks is the union of every scope's selection, and one scope cannot
+                          remove checks contributed by another. Multiple entries referencing the same
+                          policy contribute a union of their selected checks.
+                        properties:
+                          checks:
+                            description: |-
+                              Checks selects check names from the referenced AIGuardrail's spec.checks.
+                              An omitted or empty list selects every check in the policy, including
+                              checks added to the policy later. A non-empty list selects only the named
+                              checks. Names must be unique and must exist in the referenced policy.
+                            items:
+                              maxLength: 63
+                              minLength: 1
+                              pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                              type: string
+                            maxItems: 64
+                            type: array
+                            x-kubernetes-list-type: set
+                          ref:
+                            description: Ref identifies the AIGuardrail policy to
+                              attach.
+                            properties:
+                              name:
+                                description: Name is the name of the AIGuardrail policy
+                                  to attach.
+                                maxLength: 253
+                                minLength: 1
+                                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                                type: string
+                            required:
+                            - name
+                            type: object
+                        required:
+                        - ref
+                        type: object
+                      maxItems: 64
+                      type: array
+                      x-kubernetes-list-type: atomic
                     name:
                       description: Name is the name of the MaaSModelRef
                       maxLength: 63
@@ -246,6 +347,81 @@ spec:
                   - reason
                   - status
                   - type
+                  type: object
+                type: array
+              flowControlStatuses:
+                description: |-
+                  FlowControlStatuses reports, for each referenced model, the InferencePool and
+                  InferenceObjective used for request priority, and their reconciliation state
+                items:
+                  description: ModelFlowControlStatus maps a referenced model to its
+                    InferencePool and InferenceObjective.
+                  properties:
+                    inferencePool:
+                      description: InferencePool is the pool observed in the model's
+                        LLMInferenceService status
+                      properties:
+                        group:
+                          description: |-
+                            Group is the group of the referent. For example, "gateway.networking.k8s.io".
+                            When unspecified or empty string, core API group is inferred.
+                          maxLength: 253
+                          pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                        kind:
+                          description: Kind is kind of the referent. For example "HTTPRoute"
+                            or "Service".
+                          maxLength: 63
+                          minLength: 1
+                          pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                          type: string
+                        name:
+                          description: Name is the name of the referent.
+                          maxLength: 253
+                          minLength: 1
+                          type: string
+                      required:
+                      - group
+                      - kind
+                      - name
+                      type: object
+                    message:
+                      description: Message is a human-readable description of the
+                        reason
+                      maxLength: 1024
+                      type: string
+                    name:
+                      description: Name of the MaaSModelRef
+                      maxLength: 253
+                      type: string
+                    namespace:
+                      description: |-
+                        Namespace of the MaaSModelRef. The InferencePool and InferenceObjective live in this
+                        namespace, alongside the model's LLMInferenceService.
+                      maxLength: 63
+                      type: string
+                    objectiveName:
+                      description: |-
+                        ObjectiveName is the InferenceObjective name for this subscription and pool, in the pool's
+                        namespace. It is set whenever the pool is known, including when spec.inferencePriority is unset
+                        and no InferenceObjective is created.
+                      maxLength: 63
+                      type: string
+                    ready:
+                      description: |-
+                        Ready is true when no request-priority reconciliation is left for this model: its
+                        InferenceObjective matches spec.inferencePriority, spec.inferencePriority is unset, request
+                        priority does not apply, or the InferenceObjective opted out of management. It does not
+                        report backend readiness; see ModelRefStatuses.
+                      type: boolean
+                    reason:
+                      description: Reason is a machine-readable reason for Ready
+                      maxLength: 64
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - ready
                   type: object
                 type: array
               modelRefStatuses:

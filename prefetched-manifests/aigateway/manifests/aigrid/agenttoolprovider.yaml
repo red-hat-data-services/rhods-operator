@@ -1,0 +1,320 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agenttoolproviders.grid.praxis.fast
+spec:
+  group: grid.praxis.fast
+  names:
+    kind: AgentToolProvider
+    plural: agenttoolproviders
+    shortNames:
+      - atp
+    singular: agenttoolprovider
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .spec.protocol
+          name: Protocol
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          type: string
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Auto-generated derived type for AgentToolProviderSpec via `CustomResource`
+          properties:
+            spec:
+              description: Specification for an [`AgentToolProvider`].
+              properties:
+                accessPolicy:
+                  default:
+                    siteSelector:
+                      matchLabels: {}
+                  description: Which sites can consume these tools.
+                  properties:
+                    siteSelector:
+                      default:
+                        matchLabels: {}
+                      description: Which sites can route to this provider.
+                      properties:
+                        matchLabels:
+                          additionalProperties:
+                            type: string
+                          default: {}
+                          description: Label key-value pairs that must match.
+                          type: object
+                      type: object
+                  type: object
+                auth:
+                  description: Authentication configuration.
+                  nullable: true
+                  properties:
+                    manual:
+                      default: false
+                      description: |-
+                        Whether the user manages credentials manually.
+
+                        When true, the operator does not inject credentials
+                        and the user is responsible for configuring auth.
+                      type: boolean
+                    secretRef:
+                      description: Reference to a Secret containing the credential.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    strategy:
+                      description: How credentials are presented to the provider.
+                      enum:
+                        - api_key
+                        - bearer_token
+                        - custom
+                        - mtls_only
+                        - oauth2
+                        - service_account
+                        - sigv4
+                      type: string
+                  required:
+                    - strategy
+                  type: object
+                endpoint:
+                  description: HTTP endpoint of the MCP server.
+                  type: string
+                gridNetworkRef:
+                  description: |-
+                    Name of the [`GridNetwork`] this provider belongs to.
+
+                    [`GridNetwork`]: crate::crd::grid_network::GridNetwork
+                  type: string
+                protocol:
+                  default: mcp
+                  description: Protocol used (only "mcp" initially).
+                  type: string
+                siteSelector:
+                  default:
+                    matchLabels: {}
+                  description: Which sites host this provider.
+                  properties:
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      default: {}
+                      description: Label key-value pairs that must match.
+                      type: object
+                  type: object
+                tls:
+                  description: |-
+                    TLS configuration for the operator's own MCP `tools/list` probe.
+
+                    Reuses [`EndpointTlsConfig`] from [`InferenceProvider`] (CA trust and
+                    optional mTLS client identity for the probe connection). When absent,
+                    the probe uses native root certificates and no client certificate.
+
+                    [`InferenceProvider`]: crate::crd::inference_provider::InferenceProvider
+                  nullable: true
+                  properties:
+                    caConfigMapRef:
+                      description: |-
+                        Reference to a `ConfigMap` holding the CA certificate PEM, such as the
+                        platform service CA (`openshift-service-ca.crt`, key `service-ca.crt`).
+
+                        A CA bundle is public, so it may live in a `ConfigMap`. Like
+                        `ca_secret_ref`, it is the only trust consulted when set.
+                      nullable: true
+                      properties:
+                        key:
+                          description: Key within the `ConfigMap`'s `data`. Defaults to `ca.crt`.
+                          nullable: true
+                          type: string
+                        name:
+                          description: '`ConfigMap` name.'
+                          type: string
+                        namespace:
+                          description: '`ConfigMap` namespace.'
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    caSecretRef:
+                      description: |-
+                        Reference to a Secret containing the CA certificate PEM for server
+                        verification.
+
+                        The Secret must contain the PEM-encoded CA certificate under the key
+                        `ca.crt` (or the key specified by `key`).  When this CA is
+                        set, the scraper trusts **only** this CA; system root certificates
+                        are not consulted. Exactly one of this and `ca_config_map_ref` is set.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    clientCertificateSecretRef:
+                      description: |-
+                        Reference to a Secret containing the client certificate and private
+                        key for mutual TLS.
+
+                        When set, the scraper presents this identity during the TLS handshake.
+                        The Secret must contain `tls.crt` (or `certificate_key`) and
+                        `tls.key` (or `private_key_key`) in PEM format.
+
+                        When absent, the scraper performs one-way TLS only (server verification
+                        with the CA from `ca_secret_ref`, no client certificate).
+                      nullable: true
+                      properties:
+                        certificateKey:
+                          default: tls.crt
+                          description: Key within `Secret.data` holding the PEM-encoded client certificate.
+                          minLength: 1
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                        privateKeyKey:
+                          default: tls.key
+                          description: Key within `Secret.data` holding the PEM-encoded private key.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                  type: object
+                  x-kubernetes-validations:
+                    - message: set exactly one of caSecretRef and caConfigMapRef
+                      rule: has(self.caSecretRef) != has(self.caConfigMapRef)
+                tools:
+                  default: []
+                  description: Tool definitions (auto-discovered if omitted).
+                  items:
+                    description: Metadata for a single MCP tool.
+                    properties:
+                      description:
+                        description: Human-readable description.
+                        nullable: true
+                        type: string
+                      name:
+                        description: Tool name.
+                        type: string
+                    required:
+                      - name
+                    type: object
+                  type: array
+              required:
+                - endpoint
+                - gridNetworkRef
+              type: object
+            status:
+              description: |-
+                Observed status of an [`AgentToolProvider`].
+
+                # Stable `reason` values
+
+                `reason` is `None` while the provider is healthy. When set, it is one
+                of the following stable, machine-readable strings — following the
+                same naming convention as [`InferenceProvider`]'s `MetricsTls*`/
+                `HealthCheckTls*` reasons:
+
+                | Reason | Meaning |
+                |--------|---------|
+                | `ProviderConfigInvalid` | `spec.endpoint` or `spec.gridNetworkRef` is blank or whitespace-only. |
+                | `GridNetworkNotFound` | The `GridNetwork` referenced by `spec.gridNetworkRef` does not exist. |
+                | `McpEndpointUnreachable` | The MCP probe could not connect (transport failure, timeout, DNS error). |
+                | `McpToolsListInvalidResponse` | The endpoint responded but the `tools/list` response was malformed. |
+                | `McpAuthRejected` | The MCP server rejected the configured `spec.auth` credentials. |
+                | `McpAuthTokenInvalid` | The resolved `spec.auth` bearer token contains characters that cannot be sent as an HTTP header value; the probe fails closed rather than proceeding unauthenticated. |
+                | `EndpointTlsSecretMissing` | `spec.tls`'s referenced Secret does not exist in the cluster. |
+                | `EndpointTlsKeyMissing` | `spec.tls`'s referenced Secret exists but is missing the expected key. |
+                | `EndpointTlsMaterialInvalid` | `spec.tls`'s certificate or key material could not be parsed. |
+
+                [`InferenceProvider`]: crate::crd::inference_provider::InferenceProvider
+              nullable: true
+              properties:
+                discoveredTools:
+                  default: []
+                  description: Tools discovered via MCP `tools/list`.
+                  items:
+                    type: string
+                  type: array
+                matchingSites:
+                  default: []
+                  description: Sites matched by the site selector.
+                  items:
+                    type: string
+                  type: array
+                observedGeneration:
+                  default: 0
+                  description: Last observed generation.
+                  format: int64
+                  type: integer
+                phase:
+                  default: Pending
+                  description: Current phase.
+                  enum:
+                    - Pending
+                    - Available
+                    - Degraded
+                    - Unavailable
+                  type: string
+                reason:
+                  description: |-
+                    Machine-readable reason for the current phase, `None` when healthy.
+
+                    See the type-level doc comment for the table of stable values.
+                  nullable: true
+                  type: string
+              type: object
+          required:
+            - spec
+          title: AgentToolProvider
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

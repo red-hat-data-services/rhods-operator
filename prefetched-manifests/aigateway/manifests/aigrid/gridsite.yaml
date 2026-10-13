@@ -1,0 +1,223 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gridsites.grid.praxis.fast
+spec:
+  group: grid.praxis.fast
+  names:
+    kind: GridSite
+    plural: gridsites
+    shortNames:
+      - gs
+    singular: gridsite
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .status.phase
+          name: Phase
+          type: string
+        - jsonPath: .spec.gridNetworkRef
+          name: Network
+          type: string
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Auto-generated derived type for GridSiteSpec via `CustomResource`
+          properties:
+            spec:
+              description: |-
+                Specification for a [`GridSite`].
+
+                Describes a remote site's egress endpoint, region, and
+                grid membership.
+              properties:
+                egress:
+                  description: Egress endpoint for data-plane connectivity.
+                  nullable: true
+                  properties:
+                    address:
+                      description: Address of the egress gateway (host:port).
+                      type: string
+                    tls:
+                      default:
+                        mode: Mutual
+                      description: TLS mode for the connection.
+                      properties:
+                        mode:
+                          default: Mutual
+                          description: TLS transport mode.
+                          enum:
+                            - Mutual
+                            - Plaintext
+                          type: string
+                        serverName:
+                          description: |-
+                            Expected DNS identity for TLS verification.
+
+                            Used as both the TLS SNI value and for certificate SAN
+                            verification.  Required when `mode` is [`EgressTlsMode::Mutual`];
+                            must be absent for [`EgressTlsMode::Plaintext`].
+
+                            Must be a valid DNS name (not an IP address), at most 253
+                            characters.
+                          maxLength: 253
+                          minLength: 1
+                          nullable: true
+                          type: string
+                      type: object
+                  required:
+                    - address
+                  type: object
+                gridNetworkRef:
+                  description: |-
+                    Name of the [`GridNetwork`] this site belongs to.
+
+                    [`GridNetwork`]: crate::crd::grid_network::GridNetwork
+                  type: string
+                region:
+                  description: Deployment region.
+                  nullable: true
+                  type: string
+                sovereigntyZone:
+                  description: Sovereignty zone for data residency constraints.
+                  nullable: true
+                  type: string
+                trust:
+                  description: |-
+                    Trust policy for this site.
+
+                    When configured, the operator verifies the received public certificate against
+                    this policy before promoting the site to `Active`. If absent, the site remains
+                    `Connecting` with reason `TrustMaterialMissing` regardless of certificate
+                    material.
+                  nullable: true
+                  properties:
+                    canonicalFingerprints:
+                      description: |-
+                        Canonical DER-certificate SHA-256 fingerprint pins.
+
+                        Each entry is a 64-character lowercase hex string computed as
+                        `hex(sha256(der_bytes))` where `der_bytes` are the raw DER encoding
+                        of the leaf certificate.
+
+                        At most two entries are allowed: the current pin and an optional
+                        next pin for bounded rotation overlap.  The probe succeeds if the
+                        peer leaf certificate matches **any** entry in this list.
+                      items:
+                        pattern: ^[0-9a-f]{64}$
+                        type: string
+                      maxItems: 2
+                      minItems: 1
+                      nullable: true
+                      type: array
+                    certFingerprint:
+                      description: |-
+                        Legacy SHA-256 fingerprint of the remote site's public certificate PEM.
+
+                        Format: colon-separated lowercase hex bytes, e.g. `"ab:cd:ef:..."`.
+                        Computed as `sha256(pem_bytes)` where `pem_bytes` are the UTF-8 bytes of
+                        `status.publicCertPem`.
+
+                        **Deprecated:** use `canonicalFingerprints` for new deployments.
+                        The two fields must not both be set.
+                      nullable: true
+                      type: string
+                  type: object
+                zone:
+                  description: Availability zone.
+                  nullable: true
+                  type: string
+              required:
+                - gridNetworkRef
+              type: object
+            status:
+              description: Observed status of a [`GridSite`].
+              nullable: true
+              properties:
+                absentSince:
+                  description: |-
+                    When gossip stopped vouching for this auto-discovered site; cleared when it returns.
+
+                    Auto discovery deletes the site once this is older than 24 hours. Never set on a
+                    declared site.
+                  nullable: true
+                  type: string
+                capabilities:
+                  default:
+                    agentToAgent: false
+                    agentTools: false
+                    inference: false
+                  description: Capabilities offered by this site.
+                  properties:
+                    agentToAgent:
+                      default: false
+                      description: Site offers A2A agent access.
+                      type: boolean
+                    agentTools:
+                      default: false
+                      description: Site offers MCP tool access.
+                      type: boolean
+                    inference:
+                      default: false
+                      description: Site offers inference access.
+                      type: boolean
+                  type: object
+                lastProbeTime:
+                  description: |-
+                    Timestamp of the last probe whose resulting status was persisted.
+
+                    This is not a liveness heartbeat; it may remain unchanged when a probe
+                    produces no status changes.
+                  nullable: true
+                  type: string
+                lastTransitionTime:
+                  description: Timestamp of the last phase transition.
+                  nullable: true
+                  type: string
+                message:
+                  default: ""
+                  description: |-
+                    Human-readable diagnostic for the current phase.
+
+                    Never contains credential token bytes.  Populated on every reconcile;
+                    empty when the operator has no additional context.
+                  type: string
+                observedGeneration:
+                  default: 0
+                  description: Last observed generation.
+                  format: int64
+                  type: integer
+                phase:
+                  default: Pending
+                  description: Current lifecycle phase.
+                  enum:
+                    - Pending
+                    - Discovered
+                    - Connecting
+                    - Active
+                    - Unreachable
+                    - Left
+                  type: string
+                publicCertPem:
+                  description: |-
+                    Remote site's public certificate PEM (received
+                    via SWIM state broadcast from the remote operator).
+                  nullable: true
+                  type: string
+                reason:
+                  default: ""
+                  description: |-
+                    Machine-readable reason for the current phase.
+
+                    Examples: `"AwaitingDiscovery"`, `"GatewayAddressKnown"`,
+                    `"TlsVerified"`, and `"IdentityVerificationRequired"`.
+                  type: string
+              type: object
+          required:
+            - spec
+          title: GridSite
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

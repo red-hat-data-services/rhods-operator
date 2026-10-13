@@ -1,0 +1,922 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: inferenceproviders.grid.praxis.fast
+spec:
+  group: grid.praxis.fast
+  names:
+    kind: InferenceProvider
+    plural: inferenceproviders
+    shortNames:
+      - infpvd
+    singular: inferenceprovider
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .spec.providerKind
+          name: Provider
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          type: string
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Auto-generated derived type for InferenceProviderSpec via `CustomResource`
+          properties:
+            spec:
+              description: Specification for an [`InferenceProvider`].
+              properties:
+                accessPolicy:
+                  default:
+                    siteSelector:
+                      matchLabels: {}
+                  description: Which sites can consume this provider.
+                  properties:
+                    siteSelector:
+                      default:
+                        matchLabels: {}
+                      description: Which sites can route to this provider.
+                      properties:
+                        matchLabels:
+                          additionalProperties:
+                            type: string
+                          default: {}
+                          description: Label key-value pairs that must match.
+                          type: object
+                      type: object
+                  type: object
+                auth:
+                  description: Authentication configuration.
+                  nullable: true
+                  properties:
+                    manual:
+                      default: false
+                      description: |-
+                        Whether the user manages credentials manually.
+
+                        When true, the operator does not inject credentials
+                        and the user is responsible for configuring auth.
+                      type: boolean
+                    secretRef:
+                      description: Reference to a Secret containing the credential.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    strategy:
+                      description: How credentials are presented to the provider.
+                      enum:
+                        - api_key
+                        - bearer_token
+                        - custom
+                        - mtls_only
+                        - oauth2
+                        - service_account
+                        - sigv4
+                      type: string
+                  required:
+                    - strategy
+                  type: object
+                backendKind:
+                  description: Backend deployment category.
+                  type: string
+                capacityWeight:
+                  description: Relative capacity used by an opt-in placement policy.
+                  format: uint32
+                  maximum: 1000.0
+                  minimum: 1.0
+                  nullable: true
+                  type: integer
+                cost:
+                  description: Cost information.
+                  nullable: true
+                  properties:
+                    perMillionInputTokens:
+                      default: 0.0
+                      description: Cost per million input tokens (USD).
+                      format: double
+                      type: number
+                    perMillionOutputTokens:
+                      default: 0.0
+                      description: Cost per million output tokens (USD).
+                      format: double
+                      type: number
+                  type: object
+                endpoint:
+                  description: HTTP endpoint URL.
+                  type: string
+                gatewayRef:
+                  description: |-
+                    Stable provider-gateway identity used by administrative operations.
+
+                    Providers with the same value are drained together by the gateway-wide
+                    operation. It is an explicit control-plane relationship; the operator
+                    never infers it from endpoint URLs.
+                  minLength: 1
+                  nullable: true
+                  type: string
+                gridNetworkRef:
+                  description: |-
+                    Name of the [`GridNetwork`] this provider belongs to.
+
+                    [`GridNetwork`]: crate::crd::grid_network::GridNetwork
+                  type: string
+                healthCheck:
+                  description: Health check configuration.
+                  nullable: true
+                  properties:
+                    endpoint:
+                      description: |-
+                        Base URL for health probes, independent of `spec.endpoint`.
+
+                        When set, the probe URL is `{endpoint}{path}` instead of
+                        `{spec.endpoint}{path}`.  This allows probing a separate service
+                        (such as an llm-d EPP) while the provider inference endpoint
+                        points at the pool's request path.
+
+                        When absent, the probe URL uses `spec.endpoint` as before.
+                      minLength: 1
+                      nullable: true
+                      type: string
+                    interval:
+                      description: Check interval (e.g. "30s").
+                      nullable: true
+                      type: string
+                    path:
+                      description: HTTP path for health probes.
+                      nullable: true
+                      type: string
+                    timeout:
+                      description: Timeout per check (e.g. "5s").
+                      nullable: true
+                      type: string
+                    tls:
+                      description: |-
+                        Optional TLS override for the health probe endpoint.
+
+                        When absent, `InferenceProvider.spec.tls` is used when configured;
+                        otherwise, the probe uses system root certificates. Set this only when
+                        the health endpoint requires different trust material or a different
+                        client identity.
+
+                        **Fail-closed:** when configured but the referenced Secrets cannot be
+                        resolved or contain invalid material, the probe is skipped entirely.
+                        The operator never falls back to system roots or plain HTTP.
+                      nullable: true
+                      properties:
+                        caConfigMapRef:
+                          description: |-
+                            Reference to a `ConfigMap` holding the CA certificate PEM, such as the
+                            platform service CA (`openshift-service-ca.crt`, key `service-ca.crt`).
+
+                            A CA bundle is public, so it may live in a `ConfigMap`. Like
+                            `ca_secret_ref`, it is the only trust consulted when set.
+                          nullable: true
+                          properties:
+                            key:
+                              description: Key within the `ConfigMap`'s `data`. Defaults to `ca.crt`.
+                              nullable: true
+                              type: string
+                            name:
+                              description: '`ConfigMap` name.'
+                              type: string
+                            namespace:
+                              description: '`ConfigMap` namespace.'
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                        caSecretRef:
+                          description: |-
+                            Reference to a Secret containing the CA certificate PEM for server
+                            verification.
+
+                            The Secret must contain the PEM-encoded CA certificate under the key
+                            `ca.crt` (or the key specified by `key`).  When this CA is
+                            set, the scraper trusts **only** this CA; system root certificates
+                            are not consulted. Exactly one of this and `ca_config_map_ref` is set.
+                          nullable: true
+                          properties:
+                            key:
+                              description: |-
+                                Key within the Secret's `data` map.
+
+                                Required when the Secret holds multiple keys (e.g. credential references
+                                in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                                Secret is consumed (e.g. TLS `ca_secret_ref`).
+                              minLength: 1
+                              nullable: true
+                              type: string
+                            name:
+                              description: Secret name.
+                              minLength: 1
+                              type: string
+                            namespace:
+                              description: Secret namespace.
+                              minLength: 1
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                        clientCertificateSecretRef:
+                          description: |-
+                            Reference to a Secret containing the client certificate and private
+                            key for mutual TLS.
+
+                            When set, the scraper presents this identity during the TLS handshake.
+                            The Secret must contain `tls.crt` (or `certificate_key`) and
+                            `tls.key` (or `private_key_key`) in PEM format.
+
+                            When absent, the scraper performs one-way TLS only (server verification
+                            with the CA from `ca_secret_ref`, no client certificate).
+                          nullable: true
+                          properties:
+                            certificateKey:
+                              default: tls.crt
+                              description: Key within `Secret.data` holding the PEM-encoded client certificate.
+                              minLength: 1
+                              type: string
+                            name:
+                              description: Secret name.
+                              minLength: 1
+                              type: string
+                            namespace:
+                              description: Secret namespace.
+                              minLength: 1
+                              type: string
+                            privateKeyKey:
+                              default: tls.key
+                              description: Key within `Secret.data` holding the PEM-encoded private key.
+                              minLength: 1
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                      type: object
+                      x-kubernetes-validations:
+                        - message: set exactly one of caSecretRef and caConfigMapRef
+                          rule: has(self.caSecretRef) != has(self.caConfigMapRef)
+                  type: object
+                metricsConfig:
+                  description: |-
+                    Prometheus metrics scraping configuration.
+
+                    When set, the Grid operator scrapes the provider's metrics endpoint during
+                    each [`GridNetwork`] reconcile and incorporates the parsed signals into the
+                    routing overlay scoring pass.  When absent, the provider uses locality and
+                    cost as the only scoring signals (static ordering).
+
+                    [`GridNetwork`]: crate::crd::grid_network::GridNetwork
+                  nullable: true
+                  properties:
+                    auth:
+                      description: |-
+                        How the scraper authenticates to the metrics endpoint. Absent sends no
+                        credential.
+                      nullable: true
+                      properties:
+                        allowPlaintext:
+                          description: |-
+                            Send the credential over plain `http://`. Off by default, because a
+                            bearer token on an unencrypted connection can be read off the network.
+                            For a lab only.
+                          type: boolean
+                        type:
+                          description: The credential to send.
+                          enum:
+                            - serviceAccountToken
+                          type: string
+                      required:
+                        - type
+                      type: object
+                    metricsEndpoint:
+                      description: |-
+                        Base URL for the metrics endpoint, independent of `spec.endpoint`.
+
+                        When set, the scrape URL is `{metrics_endpoint}{path}` instead of
+                        `{spec.endpoint}{path}`.  This allows scraping metrics from a separate
+                        service (such as an llm-d EPP) while the provider inference endpoint
+                        points at the pool's request path.
+
+                        When absent, the scrape URL uses `spec.endpoint` as before.
+                      minLength: 1
+                      nullable: true
+                      type: string
+                    path:
+                      default: /metrics
+                      description: |-
+                        HTTP path for the Prometheus metrics endpoint.
+
+                        Appended to `metrics_endpoint` (when set) or `spec.endpoint`.
+                        Defaults to `"/metrics"` when absent.
+                      type: string
+                    poolName:
+                      description: |-
+                        Expected Prometheus `name` label value for pool-level metric selection.
+
+                        When set, the parser only matches metric samples whose `name` label
+                        equals this value.  This is required when scraping an endpoint that
+                        exposes metrics for multiple pools (such as an llm-d EPP), ensuring
+                        the configured pool is selected deterministically.
+
+                        The parser rejects the scrape when the expected pool series is absent
+                        or when a metric sample has no `name` label and this field is set.
+
+                        When absent, labels are stripped before matching as in v1 (backward
+                        compatible).
+                      minLength: 1
+                      nullable: true
+                      type: string
+                    queueCapacity:
+                      description: |-
+                        Maximum queue slot count for normalising a raw queue-size metric to
+                        0.0–1.0.
+
+                        When set, the `queue_depth` signal value is divided by this capacity
+                        and clamped to `[0.0, 1.0]` before scoring.  This allows consuming raw
+                        average queue-size metrics (such as `llm_d_epp_average_queue_size`)
+                        without requiring the exporter to pre-normalise.
+
+                        When absent, the `queue_depth` signal must already be normalised to
+                        0.0–1.0 by the exporter (backward compatible).
+                      format: uint32
+                      minimum: 1.0
+                      nullable: true
+                      type: integer
+                    signalNames:
+                      default: {}
+                      description: |-
+                        Mapping from scoring signal names to Prometheus metric names.
+
+                        Signals without a configured name are skipped during parsing and receive the
+                        neutral default value (`0.5`) in scoring.
+                      properties:
+                        errorRate:
+                          description: Metric name for normalised error rate (0.0–1.0).
+                          nullable: true
+                          type: string
+                        healthy:
+                          description: Metric name for a health gauge (any positive value = healthy).
+                          nullable: true
+                          type: string
+                        kvCacheUtilization:
+                          description: Metric name for KV-cache utilisation (0.0–1.0).
+                          nullable: true
+                          type: string
+                        latencyP99Ms:
+                          description: Metric name for P99 request latency in milliseconds (pre-computed gauge).
+                          nullable: true
+                          type: string
+                        prefixCacheHitRatio:
+                          description: Metric name for prefix-cache hit ratio (0.0–1.0).
+                          nullable: true
+                          type: string
+                        queueDepth:
+                          description: Metric name for normalised queue depth (0.0–1.0).
+                          nullable: true
+                          type: string
+                      type: object
+                    staleMetricsSeconds:
+                      description: |-
+                        Maximum age in seconds for which a previously-scraped metric sample may be
+                        used when the current scrape fails.
+
+                        When a Prometheus scrape fails (connection refused, timeout, HTTP error),
+                        setting this field enables a grace period: if the last *successful* scrape
+                        is no older than `stale_metrics_seconds`, that cached sample is reused.
+
+                        For plaintext metrics, after the grace period expires or before any
+                        successful scrape, metrics fall back to neutral scoring. When TLS is
+                        configured, the same condition marks the provider unhealthy and excludes
+                        it from routing.
+
+                        **Default (absent):** no grace period. Plaintext scrape failures immediately
+                        produce neutral scoring; TLS-configured failures without a cached sample
+                        fail closed.
+
+                        **Minimum value:** `1` second.  The schema rejects `0`; the operator also
+                        treats zero defensively as absent.
+                      format: uint32
+                      minimum: 1.0
+                      nullable: true
+                      type: integer
+                    timeout:
+                      default: 2s
+                      description: |-
+                        Per-request scrape timeout (e.g. `"2s"`, `"500ms"`).
+
+                        Defaults to `"2s"`.  Only `s` and `ms` suffixes are recognised; unrecognised
+                        values fall back to the default.
+                      type: string
+                    tls:
+                      description: |-
+                        Optional TLS override for the metrics endpoint.
+
+                        When absent, `InferenceProvider.spec.tls` is used when configured;
+                        otherwise, the scraper uses system root certificates. Set this only
+                        when the metrics endpoint requires different trust material or a
+                        different client identity.
+
+                        **Fail-closed:** when configured but the referenced Secrets cannot be
+                        resolved or contain invalid material, the scrape is skipped entirely.
+                        The scraper never falls back to system roots or plain HTTP.
+                      nullable: true
+                      properties:
+                        caConfigMapRef:
+                          description: |-
+                            Reference to a `ConfigMap` holding the CA certificate PEM, such as the
+                            platform service CA (`openshift-service-ca.crt`, key `service-ca.crt`).
+
+                            A CA bundle is public, so it may live in a `ConfigMap`. Like
+                            `ca_secret_ref`, it is the only trust consulted when set.
+                          nullable: true
+                          properties:
+                            key:
+                              description: Key within the `ConfigMap`'s `data`. Defaults to `ca.crt`.
+                              nullable: true
+                              type: string
+                            name:
+                              description: '`ConfigMap` name.'
+                              type: string
+                            namespace:
+                              description: '`ConfigMap` namespace.'
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                        caSecretRef:
+                          description: |-
+                            Reference to a Secret containing the CA certificate PEM for server
+                            verification.
+
+                            The Secret must contain the PEM-encoded CA certificate under the key
+                            `ca.crt` (or the key specified by `key`).  When this CA is
+                            set, the scraper trusts **only** this CA; system root certificates
+                            are not consulted. Exactly one of this and `ca_config_map_ref` is set.
+                          nullable: true
+                          properties:
+                            key:
+                              description: |-
+                                Key within the Secret's `data` map.
+
+                                Required when the Secret holds multiple keys (e.g. credential references
+                                in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                                Secret is consumed (e.g. TLS `ca_secret_ref`).
+                              minLength: 1
+                              nullable: true
+                              type: string
+                            name:
+                              description: Secret name.
+                              minLength: 1
+                              type: string
+                            namespace:
+                              description: Secret namespace.
+                              minLength: 1
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                        clientCertificateSecretRef:
+                          description: |-
+                            Reference to a Secret containing the client certificate and private
+                            key for mutual TLS.
+
+                            When set, the scraper presents this identity during the TLS handshake.
+                            The Secret must contain `tls.crt` (or `certificate_key`) and
+                            `tls.key` (or `private_key_key`) in PEM format.
+
+                            When absent, the scraper performs one-way TLS only (server verification
+                            with the CA from `ca_secret_ref`, no client certificate).
+                          nullable: true
+                          properties:
+                            certificateKey:
+                              default: tls.crt
+                              description: Key within `Secret.data` holding the PEM-encoded client certificate.
+                              minLength: 1
+                              type: string
+                            name:
+                              description: Secret name.
+                              minLength: 1
+                              type: string
+                            namespace:
+                              description: Secret namespace.
+                              minLength: 1
+                              type: string
+                            privateKeyKey:
+                              default: tls.key
+                              description: Key within `Secret.data` holding the PEM-encoded private key.
+                              minLength: 1
+                              type: string
+                          required:
+                            - name
+                            - namespace
+                          type: object
+                      type: object
+                      x-kubernetes-validations:
+                        - message: set exactly one of caSecretRef and caConfigMapRef
+                          rule: has(self.caSecretRef) != has(self.caConfigMapRef)
+                  type: object
+                modelDiscovery:
+                  description: |-
+                    Where to discover the models this provider serves.
+
+                    When set, the operator polls the backend on a fixed cadence and holds
+                    the served-model set in memory, expiring it when polls stop succeeding.
+                    Discovery does not yet affect routing or gossip; `spec.models` remains
+                    the routing source.
+                    When absent, no discovery runs.
+                  nullable: true
+                  oneOf:
+                    - required:
+                        - openAiModels
+                  properties:
+                    openAiModels:
+                      description: |-
+                        OpenAI-compatible `GET /v1/models` (vLLM, `KServe`, `OpenAI`).
+
+                        Reads `data[].id` from the response. The response is rejected as a
+                        whole when it is not valid JSON, has a blank, overlong, or duplicate
+                        id, or lists more models than the operator's cap. A rejected response
+                        never clears the previously discovered set.
+                      properties:
+                        endpoint:
+                          description: Base URL; defaults to `spec.endpoint`.
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        path:
+                          default: /v1/models
+                          description: Path appended to the base URL.
+                          minLength: 1
+                          type: string
+                        tls:
+                          description: |-
+                            Optional TLS override for the model-listing endpoint.
+
+                            When absent, `InferenceProvider.spec.tls` is used when configured;
+                            otherwise, system root certificates are used. Set this only when the
+                            model-listing endpoint requires different trust material or a different
+                            client identity.
+                          nullable: true
+                          properties:
+                            caConfigMapRef:
+                              description: |-
+                                Reference to a `ConfigMap` holding the CA certificate PEM, such as the
+                                platform service CA (`openshift-service-ca.crt`, key `service-ca.crt`).
+
+                                A CA bundle is public, so it may live in a `ConfigMap`. Like
+                                `ca_secret_ref`, it is the only trust consulted when set.
+                              nullable: true
+                              properties:
+                                key:
+                                  description: Key within the `ConfigMap`'s `data`. Defaults to `ca.crt`.
+                                  nullable: true
+                                  type: string
+                                name:
+                                  description: '`ConfigMap` name.'
+                                  type: string
+                                namespace:
+                                  description: '`ConfigMap` namespace.'
+                                  type: string
+                              required:
+                                - name
+                                - namespace
+                              type: object
+                            caSecretRef:
+                              description: |-
+                                Reference to a Secret containing the CA certificate PEM for server
+                                verification.
+
+                                The Secret must contain the PEM-encoded CA certificate under the key
+                                `ca.crt` (or the key specified by `key`).  When this CA is
+                                set, the scraper trusts **only** this CA; system root certificates
+                                are not consulted. Exactly one of this and `ca_config_map_ref` is set.
+                              nullable: true
+                              properties:
+                                key:
+                                  description: |-
+                                    Key within the Secret's `data` map.
+
+                                    Required when the Secret holds multiple keys (e.g. credential references
+                                    in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                                    Secret is consumed (e.g. TLS `ca_secret_ref`).
+                                  minLength: 1
+                                  nullable: true
+                                  type: string
+                                name:
+                                  description: Secret name.
+                                  minLength: 1
+                                  type: string
+                                namespace:
+                                  description: Secret namespace.
+                                  minLength: 1
+                                  type: string
+                              required:
+                                - name
+                                - namespace
+                              type: object
+                            clientCertificateSecretRef:
+                              description: |-
+                                Reference to a Secret containing the client certificate and private
+                                key for mutual TLS.
+
+                                When set, the scraper presents this identity during the TLS handshake.
+                                The Secret must contain `tls.crt` (or `certificate_key`) and
+                                `tls.key` (or `private_key_key`) in PEM format.
+
+                                When absent, the scraper performs one-way TLS only (server verification
+                                with the CA from `ca_secret_ref`, no client certificate).
+                              nullable: true
+                              properties:
+                                certificateKey:
+                                  default: tls.crt
+                                  description: Key within `Secret.data` holding the PEM-encoded client certificate.
+                                  minLength: 1
+                                  type: string
+                                name:
+                                  description: Secret name.
+                                  minLength: 1
+                                  type: string
+                                namespace:
+                                  description: Secret namespace.
+                                  minLength: 1
+                                  type: string
+                                privateKeyKey:
+                                  default: tls.key
+                                  description: Key within `Secret.data` holding the PEM-encoded private key.
+                                  minLength: 1
+                                  type: string
+                              required:
+                                - name
+                                - namespace
+                              type: object
+                          type: object
+                          x-kubernetes-validations:
+                            - message: set exactly one of caSecretRef and caConfigMapRef
+                              rule: has(self.caSecretRef) != has(self.caConfigMapRef)
+                      type: object
+                  type: object
+                models:
+                  default: []
+                  description: Models served by this provider.
+                  items:
+                    description: Model metadata for an inference provider.
+                    properties:
+                      capabilities:
+                        default: []
+                        description: Supported capabilities.
+                        items:
+                          type: string
+                        type: array
+                      contextWindow:
+                        description: Maximum context window size.
+                        format: uint32
+                        minimum: 0.0
+                        nullable: true
+                        type: integer
+                      name:
+                        description: Model name.
+                        type: string
+                    required:
+                      - name
+                    type: object
+                  type: array
+                providerKind:
+                  description: Inference provider type.
+                  type: string
+                routingClusterRef:
+                  description: |-
+                    Optional routing identity used in overlay candidate `site` and `cluster` fields.
+
+                    When set, routing overlay candidates produced for this provider use this value
+                    instead of `metadata.name`:
+
+                    - In Phase 1 (no [`GridSite`] inventory), both `candidate.site` and `candidate.cluster` are set to this value.
+                    - When [`GridSite`] resources are present, only `candidate.cluster` is overridden; `candidate.site` is derived
+                      from the matched `GridSite`.
+
+                    Use this to align the provider's routing identity with an upstream cluster
+                    name already configured in the consumer gateway, such as a Praxis
+                    `load_balancer` cluster entry.  When absent, `metadata.name` is used.
+
+                    [`GridSite`]: crate::crd::grid_site::GridSite
+                  nullable: true
+                  type: string
+                siteSelector:
+                  default:
+                    matchLabels: {}
+                  description: Which sites host this provider.
+                  properties:
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      default: {}
+                      description: Label key-value pairs that must match.
+                      type: object
+                  type: object
+                tls:
+                  description: |-
+                    Shared TLS configuration for provider health checks, metrics scraping,
+                    and model discovery.
+
+                    A feature-specific `tls` setting overrides this value when it needs a
+                    different CA bundle or client identity. When neither is set, the
+                    request uses system root certificates.
+                  nullable: true
+                  properties:
+                    caConfigMapRef:
+                      description: |-
+                        Reference to a `ConfigMap` holding the CA certificate PEM, such as the
+                        platform service CA (`openshift-service-ca.crt`, key `service-ca.crt`).
+
+                        A CA bundle is public, so it may live in a `ConfigMap`. Like
+                        `ca_secret_ref`, it is the only trust consulted when set.
+                      nullable: true
+                      properties:
+                        key:
+                          description: Key within the `ConfigMap`'s `data`. Defaults to `ca.crt`.
+                          nullable: true
+                          type: string
+                        name:
+                          description: '`ConfigMap` name.'
+                          type: string
+                        namespace:
+                          description: '`ConfigMap` namespace.'
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    caSecretRef:
+                      description: |-
+                        Reference to a Secret containing the CA certificate PEM for server
+                        verification.
+
+                        The Secret must contain the PEM-encoded CA certificate under the key
+                        `ca.crt` (or the key specified by `key`).  When this CA is
+                        set, the scraper trusts **only** this CA; system root certificates
+                        are not consulted. Exactly one of this and `ca_config_map_ref` is set.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    clientCertificateSecretRef:
+                      description: |-
+                        Reference to a Secret containing the client certificate and private
+                        key for mutual TLS.
+
+                        When set, the scraper presents this identity during the TLS handshake.
+                        The Secret must contain `tls.crt` (or `certificate_key`) and
+                        `tls.key` (or `private_key_key`) in PEM format.
+
+                        When absent, the scraper performs one-way TLS only (server verification
+                        with the CA from `ca_secret_ref`, no client certificate).
+                      nullable: true
+                      properties:
+                        certificateKey:
+                          default: tls.crt
+                          description: Key within `Secret.data` holding the PEM-encoded client certificate.
+                          minLength: 1
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                        privateKeyKey:
+                          default: tls.key
+                          description: Key within `Secret.data` holding the PEM-encoded private key.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                  type: object
+                  x-kubernetes-validations:
+                    - message: set exactly one of caSecretRef and caConfigMapRef
+                      rule: has(self.caSecretRef) != has(self.caConfigMapRef)
+                trafficPolicy:
+                  description: Optional administrative traffic policy.
+                  nullable: true
+                  properties:
+                    drain:
+                      default: false
+                      description: Stop new sessions while preserving existing affinity sessions.
+                      type: boolean
+                  type: object
+              required:
+                - backendKind
+                - endpoint
+                - gridNetworkRef
+                - providerKind
+              type: object
+            status:
+              description: Observed status of an [`InferenceProvider`].
+              nullable: true
+              properties:
+                matchingSites:
+                  default: []
+                  description: Sites matched by the site selector.
+                  items:
+                    type: string
+                  type: array
+                modelDiscoveryError:
+                  description: Bounded reason for the latest model-discovery failure, absent after a successful poll.
+                  nullable: true
+                  type: string
+                modelDiscoveryUrl:
+                  description: |-
+                    Effective model-listing URL when discovery is configured.
+
+                    This is the requested URL, not an indication that polling succeeded.
+                  nullable: true
+                  type: string
+                observedGeneration:
+                  default: 0
+                  description: Last observed generation.
+                  format: int64
+                  type: integer
+                phase:
+                  default: Pending
+                  description: Current phase.
+                  enum:
+                    - Pending
+                    - Available
+                    - Degraded
+                    - Unavailable
+                  type: string
+                reason:
+                  description: |-
+                    Machine-readable reason for the current phase when not `Available`.
+
+                    Set when the provider cannot reach `Available` due to a configuration,
+                    credential, or metrics/health-check collection error.  `None` when the
+                    provider is `Available`, `Pending`, or the reason is unknown.
+
+                    Stable reason values:
+                    - `UnsupportedAuthStrategy`, `CredentialSecretRefInvalid`, `CredentialSecretMissing`,
+                      `CredentialSecretKeyMissing`, `CredentialSecretValueInvalid`
+                    - `MetricsTlsSecretMissing`, `MetricsTlsKeyMissing`, `MetricsTlsMaterialInvalid`, `MetricsTlsIdentityMismatch`
+                    - `HealthCheckTlsSecretMissing`, `HealthCheckTlsKeyMissing`, `HealthCheckTlsMaterialInvalid`,
+                      `HealthCheckTlsIdentityMismatch`
+                  nullable: true
+                  type: string
+              type: object
+          required:
+            - spec
+          title: InferenceProvider
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

@@ -1,0 +1,948 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gridnetworks.grid.praxis.fast
+spec:
+  group: grid.praxis.fast
+  names:
+    kind: GridNetwork
+    plural: gridnetworks
+    shortNames:
+      - gnw
+    singular: gridnetwork
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .status.gridId
+          name: Grid ID
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          type: string
+        - jsonPath: .status.connectedSites
+          name: Sites
+          type: integer
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Auto-generated derived type for GridNetworkSpec via `CustomResource`
+          properties:
+            spec:
+              description: |-
+                Specification for a [`GridNetwork`].
+
+                Defines the grid's seed peers, gateway associations, SWIM
+                tuning, and TLS secret references.
+              properties:
+                admissionPolicy:
+                  description: |-
+                    Provider admission and pressure-recovery policy.
+
+                    When omitted, Grid preserves the historical instantaneous admission
+                    behaviour and providers without metrics remain eligible. Stabilized
+                    pressure transitions require an active metrics scoring strategy and a
+                    matching provider signal name. Without those, the observation is
+                    `NotConfigured` and the provider remains `new_and_existing`; the
+                    `missingMetrics` policy applies only after a configured signal is
+                    missing or stale.
+                  nullable: true
+                  properties:
+                    missingMetrics:
+                      default: existingOnly
+                      description: Fail-closed state for missing or expired metrics.
+                      enum:
+                        - existingOnly
+                        - excluded
+                      type: string
+                    mode:
+                      default: instantaneous
+                      description: Admission evaluation mode.
+                      enum:
+                        - instantaneous
+                        - stabilized
+                      type: string
+                    pressure:
+                      default:
+                        enterThreshold: 0.85
+                        exitThreshold: 0.7
+                        failureThreshold: 2
+                        minimumStateDuration: 10s
+                        recoveryHoldDown: 30s
+                        successThreshold: 3
+                      description: Pressure and recovery thresholds.
+                      properties:
+                        enterThreshold:
+                          description: Pressure level at which a provider is considered saturated.
+                          format: double
+                          maximum: 1.0
+                          minimum: 0.0
+                          type: number
+                        exitThreshold:
+                          description: Lower pressure level required before recovery can begin.
+                          format: double
+                          maximum: 1.0
+                          minimum: 0.0
+                          type: number
+                        failureThreshold:
+                          description: Consecutive pressure observations required to enter `existingOnly`.
+                          format: uint32
+                          maximum: 100.0
+                          minimum: 1.0
+                          type: integer
+                        minimumStateDuration:
+                          description: Minimum time a state must remain active before changing.
+                          pattern: ^[1-9][0-9]*s$
+                          type: string
+                        recoveryHoldDown:
+                          description: Additional time to hold a recovering provider in `existingOnly`.
+                          pattern: ^[1-9][0-9]*s$
+                          type: string
+                        successThreshold:
+                          description: Consecutive healthy observations required to recover new admission.
+                          format: uint32
+                          maximum: 100.0
+                          minimum: 1.0
+                          type: integer
+                      required:
+                        - enterThreshold
+                        - exitThreshold
+                        - failureThreshold
+                        - minimumStateDuration
+                        - recoveryHoldDown
+                        - successThreshold
+                      type: object
+                      x-kubernetes-validations:
+                        - message: exitThreshold must be less than enterThreshold
+                          rule: self.exitThreshold < self.enterThreshold
+                  type: object
+                budgetPolicy:
+                  description: |-
+                    Budget policy configuration for per-tenant spend tracking.
+
+                    Selects which tenants Grid tracks cumulative spend for. See
+                    [`BudgetPolicyConfig`] for what this does and does not do.
+
+                    **Default (absent):** no tenants are tracked; `budgetStatus` is
+                    always empty.
+                  nullable: true
+                  properties:
+                    tenants:
+                      default: []
+                      description: Per-tenant budget caps.
+                      items:
+                        description: Per-tenant budget cap declaration.
+                        properties:
+                          capUsd:
+                            description: |-
+                              Maximum cumulative spend in USD before this tenant is considered over budget.
+
+                              **Minimum value:** `0`. The generated CRD schema rejects negative caps;
+                              [`validate_budget_policy`] additionally rejects `NaN`/infinite values
+                              that the schema's numeric minimum does not catch.
+                            format: double
+                            minimum: 0.0
+                            type: number
+                          tenantId:
+                            description: Tenant identifier. Must be non-empty and unique within the policy.
+                            type: string
+                        required:
+                          - capUsd
+                          - tenantId
+                        type: object
+                      type: array
+                  type: object
+                gatewayRefs:
+                  default: []
+                  description: References to Praxis Gateways that participate in this grid.
+                  items:
+                    description: Reference to a Praxis Gateway that participates in this grid.
+                    properties:
+                      consumerConfig:
+                        description: |-
+                          Opt-in configuration for operator-managed consumer Praxis config generation.
+
+                          When absent or `enabled: false`, this gateway behaves exactly as before —
+                          only the routing overlay `ConfigMap` is applied.  When `enabled: true`, the
+                          operator additionally renders a consumer Praxis `ConfigMap` containing the
+                          inference-model `intelligent_route` candidates (with credential
+                          `secretRef` data), a `credential_inject` section for credential-bearing
+                          inference candidates, and a `load_balancer` section with one cluster
+                          entry per unique inference cluster. Other capability kinds remain in the
+                          routing overlay for dedicated data-plane pipelines.
+
+                          The generated `ConfigMap` contains no token bytes.
+                        nullable: true
+                        properties:
+                          clusterEndpoints:
+                            default: []
+                            description: |-
+                              Endpoint topology for the generated `load_balancer` section.
+
+                              Each entry maps an inference candidate cluster name to a reachable endpoint
+                              address with explicit transport configuration. Every cluster referenced
+                              by a projected inference candidate must have a matching entry here with a
+                              non-`None` `transport` field.
+
+                              Missing endpoint topology causes config generation to fail with
+                              `MissingClusterEndpoint`.  Missing transport fails with
+                              `MissingTransport`.  Mutual-TLS transport without SNI fails with
+                              `MissingSni`.
+
+                              In production, this is populated by whoever manages the consumer gateway
+                              deployment (platform automation, the gateway operator, or a Helm chart).
+                              In local Kind validation, the xtask harness discovers `NodePort` addresses
+                              and populates this field in the test fixture.
+
+                              Default: empty. Supply entries before enabling generated consumer config
+                              for an overlay containing inference candidates.
+                            items:
+                              description: |-
+                                Endpoint configuration for one consumer `load_balancer` cluster.
+
+                                Maps an inference candidate cluster name to a reachable provider gateway
+                                endpoint with explicit transport intent. Every cluster referenced by a
+                                projected inference candidate must have a matching entry.
+
+                                # Transport requirement
+
+                                The `transport` field is required.  Missing transport fails closed
+                                during config rendering with status reason `MissingTransport`.
+                                When `transport.mode` is `mutual_tls`, `transport.sni` must also
+                                be present and non-blank; otherwise rendering fails with status
+                                reason `MissingSni`.
+                              properties:
+                                address:
+                                  description: Reachable endpoint address (`host:port`).
+                                  type: string
+                                cluster:
+                                  description: Cluster name - must match a projected inference `candidate.cluster` value.
+                                  type: string
+                                transport:
+                                  description: |-
+                                    Explicit transport configuration.
+
+                                    Required.  Use `mutual_tls` with `sni` for remote/provider-gateway
+                                    traffic.  Use `plaintext` only for local/dev-only endpoints.
+                                    Missing transport fails closed during config rendering.
+                                  nullable: true
+                                  properties:
+                                    mode:
+                                      description: 'Transport mode: `mutual_tls` or `plaintext`.'
+                                      enum:
+                                        - mutual_tls
+                                        - plaintext
+                                      type: string
+                                    sni:
+                                      description: |-
+                                        TLS Server Name Indication (required when mode is `mutual_tls`;
+                                        must not be set when mode is `plaintext`).
+                                      nullable: true
+                                      type: string
+                                  required:
+                                    - mode
+                                  type: object
+                              required:
+                                - address
+                                - cluster
+                              type: object
+                            type: array
+                          configMapName:
+                            default: praxis-consumer-config
+                            description: |-
+                              Name of the generated consumer Praxis `ConfigMap`.
+
+                              Default: `praxis-consumer-config`.
+                            type: string
+                          credentialMountBase:
+                            default: /run/secrets/grid-credentials
+                            description: |-
+                              Base directory for mounted credential Secret files inside the consumer pod.
+
+                              Each credential Secret is expected to be mounted at
+                              `{credentialMountBase}/{secret-name}/{secret-key}`.
+
+                              Default: `/run/secrets/grid-credentials`.
+                            type: string
+                          enabled:
+                            default: false
+                            description: |-
+                              Enable operator-managed consumer Praxis config generation for this gateway.
+
+                              Default: `false`.  Set to `true` to opt in.
+                            type: boolean
+                          listenerPort:
+                            default: 8080
+                            description: |-
+                              HTTP port for the generated Praxis listener.
+
+                              The rendered `listeners[0].address` is `0.0.0.0:{listenerPort}`.
+
+                              Default: `8080`.
+                            format: uint16
+                            maximum: 65535.0
+                            minimum: 0.0
+                            type: integer
+                          telemetry:
+                            description: |-
+                              Optional OpenTelemetry exporter and sampling settings for this gateway.
+
+                              When present, the generated Praxis configuration opts into telemetry and
+                              adds the `trace_context` filter for outbound W3C header propagation.
+                              Collector authentication must be provided to the gateway Deployment via
+                              `OTEL_EXPORTER_OTLP_HEADERS` from a Secret; credentials are never copied
+                              into this `ConfigMap`.
+                            nullable: true
+                            properties:
+                              batchIntervalSecs:
+                                description: Batch exporter interval in seconds. Must be from 1 through 300 when set.
+                                format: uint64
+                                maximum: 300.0
+                                minimum: 1.0
+                                nullable: true
+                                type: integer
+                              batchSize:
+                                description: Maximum spans per export batch. Must be from 1 through 65,536 when set.
+                                format: uint
+                                maximum: 65536.0
+                                minimum: 1.0
+                                nullable: true
+                                type: integer
+                              environment:
+                                description: Deployment environment resource attribute.
+                                nullable: true
+                                pattern: ^.*\S.*$
+                                type: string
+                              otlpEndpoint:
+                                description: |-
+                                  OTLP collector endpoint, for example `http://otel-collector:4317`.
+
+                                  If omitted, Praxis can read `OTEL_EXPORTER_OTLP_ENDPOINT` from the
+                                  gateway Deployment. An empty string has the same meaning as omission.
+                                nullable: true
+                                pattern: ^(|https?://[^/?#@\s]+(:[0-9]+)?(/[^\s?#]*)?)$
+                                type: string
+                              samplingRate:
+                                description: Root trace sampling probability from `0.0` through `1.0`.
+                                format: double
+                                maximum: 1.0
+                                minimum: 0.0
+                                nullable: true
+                                type: number
+                              serviceName:
+                                description: OpenTelemetry `service.name` resource attribute.
+                                nullable: true
+                                pattern: ^.*\S.*$
+                                type: string
+                              serviceVersion:
+                                description: OpenTelemetry `service.version` resource attribute.
+                                nullable: true
+                                pattern: ^.*\S.*$
+                                type: string
+                            type: object
+                          tlsCertMountPath:
+                            default: /etc/praxis/tls
+                            description: |-
+                              Mount path for TLS certificates inside the consumer pod.
+
+                              Used when rendering mTLS cluster entries from `clusterEndpoints`.
+                              The operator expects the consumer pod to mount a TLS Secret at this path,
+                              containing `ca.crt`, `tls.crt`, and `tls.key`.
+
+                              Default: `/etc/praxis/tls`.
+                            type: string
+                        type: object
+                      localSiteName:
+                        description: |-
+                          Local site name for the `intelligent_route` overlay generated for this gateway.
+
+                          Identifies which [`GridSite`] this gateway's cluster represents.
+                          Praxis uses `local_site` to score candidates running on the same site
+                          higher than remote candidates.
+
+                          When absent, the [`GridNetwork`] metadata name is used as a fallback.
+                          This is correct for single-site networks where the network name and
+                          site name are the same.  Multi-site networks should set this to the
+                          [`GridSite`] name for the cluster hosting this gateway.
+
+                          [`GridSite`]: crate::crd::grid_site::GridSite
+                          [`GridNetwork`]: crate::crd::grid_network::GridNetwork
+                        nullable: true
+                        type: string
+                      name:
+                        description: Gateway name.
+                        type: string
+                      namespace:
+                        description: Gateway namespace.
+                        type: string
+                    required:
+                      - name
+                      - namespace
+                    type: object
+                  type: array
+                gridId:
+                  default: ""
+                  description: |-
+                    Grid ID for tenancy. Empty on creation; auto-generated
+                    on first join with another site.
+                  type: string
+                metricsRefreshInterval:
+                  description: |-
+                    Maximum time between metric refreshes and score/ranking recalculation.
+
+                    This controls the `GridNetwork` reconcile cadence for provider metrics;
+                    it does not change request-path routing or the overlay watch latency.
+                    Use a duration of at least one second, such as `"10s"` or `"1500ms"`.
+                    The default cadence is 300 seconds. TLS-protected provider metrics cap
+                    the cadence at 60 seconds for bounded certificate-rotation detection.
+                  nullable: true
+                  pattern: ^([1-9][0-9]*s|[1-9][0-9]{3,}ms)$
+                  type: string
+                peerTrust:
+                  description: Grid-wide peer trust on the signals path, `pin` when absent, read at operator start.
+                  nullable: true
+                  properties:
+                    mode:
+                      description: Peer trust mode.
+                      enum:
+                        - pin
+                        - spiffe
+                      type: string
+                  required:
+                    - mode
+                  type: object
+                placementPolicy:
+                  description: Optional static capacity-placement policy.
+                  nullable: true
+                  properties:
+                    strategy:
+                      description: Placement strategy.
+                      enum:
+                        - static
+                      type: string
+                  required:
+                    - strategy
+                  type: object
+                region:
+                  description: Region where this site is deployed.
+                  nullable: true
+                  type: string
+                routingPolicy:
+                  description: |-
+                    Candidate ordering policy for the routing overlay.
+
+                    Controls whether geography (locality tier) or the scoring engine's
+                    weighted total score is the primary differentiator when ranking
+                    candidates after admission state and freshness.
+                  enum:
+                    - geographyFirst
+                    - scoreFirst
+                  nullable: true
+                  type: string
+                scoringPolicy:
+                  description: |-
+                    Scoring policy configuration.
+
+                    Selects how the operator scores providers for the routing overlay.
+
+                    **Default (absent):** the `noMetrics` strategy is used.
+
+                    See [`ScoringStrategy`] for the available provider-level strategies.
+                  nullable: true
+                  properties:
+                    strategy:
+                      description: |-
+                        Provider-level scoring strategy.
+
+                        Required when `scoringPolicy` is present. Omit the entire policy to use
+                        the `noMetrics` default.
+                      enum:
+                        - noMetrics
+                        - queueDepth
+                        - kvCachePressure
+                      type: string
+                  required:
+                    - strategy
+                  type: object
+                seeds:
+                  default: []
+                  description: |-
+                    Initial SWIM seed peer endpoints in host:port form. Literal IPv4, bracketed
+                    IPv6, and DNS hostnames are accepted.
+                  items:
+                    type: string
+                  type: array
+                selectionPolicy:
+                  description: |-
+                    Local request distribution policy for the active selection group.
+
+                    This is independent of scoring. When absent, the overlay carries no
+                    selection override and Praxis uses deterministic selection.
+                  nullable: true
+                  properties:
+                    mode:
+                      description: Local selection mode used by the data-plane gateway.
+                      enum:
+                        - deterministic
+                        - roundRobin
+                        - random
+                        - weightedRandom
+                      type: string
+                  required:
+                    - mode
+                  type: object
+                signalTransport:
+                  description: |-
+                    Grid-wide signal transport.
+
+                    **Default (absent):** `gossip`, the established SWIM and CRDT overlay
+                    path. Set `mode: poll` to propagate signals by direct mTLS pull instead.
+                    The mode is read at operator start, so a change requires an operator
+                    restart.
+                  nullable: true
+                  properties:
+                    mode:
+                      description: Signal dissemination mode.
+                      enum:
+                        - gossip
+                        - poll
+                      type: string
+                  required:
+                    - mode
+                  type: object
+                staleCandidateTtlSeconds:
+                  description: |-
+                    Maximum age in seconds before a stale (`fresh=false`) remote routing
+                    candidate is removed from the overlay.
+
+                    When a remote peer is declared `Dead` or `Suspect` by SWIM, its
+                    routing candidates are marked `fresh=false` and deprioritised.  Without
+                    this field those stale candidates remain in the overlay indefinitely,
+                    which is useful for observability but can accumulate over time if peers
+                    never recover.
+
+                    Setting this field activates overlay-level garbage collection: remote
+                    candidates whose SWIM member age is at or above this threshold are
+                    omitted from the rendered overlay.  Fresh (`fresh=true`) candidates and
+                    local candidates are never evicted.  CRDT provider records in storage
+                    are not deleted.
+
+                    It does not delete `GridSite` objects: auto-discovered stubs that gossip
+                    stops vouching for are collected after a fixed 24 hours, whatever this
+                    field is. Declared `GridSite` objects are never deleted.
+
+                    **Default (absent):** stale candidates are retained indefinitely —
+                    the same behaviour as before this field existed.
+
+                    **Minimum value:** `1` second.  The generated CRD schema rejects `0`.
+                    The controller still treats an internally observed `0` as absent
+                    defensively, avoiding accidental immediate eviction if malformed data is
+                    deserialized outside the Kubernetes API path.
+
+                    A conservative starting value for production is `3600` (one hour),
+                    which allows short failures to recover without overlay churn while
+                    still bounding accumulation of truly dead peers.
+                  format: uint32
+                  minimum: 1.0
+                  nullable: true
+                  type: integer
+                swim:
+                  default:
+                    gossipNodes: 3
+                    probeInterval: 5s
+                    suspicionTimeout: 10s
+                  description: SWIM protocol configuration.
+                  properties:
+                    gossipNodes:
+                      default: 3
+                      description: Fanout for indirect probes.
+                      format: uint32
+                      minimum: 0.0
+                      type: integer
+                    probeInterval:
+                      default: 5s
+                      description: WAN probe interval (e.g. "5s").
+                      type: string
+                    suspicionTimeout:
+                      default: 10s
+                      description: Suspicion timeout before declaring dead (e.g. "10s").
+                      type: string
+                  type: object
+                tls:
+                  default:
+                    caSecretRef: null
+                    siteSecretRef: null
+                    swimKeyRef: null
+                  description: TLS secret references for grid certificate management.
+                  properties:
+                    caSecretRef:
+                      description: Secret storing the grid CA certificate and key.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    siteSecretRef:
+                      description: Secret storing this site's certificate and key.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                    swimKeyRef:
+                      description: Secret storing the SWIM encryption key.
+                      nullable: true
+                      properties:
+                        key:
+                          description: |-
+                            Key within the Secret's `data` map.
+
+                            Required when the Secret holds multiple keys (e.g. credential references
+                            in `InferenceProvider.spec.auth.secretRef`).  Omit only when the entire
+                            Secret is consumed (e.g. TLS `ca_secret_ref`).
+                          minLength: 1
+                          nullable: true
+                          type: string
+                        name:
+                          description: Secret name.
+                          minLength: 1
+                          type: string
+                        namespace:
+                          description: Secret namespace.
+                          minLength: 1
+                          type: string
+                      required:
+                        - name
+                        - namespace
+                      type: object
+                  type: object
+                zone:
+                  description: Availability zone.
+                  nullable: true
+                  type: string
+              type: object
+              x-kubernetes-validations:
+                - message: placementPolicy must be set if and only if selectionPolicy.mode is weightedRandom
+                  rule: has(self.placementPolicy) == (has(self.selectionPolicy) && self.selectionPolicy.mode == 'weightedRandom')
+            status:
+              description: Observed status of a [`GridNetwork`].
+              nullable: true
+              properties:
+                budgetStatus:
+                  description: |-
+                    Per-tenant budget status, derived from `spec.budgetPolicy` and merged
+                    cross-site CRDT spend state.
+
+                    Empty when `budgetPolicy` is absent. This is a status signal only —
+                    Grid does not enforce budget limits itself (see [`BudgetPolicyConfig`]).
+                  items:
+                    description: |-
+                      Per-tenant budget status derived from policy + merged CRDT spend state.
+
+                      Populated in [`GridNetworkStatus::budget_status`] for every tenant
+                      declared in `spec.budgetPolicy`, regardless of whether spend has been
+                      recorded for that tenant yet. This is a status signal only — Grid does
+                      not enforce budget limits (see [`BudgetPolicyConfig`] doc).
+                    properties:
+                      capUsd:
+                        description: Budget cap for this tenant, in USD, copied from `spec.budgetPolicy`.
+                        format: double
+                        type: number
+                      spendRatio:
+                        description: '`spend_usd / cap_usd`, clamped to `0.0..=1.0`. See [`spend_ratio`].'
+                        format: double
+                        type: number
+                      spendUsd:
+                        description: |-
+                          Cumulative spend observed for this tenant, in USD.
+
+                          Converged across all sites that have merged CRDT state for this
+                          tenant; may lag briefly during a partition (see [`GCounter`]).
+                        format: double
+                        type: number
+                      tenantId:
+                        description: Tenant identifier, matching `spec.budgetPolicy.tenants[].tenantId`.
+                        type: string
+                    required:
+                      - capUsd
+                      - spendRatio
+                      - spendUsd
+                      - tenantId
+                    type: object
+                  type: array
+                connectedSites:
+                  default: 0
+                  description: Number of connected (Active) sites.
+                  format: uint32
+                  minimum: 0.0
+                  type: integer
+                consumerConfigStatus:
+                  description: |-
+                    Per-gateway consumer Praxis config render and apply status.
+
+                    Populated for every gateway reference that has `consumerConfig.enabled: true`.
+                    Gateways without `consumerConfig` are omitted.  Use this field to
+                    determine whether the operator successfully rendered and applied a
+                    consumer `ConfigMap` for each opted-in gateway.
+                  items:
+                    description: |-
+                      Per-gateway status for operator-managed consumer Praxis config generation.
+
+                      Reported in [`GridNetworkStatus::consumer_config_status`] for each gateway
+                      reference with `consumerConfig.enabled: true`.
+
+                      # Security
+
+                      `message` must never contain credential token bytes.  Error messages from
+                      rendering only describe structural problems (blank fields, unsupported
+                      strategies); credential bytes are never included.
+                    properties:
+                      configMapName:
+                        default: ""
+                        description: |-
+                          Name of the generated `ConfigMap`.
+
+                          Populated from `consumerConfig.configMapName`; empty for `Disabled` entries.
+                        type: string
+                      gatewayName:
+                        description: Name of the `GatewayRef` this status entry corresponds to.
+                        type: string
+                      message:
+                        default: ""
+                        description: |-
+                          Human-readable diagnostic message.
+
+                          Never contains credential token bytes.
+                        type: string
+                      namespace:
+                        description: Namespace of the gateway (and the generated `ConfigMap`).
+                        type: string
+                      observedGeneration:
+                        default: 0
+                        description: '`GridNetwork` generation when this entry was last updated.'
+                        format: int64
+                        type: integer
+                      phase:
+                        description: Current render/apply phase.
+                        enum:
+                          - Rendered
+                          - Error
+                          - Disabled
+                        type: string
+                      reason:
+                        default: ""
+                        description: |-
+                          Machine-readable reason for the current phase.
+
+                          `""` when `phase` is `Rendered`.
+                          One of `MissingClusterEndpoint`, `MissingTransport`, `MissingSni`,
+                          `PlaintextWithSni`, `ConsumerConfigRenderFailed`,
+                          `ConsumerConfigApplyFailed`, `ConsumerConfigDisabled` otherwise.
+                        type: string
+                    required:
+                      - gatewayName
+                      - namespace
+                      - phase
+                    type: object
+                  type: array
+                distributedProviderCount:
+                  default: 0
+                  description: |-
+                    Number of remote provider records received for this network via CRDT state broadcasts.
+
+                    Counts remote provider records from the local SWIM runtime's merged
+                    CRDT state.  Local provider records and records for other `GridNetwork`s
+                    are excluded.  Zero when SWIM is disabled or no remote state has been
+                    received yet.
+                  format: uint32
+                  minimum: 0.0
+                  type: integer
+                gridId:
+                  default: ""
+                  description: The negotiated grid ID.
+                  type: string
+                identity:
+                  description: 'This site''s identity certificate: when it expires and when rotation is due.'
+                  nullable: true
+                  properties:
+                    fingerprint:
+                      description: SHA-256 of the certificate DER, the digest peers pin.
+                      type: string
+                    message:
+                      description: How to recover.
+                      type: string
+                    notAfter:
+                      description: When the certificate expires, RFC 3339.
+                      type: string
+                    reason:
+                      description: |-
+                        `IdentityExpired` once the certificate has expired, `IdentityUnreadable` when the
+                        Secret holds no usable certificate.
+                      pattern: ^(IdentityExpired|IdentityUnreadable)$
+                      type: string
+                    rotateAfter:
+                      description: |-
+                        When rotation is due, a third of the lifetime before `notAfter`, RFC 3339. Empty
+                        under pin peer trust, or when this site's operator does not rotate.
+                      type: string
+                  required:
+                    - fingerprint
+                    - notAfter
+                    - rotateAfter
+                  type: object
+                observedGeneration:
+                  default: 0
+                  description: Last observed generation.
+                  format: int64
+                  type: integer
+                overlayStatus:
+                  description: |-
+                    Per-gateway overlay revision status.
+
+                    Populated after each overlay reconcile attempt. Captures rendered and
+                    distributed revisions so operators can verify propagation without
+                    inspecting `ConfigMap` contents. A failed update retains evidence for
+                    the last successfully distributed revision.
+                  items:
+                    description: |-
+                      Per-gateway overlay revision status for observability.
+
+                      Reported in [`GridNetworkStatus::overlay_status`] for each gateway
+                      after each reconcile attempt.
+
+                      # Security
+
+                      `rendered_revision`, `distributed_revision`, and `content_digest` are
+                      SHA-256 hex digests — they do not contain credential token bytes.
+                      `message` must never contain credential bytes.
+                    properties:
+                      candidateCount:
+                        default: 0
+                        description: Number of candidates in the rendered overlay.
+                        format: uint32
+                        minimum: 0.0
+                        type: integer
+                      configMapName:
+                        description: Name of the overlay `ConfigMap`.
+                        type: string
+                      configMapResourceVersion:
+                        default: ""
+                        description: Kubernetes `resourceVersion` of the distributed `ConfigMap`.
+                        type: string
+                      contentDigest:
+                        description: Content digest (SHA-256 hex) of the rendered overlay.
+                        type: string
+                      distributedRevision:
+                        description: |-
+                          Semantic revision (SHA-256 hex) last distributed through the
+                          `ConfigMap`.
+                        type: string
+                      gatewayName:
+                        description: Name of the `GatewayRef` this status entry corresponds to.
+                        type: string
+                      message:
+                        default: ""
+                        description: |-
+                          Human-readable diagnostic message.
+
+                          Never contains credential token bytes.
+                        type: string
+                      namespace:
+                        description: Namespace of the gateway (and the overlay `ConfigMap`).
+                        type: string
+                      observedGeneration:
+                        default: 0
+                        description: '`GridNetwork` generation when this entry was last updated.'
+                        format: int64
+                        type: integer
+                      phase:
+                        default: Pending
+                        description: Current overlay lifecycle phase.
+                        enum:
+                          - Pending
+                          - Distributed
+                          - Error
+                          - Retained
+                        type: string
+                      reason:
+                        default: ""
+                        description: |-
+                          Machine-readable reason for the current phase.
+
+                          Empty when `phase` is [`OverlayPhase::Distributed`].
+                        type: string
+                      renderedAt:
+                        default: ""
+                        description: RFC 3339 timestamp when the overlay was rendered.
+                        type: string
+                      renderedRevision:
+                        description: Semantic revision (SHA-256 hex) of the last valid rendered overlay.
+                        type: string
+                      schemaVersion:
+                        description: Envelope schema version.
+                        type: string
+                    required:
+                      - configMapName
+                      - contentDigest
+                      - distributedRevision
+                      - gatewayName
+                      - namespace
+                      - renderedRevision
+                      - schemaVersion
+                    type: object
+                  type: array
+                phase:
+                  default: Pending
+                  description: Current lifecycle phase.
+                  enum:
+                    - Pending
+                    - Initializing
+                    - Active
+                    - Degraded
+                  type: string
+              type: object
+          required:
+            - spec
+          title: GridNetwork
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

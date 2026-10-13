@@ -52,6 +52,20 @@ spec:
           spec:
             description: AIGatewaySpec defines the desired state of AIGateway.
             properties:
+              aiGrid:
+                description: AIGrid controls the AI Grid sub-component (CRDs only;
+                  kept on Removed).
+                properties:
+                  managementState:
+                    default: Removed
+                    description: |-
+                      ManagementState controls whether the AI Grid CRDs are installed.
+                      Removed stops reconciling them but does not delete them.
+                    enum:
+                    - Managed
+                    - Removed
+                    type: string
+                type: object
               batchGateway:
                 description: BatchGateway controls the batch-gateway operator sub-component.
                 properties:

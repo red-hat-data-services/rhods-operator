@@ -123,6 +123,10 @@ rules:
   - apiGroups: ["route.openshift.io"]
     resources: ["routes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # OpenShift route TLS.DestinationCACertificate update needs create permission
+  - apiGroups: ["route.openshift.io"]
+    resources: ["routes/custom-host"]
+    verbs: ["create"]
   # OLM operator conditions (read-only, for precondition checks)
   - apiGroups: ["operators.coreos.com"]
     resources: ["operatorconditions"]
