@@ -9,7 +9,7 @@ map:
     src: kserve-module/config
     dest: kserve-module-operator
     git.url: https://github.com/red-hat-data-services/kserve
-    git.commit: 08b77dde702285c300569325209ec2a098f60f6d
+    git.commit: b899bcaa3c06dd5cfb6bfec6ee98c07c275d6f55
   odh-data-science-pipelines-operator-controller:
     src: config
     dest: datasciencepipelines
@@ -29,7 +29,7 @@ map:
     src: config
     dest: aihub
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: a08ff010d8dccde590c836ad2bc9bc25f2087a3e
+    git.commit: f6b24b2764d2a314a8238fb5e955ad37065be3f2
   odh-dashboard-operator:
     src: dashboard-operator/charts/dashboard
     dest: dashboard-operator
@@ -45,7 +45,7 @@ map:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: e3fcecbb5fb65e22e680276e6f4f522841c45acd
+    git.commit: 31d8e227cd3e0d81bd4e7eb5dcdad8e55a26423c
   odh-spark-operator-module:
     src: spark-operator-module/config
     dest: sparkoperator
@@ -99,7 +99,7 @@ additional_meta:
     git.commit: 24b3a3995e3f9967977d2f60ed888eba0c8122b5
   odh-cli:
     git.url: https://github.com/red-hat-data-services/odh-cli
-    git.commit: 0041441fc6441b08011aa273d7971676d6770cab
+    git.commit: 7a7860e21dd865d9849b6398ac18551c7c6821cd
   odh-core-bff:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: c7a851a4983cd7d8a58ccb58c3bb4a05af0a4ec7
@@ -111,19 +111,19 @@ additional_meta:
     git.commit: 22e52a315e0fe85b70d702a719d2f271da9cde50
   odh-data-connect-hub-rest:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: 22e52a315e0fe85b70d702a719d2f271da9cde50
+    git.commit: 694222e12fe9e8cb42e83b10d5ef7ce23e0a7582
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: dc8bf3cc37f34afd29bdcf6d7cb78127b824ae39
   odh-data-science-pipelines-argo-workflowcontroller:
     git.url: https://github.com/red-hat-data-services/argo-workflows
-    git.commit: dc8bf3cc37f34afd29bdcf6d7cb78127b824ae39
+    git.commit: cd5ac128f6d6a88dc8585278bee0f8c4bad16610
   odh-eval-hub:
     git.url: https://github.com/red-hat-data-services/eval-hub
     git.commit: a0b028652011ca33a65cf5f5fb5389ed49520c72
   odh-feast-operator:
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: d6cacc8e8e6045887dda24836d286157f3f8a5ee
+    git.commit: a5f10bfd775949ea9254e509832698e0f7b56fd4
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 0beafcc3596a677eec6a5e611b4671191c126be4
@@ -162,7 +162,7 @@ additional_meta:
     git.commit: 08b77dde702285c300569325209ec2a098f60f6d
   odh-kuberay-operator-controller:
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: a24811310e7fad7aa30cf5575b0dbf3026f723e4
+    git.commit: d607ff546da79526299e6a7a0d1e9716d0798e0e
   odh-kube-auth-proxy:
     git.url: https://github.com/red-hat-data-services/kube-auth-proxy
     git.commit: 41962c8b642eb25ef44b36d731ae3e8d7330d6a9
@@ -171,19 +171,19 @@ additional_meta:
     git.commit: db794e44661d064c5bd3ca8556ef1baf1eabfefa
   odh-llm-d-async:
     git.url: https://github.com/red-hat-data-services/llm-d-async
-    git.commit: 696fcfa32f8b0281a9b4af25ace5574c2a394fbe
+    git.commit: 8229c6696ddfd5825cae021c657cc05e8340dbbf
   odh-llm-d-batch-gateway-apiserver:
     git.url: https://github.com/red-hat-data-services/batch-gateway
-    git.commit: 1df95debf530213de44e5923afdbf6b6c713fe99
+    git.commit: 7e7206f57fdbd5b74b6fc8b895cd1b495ae8dfe9
   odh-llm-d-batch-gateway-gc:
     git.url: https://github.com/red-hat-data-services/batch-gateway
-    git.commit: 1df95debf530213de44e5923afdbf6b6c713fe99
+    git.commit: 7e7206f57fdbd5b74b6fc8b895cd1b495ae8dfe9
   odh-llm-d-batch-gateway-operator:
     git.url: https://github.com/red-hat-data-services/llm-d-batch-gateway-operator
     git.commit: 255bf0d12179f88a0ae1a5b51ae7cf32a90f4228
   odh-llm-d-batch-gateway-processor:
     git.url: https://github.com/red-hat-data-services/batch-gateway
-    git.commit: 1df95debf530213de44e5923afdbf6b6c713fe99
+    git.commit: 7e7206f57fdbd5b74b6fc8b895cd1b495ae8dfe9
   odh-llm-d-router-disagg-sidecar:
     git.url: https://github.com/red-hat-data-services/llm-d-router
     git.commit: dd4e77e1a25b4bf5907475a6283a94202b573060
@@ -198,7 +198,7 @@ additional_meta:
     git.commit: 80f27e2364f58f73058c30db0dfe94b97c97facd
   odh-maas-discovery:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 80f27e2364f58f73058c30db0dfe94b97c97facd
+    git.commit: 598f4ff119db1a820ed850cece4d2cbd9d7b5e66
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
     git.commit: bc4aeb013afd6440fe3072ec61456f2913efdfc9
@@ -222,7 +222,7 @@ additional_meta:
     git.commit: ef77ce446f2eaf77fbd9850accfed7eee83bb5bc
   odh-ml-pipelines-launcher:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: ef77ce446f2eaf77fbd9850accfed7eee83bb5bc
+    git.commit: 5985de05085943b303a000346d55afc90aa18241
   odh-ml-pipelines-persistenceagent-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
     git.commit: ef77ce446f2eaf77fbd9850accfed7eee83bb5bc
@@ -240,13 +240,13 @@ additional_meta:
     git.commit: df95e9e893cd3d0fbda732c7847b027400209168
   odh-model-registry:
     git.url: https://github.com/red-hat-data-services/model-registry
-    git.commit: f9d1bb28462d3b2b34ff152cf6a509f4e6a5a2d2
+    git.commit: becd9dd543e84c3c2d841d9bc1ac0f0dc4aa4198
   odh-model-registry-job-async-upload:
     git.url: https://github.com/red-hat-data-services/model-registry
     git.commit: 1d51bb2be9052fc08195d648923bfc28d561e04b
   odh-model-serving-api:
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: bbf5efe481133aa63e5f62dfa71ec7cf48c00a2b
+    git.commit: 51130eeb585f28d3087db938bbead046e6960970
   odh-mod-arch-agent-ops:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: c8f8e9224f8913bfe24b86c8296325f17ee0378b
@@ -261,7 +261,7 @@ additional_meta:
     git.commit: c7a851a4983cd7d8a58ccb58c3bb4a05af0a4ec7
   odh-mod-arch-data-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: c8f8e9224f8913bfe24b86c8296325f17ee0378b
+    git.commit: 1f97513b9ff62643e0c85deea6cdd6096604caf4
   odh-mod-arch-eval-hub:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: c8f8e9224f8913bfe24b86c8296325f17ee0378b
@@ -276,7 +276,7 @@ additional_meta:
     git.commit: 32a213123fbc434a602ba5b05e4a2022dd0d85d6
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: c8f8e9224f8913bfe24b86c8296325f17ee0378b
+    git.commit: 1f97513b9ff62643e0c85deea6cdd6096604caf4
   odh-mod-arch-notebooks:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: c8f8e9224f8913bfe24b86c8296325f17ee0378b
