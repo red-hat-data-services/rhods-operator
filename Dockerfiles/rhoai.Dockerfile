@@ -85,7 +85,7 @@ RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldfl
 RUN CGO_ENABLED=${CGO_ENABLED} GOOS=linux GOARCH=${TARGETARCH} go build -a -ldflags="-s -w" -tags strictfipsruntime -o cloudmanager ./cmd/cloudmanager/
 
 ################################################################################
-FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/ubi-minimal:9.8@sha256:a21d19f72557aa893a0f6ca1177bb1ffd91df6015e60470a116c50a6a05efcd9
+FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/ubi-minimal:9.8@sha256:c4c285d42941ebb2bd4da878479008e1e4536bb599aad1dbe568f89de9053661
 WORKDIR /
 COPY --from=builder /workspace/manager .
 COPY --from=builder /workspace/cloudmanager .
