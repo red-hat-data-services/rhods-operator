@@ -54,7 +54,6 @@ jobs:
         env:
           EG_MODE: ${{ inputs.eg-mode }}
           EG_BRANCH: ${{ inputs.eg-branch }}
-          LEADER_PR_NUMBER: ${{ inputs.leader-pr-number }}
           RHOAI_VERSION: ${{ inputs.rhoai-version }}
         run: |
           set -euo pipefail
@@ -72,10 +71,6 @@ jobs:
             MAJOR_MINOR=$(printf '%s' "${RHOAI_VERSION#rhoai-}" | cut -d. -f1,2)
             if [[ ! "$MAJOR_MINOR" =~ ^[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
               echo "::error::eg-mode is true but rhoai-version '${RHOAI_VERSION}' is not a RHOAI version (expected 3.5, 3.5.2 or rhoai-3.5)."
-              exit 1
-            fi
-            if [[ ! "$LEADER_PR_NUMBER" =~ ^[0-9]+$ ]]; then
-              echo "::error::eg-mode is true but leader-pr-number is missing or invalid."
               exit 1
             fi
             BRANCH="$EG_BRANCH"
@@ -119,7 +114,6 @@ jobs:
         with:
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
           ref: ${{ steps.config.outputs.operator_ref }}
-          token: ${{ inputs.eg-mode == 'true' && secrets.RHODS_CI_BOT_TOKEN || github.token }}
           path: rhods-operator
           sparse-checkout: |
             build
