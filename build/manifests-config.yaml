@@ -82,6 +82,8 @@ map:
     src: config/chart
     dest: databaseservice
     type: chart
+    git.url: https://github.com/red-hat-data-services/rhai-db-operator
+    git.commit: adbb895f8a3dae2731a11e65e94c2d0d376a58f9
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
@@ -91,10 +93,10 @@ additional_meta:
     git.commit: a27e8debf9a8d65702b4008fce8fc234e4463e93
   odh-automl:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 8521d10403e434da8c32866552f0020c71d96943
+    git.commit: 7c5d6c0fde3ca7f6bbacd542cf3f558a2a5bcd67
   odh-autorag:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 8521d10403e434da8c32866552f0020c71d96943
+    git.commit: 7c5d6c0fde3ca7f6bbacd542cf3f558a2a5bcd67
   odh-autorag-inference:
     git.url: https://github.com/red-hat-data-services/pipelines-components
     git.commit: 8521d10403e434da8c32866552f0020c71d96943
@@ -259,7 +261,7 @@ additional_meta:
     git.commit: de5752f6e4f27ba5ee53f1a7525771ba434289d7
   odh-mod-arch-agent-ops:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 14be2fc72ef5747ed7c029ad34a9a73b7bf0ea7a
+    git.commit: f475925939a5c6e8aae97ee0610cc8005d0a0ea2
   odh-mod-arch-automl:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: b91c1071d71bd6a16a0d5154aee2e15abfa9f493
@@ -319,7 +321,7 @@ additional_meta:
     git.commit: ea2b0e4b883011882c7f2ea0c44e465542e1c7fa
   odh-pipelines-components:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 4e4cae70a30ca2f0f4b31843e2cb2f95dd46d4e2
+    git.commit: 7c5d6c0fde3ca7f6bbacd542cf3f558a2a5bcd67
   odh-pipeline-runtime-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 2a9eb78875136faffe27b68c8694c0bb6320e45c
