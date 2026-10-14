@@ -78,6 +78,10 @@ map:
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-observability
     git.commit: 780824e2eb29bd2182b80d52777c26c5bbff37a9
+  odh-db-operator:
+    src: config/chart
+    dest: databaseservice
+    type: chart
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
