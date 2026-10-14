@@ -2,6 +2,27 @@ name: Operator Processor
 
 on:
   workflow_dispatch:
+    inputs:
+      eg-mode:
+        description: 'Run in early-gate mode'
+        required: false
+        default: 'false'
+        type: string
+      eg-branch:
+        description: 'Ephemeral branch name for EG'
+        required: false
+        default: ''
+        type: string
+      leader-pr-number:
+        description: 'Leader PR number for EG correlation'
+        required: false
+        default: ''
+        type: string
+      rhoai-version:
+        description: 'RHOAI version for EG'
+        required: false
+        default: ''
+        type: string
   push:
     branches:
       - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
@@ -25,11 +46,58 @@ jobs:
     if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && github.event.commits[0].author.name == 'konflux-internal-p02[bot]' )) }}
     runs-on: ubuntu-latest
     steps:
+      # Resolve the release identity separately from the branch being processed.
+      # In EG mode, artifacts come from the ephemeral operator branch while the
+      # release version still selects the RBC bundle and component manifests.
+      - name: Configure workflow parameters
+        id: config
+        env:
+          EG_MODE: ${{ inputs.eg-mode }}
+          EG_BRANCH: ${{ inputs.eg-branch }}
+          LEADER_PR_NUMBER: ${{ inputs.leader-pr-number }}
+          RHOAI_VERSION: ${{ inputs.rhoai-version }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EG_MODE" == "true" ]]; then
+            if [[ -z "$EG_BRANCH" ]]; then
+              echo "::error::eg-mode is true but eg-branch is empty."
+              exit 1
+            fi
+            if [[ ! "$RHOAI_VERSION" =~ ^rhoai-[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
+              echo "::error::eg-mode is true but rhoai-version is missing or invalid (expected rhoai-X.Y)."
+              exit 1
+            fi
+            if [[ ! "$LEADER_PR_NUMBER" =~ ^[0-9]+$ ]]; then
+              echo "::error::eg-mode is true but leader-pr-number is missing or invalid."
+              exit 1
+            fi
+            BRANCH="$EG_BRANCH"
+            RELEASE_BRANCH="$RHOAI_VERSION"
+            RBC_REF="$RHOAI_VERSION"
+            OPERATOR_REF="$EG_BRANCH"
+            QUAY_TAG="eg-${LEADER_PR_NUMBER}"
+          else
+            BRANCH="${GITHUB_REF_NAME}"
+            RELEASE_BRANCH="$BRANCH"
+            RBC_REF="$BRANCH"
+            OPERATOR_REF="$BRANCH"
+            QUAY_TAG="$RELEASE_BRANCH"
+          fi
+
+          {
+            echo "branch=${BRANCH}"
+            echo "release_branch=${RELEASE_BRANCH}"
+            echo "rbc_ref=${RBC_REF}"
+            echo "operator_ref=${OPERATOR_REF}"
+            echo "quay_tag=${QUAY_TAG}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Checkout RBC repo
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Build-Config
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.config.outputs.rbc_ref }}
           path: RBC
           sparse-checkout: |
             bundle/bundle-patch.yaml
@@ -47,7 +115,8 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.config.outputs.operator_ref }}
+          token: ${{ inputs.eg-mode == 'true' && secrets.RHODS_CI_BOT_TOKEN || github.token }}
           path: rhods-operator
           sparse-checkout: |
             build
@@ -71,7 +140,8 @@ jobs:
 
       - name: Execute Operator Processor
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
+          QUAY_TAG: ${{ steps.config.outputs.quay_tag }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -84,7 +154,7 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${QUAY_TAG} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
           
       - name: Print debug logs
         if: always()
@@ -98,7 +168,7 @@ jobs:
 
       - name: Fetch all manifests
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
         run: |
           #!/bin/bash
           set -e
@@ -202,7 +272,7 @@ jobs:
 
       - name: Fetch all charts
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
         run: |
           #!/bin/bash
           set -e
@@ -275,11 +345,20 @@ jobs:
 
       - name: Commit and push the changes to release branch
         working-directory: rhods-operator
+        env:
+          EG_MODE: ${{ inputs.eg-mode }}
+          TARGET_REF: ${{ steps.config.outputs.operator_ref }}
         run: |
+          set -euo pipefail
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin ${{ github.ref_name }})
+          if [[ "$EG_MODE" == "true" ]]; then
+            git commit --allow-empty -m "early-gate: pin component digests for ${TARGET_REF}"
+            git push origin "HEAD:${TARGET_REF}"
+          else
+            git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin "HEAD:${TARGET_REF}")
+          fi
 
       - name: Upload debug logs
         if: always()
