@@ -112,6 +112,19 @@
           },
           "type": "object"
         },
+        "extraEnvs": {
+          "oneOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "upgradeGates": {
           "oneOf": [
             {
@@ -139,6 +152,7 @@
         "serviceAccount",
         "imagePullSecret",
         "config",
+        "extraEnvs",
         "upgradeGates"
       ]
     }

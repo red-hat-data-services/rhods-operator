@@ -8,9 +8,27 @@ rules:
   verbs:
   - get
 - apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - persistentvolumeclaims
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
   verbs:
   - get
   - list
@@ -28,12 +46,45 @@ rules:
   verbs:
   - create
 - apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  - issuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - events.k8s.io
   resources:
   - events
   verbs:
   - create
   - patch
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseproviders
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseproviders/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - services.platform.opendatahub.io
   resources:

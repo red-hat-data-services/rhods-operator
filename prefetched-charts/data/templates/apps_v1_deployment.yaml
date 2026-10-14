@@ -22,6 +22,10 @@ spec:
         - /manager
         - operator
         env:
+        {{- range $key, $val := .Values.extraEnvs }}
+        - name: {{ $key | quote }}
+          value: {{ $val | quote }}
+        {{- end }}
         - name: ODH_MODULE_OPERATOR_CONFIGURATION_PATH
           value: /etc/controller/config
         - name: ODH_MODULE_OPERATOR_MANIFESTS_PATH
@@ -105,5 +109,5 @@ spec:
       - emptyDir: {}
         name: manifests
       - configMap:
-          name: opendatahub-feast-config
+          name: odh-data-config
         name: config
