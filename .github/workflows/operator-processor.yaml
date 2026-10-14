@@ -2,6 +2,27 @@ name: Operator Processor
 
 on:
   workflow_dispatch:
+    inputs:
+      eg-mode:
+        description: 'Run in early-gate mode'
+        required: false
+        default: 'false'
+        type: string
+      eg-branch:
+        description: 'Ephemeral branch name for EG'
+        required: false
+        default: ''
+        type: string
+      leader-pr-number:
+        description: 'Leader PR number for EG correlation'
+        required: false
+        default: ''
+        type: string
+      rhoai-version:
+        description: 'RHOAI version for EG'
+        required: false
+        default: ''
+        type: string
   push:
     branches:
       - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
@@ -25,11 +46,56 @@ jobs:
     if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && github.event.commits[0].author.name == 'konflux-internal-p02[bot]' )) }}
     runs-on: ubuntu-latest
     steps:
+      # Resolve the release identity separately from the branch being processed.
+      # In EG mode, artifacts come from the ephemeral operator branch while the
+      # release version still selects the RBC bundle and component manifests.
+      - name: Configure workflow parameters
+        id: config
+        env:
+          EG_MODE: ${{ inputs.eg-mode }}
+          EG_BRANCH: ${{ inputs.eg-branch }}
+          RHOAI_VERSION: ${{ inputs.rhoai-version }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EG_MODE" == "true" ]]; then
+            if [[ -z "$EG_BRANCH" ]]; then
+              echo "::error::eg-mode is true but eg-branch is empty."
+              exit 1
+            fi
+            # Accept 3.5, 3.5.2, rhoai-3.5 and rhoai-3.5.2, and reduce to
+            # major.minor.  The gate takes rhoai-version from the .tekton push
+            # file, which carries the z-stream, and RELEASE_BRANCH below is a
+            # branch name: rhoai-3.5 exists, rhoai-3.5.2 does not.  Requiring
+            # rhoai-X.Y here rejected the value the gate actually sends.
+            MAJOR_MINOR=$(printf '%s' "${RHOAI_VERSION#rhoai-}" | cut -d. -f1,2)
+            if [[ ! "$MAJOR_MINOR" =~ ^[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
+              echo "::error::eg-mode is true but rhoai-version '${RHOAI_VERSION}' is not a RHOAI version (expected 3.5, 3.5.2 or rhoai-3.5)."
+              exit 1
+            fi
+            BRANCH="$EG_BRANCH"
+            RELEASE_BRANCH="rhoai-${MAJOR_MINOR}"
+            RBC_REF="rhoai-${MAJOR_MINOR}"
+            OPERATOR_REF="$EG_BRANCH"
+          else
+            BRANCH="${GITHUB_REF_NAME}"
+            RELEASE_BRANCH="$BRANCH"
+            RBC_REF="$BRANCH"
+            OPERATOR_REF="$BRANCH"
+          fi
+
+          {
+            echo "branch=${BRANCH}"
+            echo "release_branch=${RELEASE_BRANCH}"
+            echo "rbc_ref=${RBC_REF}"
+            echo "operator_ref=${OPERATOR_REF}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Checkout RBC repo
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Build-Config
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.config.outputs.rbc_ref }}
           path: RBC
           sparse-checkout: |
             bundle/bundle-patch.yaml
@@ -47,7 +113,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/rhods-operator
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.config.outputs.operator_ref }}
           path: rhods-operator
           sparse-checkout: |
             build
@@ -71,7 +137,7 @@ jobs:
 
       - name: Execute Operator Processor
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -98,7 +164,7 @@ jobs:
 
       - name: Fetch all manifests
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
         run: |
           #!/bin/bash
           set -e
@@ -202,7 +268,7 @@ jobs:
 
       - name: Fetch all charts
         env:
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ steps.config.outputs.release_branch }}
         run: |
           #!/bin/bash
           set -e
@@ -275,11 +341,20 @@ jobs:
 
       - name: Commit and push the changes to release branch
         working-directory: rhods-operator
+        env:
+          EG_MODE: ${{ inputs.eg-mode }}
+          TARGET_REF: ${{ steps.config.outputs.operator_ref }}
         run: |
+          set -euo pipefail
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin ${{ github.ref_name }})
+          if [[ "$EG_MODE" == "true" ]]; then
+            git commit --allow-empty -m "early-gate: pin component digests for ${TARGET_REF}"
+            git push origin "HEAD:${TARGET_REF}"
+          else
+            git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin "HEAD:${TARGET_REF}")
+          fi
 
       - name: Upload debug logs
         if: always()
