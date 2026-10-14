@@ -64,8 +64,14 @@ jobs:
               echo "::error::eg-mode is true but eg-branch is empty."
               exit 1
             fi
-            if [[ ! "$RHOAI_VERSION" =~ ^rhoai-[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
-              echo "::error::eg-mode is true but rhoai-version is missing or invalid (expected rhoai-X.Y)."
+            # Accept 3.5, 3.5.2, rhoai-3.5 and rhoai-3.5.2, and reduce to
+            # major.minor.  The gate takes rhoai-version from the .tekton push
+            # file, which carries the z-stream, and RELEASE_BRANCH below is a
+            # branch name: rhoai-3.5 exists, rhoai-3.5.2 does not.  Requiring
+            # rhoai-X.Y here rejected the value the gate actually sends.
+            MAJOR_MINOR=$(printf '%s' "${RHOAI_VERSION#rhoai-}" | cut -d. -f1,2)
+            if [[ ! "$MAJOR_MINOR" =~ ^[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
+              echo "::error::eg-mode is true but rhoai-version '${RHOAI_VERSION}' is not a RHOAI version (expected 3.5, 3.5.2 or rhoai-3.5)."
               exit 1
             fi
             if [[ ! "$LEADER_PR_NUMBER" =~ ^[0-9]+$ ]]; then
@@ -73,16 +79,14 @@ jobs:
               exit 1
             fi
             BRANCH="$EG_BRANCH"
-            RELEASE_BRANCH="$RHOAI_VERSION"
-            RBC_REF="$RHOAI_VERSION"
+            RELEASE_BRANCH="rhoai-${MAJOR_MINOR}"
+            RBC_REF="rhoai-${MAJOR_MINOR}"
             OPERATOR_REF="$EG_BRANCH"
-            QUAY_TAG="eg-${LEADER_PR_NUMBER}"
           else
             BRANCH="${GITHUB_REF_NAME}"
             RELEASE_BRANCH="$BRANCH"
             RBC_REF="$BRANCH"
             OPERATOR_REF="$BRANCH"
-            QUAY_TAG="$RELEASE_BRANCH"
           fi
 
           {
@@ -90,7 +94,6 @@ jobs:
             echo "release_branch=${RELEASE_BRANCH}"
             echo "rbc_ref=${RBC_REF}"
             echo "operator_ref=${OPERATOR_REF}"
-            echo "quay_tag=${QUAY_TAG}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Checkout RBC repo
@@ -141,7 +144,6 @@ jobs:
       - name: Execute Operator Processor
         env:
           BRANCH: ${{ steps.config.outputs.release_branch }}
-          QUAY_TAG: ${{ steps.config.outputs.quay_tag }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -154,7 +156,7 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${QUAY_TAG} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
           
       - name: Print debug logs
         if: always()
