@@ -20,7 +20,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_GUARDRAILS_DETECTOR_HUGGINGFACE_RUNTIME_IMAGE
   value: "quay.io/rhoai/odh-guardrails-detector-huggingface-runtime-rhel9@sha256:1086efd38d76e346140a1fc41281910da569107706b06539b69475235533876c"
 - name: RELATED_IMAGE_ODH_KF_NOTEBOOK_CONTROLLER_IMAGE
-  value: "quay.io/rhoai/odh-kf-notebook-controller-rhel9@sha256:66efa586b6d23d182d2e8d507f539323444133b1d22b003453a503a514d3f4e2"
+  value: "quay.io/rhoai/odh-kf-notebook-controller-rhel9@sha256:3352907e9af6bc6a9f0e7cc5010817ab26ce283ce8e5c92605c1ff199acc5b9a"
 - name: RELATED_IMAGE_ODH_KSERVE_AGENT_IMAGE
   value: "quay.io/rhoai/odh-kserve-agent-rhel9@sha256:1c4e38a76e982623ba7a0cdc1df4852c1b376f5d6cdfad568595bd6a5d5db1d2"
 - name: RELATED_IMAGE_ODH_KSERVE_CONTROLLER_IMAGE
@@ -32,7 +32,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_KUBERAY_OPERATOR_CONTROLLER_IMAGE
   value: "quay.io/rhoai/odh-kuberay-operator-controller-rhel9@sha256:9fd13391e7728bbb3114d1bde96074f1ed7a25ea17240b10eb6cb078e6ecf237"
 - name: RELATED_IMAGE_ODH_KUBE_AUTH_PROXY_IMAGE
-  value: "quay.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:b09038c7fe08a74add3bae72e12b56e5549432c97e5396bebf0da566bd8afc8a"
+  value: "quay.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:a2a4bcc5178b3470292c687a5c22c27e43124ca13e332e704c58a5a7293dc76e"
 - name: RELATED_IMAGE_ODH_LLAMA_STACK_CORE_IMAGE
   value: "quay.io/rhoai/odh-llama-stack-core-rhel9@sha256:77cfbed60855484658d878e6fb2ed69ba77222deb3c7388629579356f202be89"
 - name: RELATED_IMAGE_ODH_LLAMA_STACK_K8S_OPERATOR_IMAGE
@@ -56,11 +56,11 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_ML_PIPELINES_DRIVER_IMAGE
   value: "quay.io/rhoai/odh-ml-pipelines-driver-rhel9@sha256:a17fe113a4cbd98686ae3e0ff5071320afe731cfaf7af0f35b56bb73dab8528c"
 - name: RELATED_IMAGE_ODH_ML_PIPELINES_LAUNCHER_IMAGE
-  value: "quay.io/rhoai/odh-ml-pipelines-launcher-rhel9@sha256:59c35e29e9e9d920d585ab70a12d8eea1d1686386e8463fde1e0d5c315240b8b"
+  value: "quay.io/rhoai/odh-ml-pipelines-launcher-rhel9@sha256:2cd8550b48fe12d8a6b72f81a5da29b2e153bdde77cd6e9c89520cd76c5661f2"
 - name: RELATED_IMAGE_ODH_ML_PIPELINES_PERSISTENCEAGENT_V2_IMAGE
   value: "quay.io/rhoai/odh-ml-pipelines-persistenceagent-v2-rhel9@sha256:fc3de152d2869da71814b21e3f34880d946875fa5b034283ddc4255514c29a22"
 - name: RELATED_IMAGE_ODH_ML_PIPELINES_SCHEDULEDWORKFLOW_V2_IMAGE
-  value: "quay.io/rhoai/odh-ml-pipelines-scheduledworkflow-v2-rhel9@sha256:3cb4be002035227b36c505ec3e26822bfb048e1e264270dcfc0864c721452591"
+  value: "quay.io/rhoai/odh-ml-pipelines-scheduledworkflow-v2-rhel9@sha256:da0121ff16e92f7631fb85d136bb35e7f63ddcb3cdaeb767d7bb98ad698c97dd"
 - name: RELATED_IMAGE_ODH_MODEL_CONTROLLER_IMAGE
   value: "quay.io/rhoai/odh-model-controller-rhel9@sha256:32ae1db6a988f9e37d896210fa83384389426541ddaf7126da8eb528c511e99b"
 - name: RELATED_IMAGE_ODH_MODEL_METADATA_COLLECTION_IMAGE
@@ -82,7 +82,7 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_MUST_GATHER_IMAGE
   value: "quay.io/rhoai/odh-must-gather-rhel9@sha256:0c499d62b3c1ff1a0fca0ae4203dd332bb69fbb7dafdf698cc3736dea5ad8a6b"
 - name: RELATED_IMAGE_ODH_NOTEBOOK_CONTROLLER_IMAGE
-  value: "quay.io/rhoai/odh-notebook-controller-rhel9@sha256:93c80cabf89a68169f33853f3e30b87572b2da005063edda74c690413d77656f"
+  value: "quay.io/rhoai/odh-notebook-controller-rhel9@sha256:3d4004b00b04f904e8c46d13c877f758b6b7100da4f437aed6a53859993300a5"
 - name: RELATED_IMAGE_ODH_OPENVINO_MODEL_SERVER_IMAGE
   value: "quay.io/rhoai/odh-openvino-model-server-rhel9@sha256:dfc5154d0542d5309357b9cd40a73fced3b0a0b44d131327b5bbadaea001ff45"
 - name: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_DATASCIENCE_CPU_PY312_IMAGE
@@ -160,4 +160,4 @@ relatedImages:
 - name: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_TRUSTYAI_CPU_PY312_IMAGE
   value: "quay.io/rhoai/odh-workbench-jupyter-trustyai-cpu-py312-rhel9@sha256:0041ba1a62beecf5067c27fee80f7857bf656d4d88c1de9fbec30b41bc5ea6cf"
 - name: RELATED_IMAGE_OSE_KUBE_RBAC_PROXY_IMAGE
-  value: "quay.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:b09038c7fe08a74add3bae72e12b56e5549432c97e5396bebf0da566bd8afc8a"
+  value: "quay.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:a2a4bcc5178b3470292c687a5c22c27e43124ca13e332e704c58a5a7293dc76e"
