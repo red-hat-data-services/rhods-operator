@@ -58,6 +58,56 @@ spec:
                   Projected by the orchestrator from the platform GatewayConfig.
                 maxLength: 253
                 type: string
+              ingresses:
+                description: |-
+                  ingresses are Gateway assignments projected by the orchestrator.
+                  An empty list preserves the notebook controller's default Gateway fallback.
+                items:
+                  description: Ingress identifies a Gateway available for namespace
+                    ingress assignment.
+                  properties:
+                    gatewayName:
+                      description: gatewayName is the name of the parent Gateway.
+                      maxLength: 253
+                      minLength: 1
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                      type: string
+                    gatewayNamespace:
+                      description: gatewayNamespace is the namespace of the parent
+                        Gateway.
+                      maxLength: 63
+                      minLength: 1
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                      type: string
+                    hostname:
+                      description: hostname is optional ingress metadata forwarded
+                        to the notebook controller.
+                      maxLength: 253
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*)?$
+                      type: string
+                    isDefault:
+                      description: isDefault selects this entry when the Namespace
+                        has no ingress annotation.
+                      type: boolean
+                    name:
+                      description: name is matched against the Namespace's opendatahub.io/ingress-name
+                        annotation.
+                      maxLength: 63
+                      minLength: 1
+                      type: string
+                  required:
+                  - gatewayName
+                  - gatewayNamespace
+                  - name
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+                x-kubernetes-validations:
+                - message: at most one ingress can be default
+                  rule: self.filter(i, has(i.isDefault) && i.isDefault).size() <=
+                    1
               managementState:
                 default: Managed
                 description: |-

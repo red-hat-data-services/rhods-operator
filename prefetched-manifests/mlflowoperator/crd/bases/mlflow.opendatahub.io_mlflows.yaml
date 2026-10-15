@@ -1124,7 +1124,7 @@ spec:
                         type: object
                     type: object
                   workers:
-                    default: 1
+                    default: 8
                     description: Workers is the number of uvicorn worker processes
                       in each artifact-serving server pod.
                     format: int32
@@ -1538,7 +1538,9 @@ spec:
                       version detection indicates it is needed. Always forces the
                       operator-managed migration flow for each new desired generation, meaning
                       each new revision of the MLflow resource after the desired state changes,
-                      before the MLflow Deployment is scaled back up.
+                      before the MLflow Deployment is scaled back up. Changing from Always to
+                      Automatic does not cancel a migration Job that has already started; the
+                      operator waits for that Job and its post-migration rollout to finish.
                     enum:
                     - Automatic
                     - Always
@@ -2997,12 +2999,159 @@ spec:
                     minLength: 1
                     type: string
                 type: object
+              traceRollups:
+                description: |-
+                  TraceRollups controls SQL trace analytics use and maintenance. Runtime use
+                  defaults on for remote SQL; SQLite deployments never create the job.
+                  When omitted, schedule defaults to "0 2 * * *" and timeZone to "Etc/UTC"
+                  (nightly at 02:00 UTC). These timing defaults are not persisted in the CR.
+                properties:
+                  enabled:
+                    description: |-
+                      Enabled controls server-side SQL rollup use. Defaults to true for remote
+                      SQL and false for SQLite. An explicit MLFLOW_SQL_TRACE_ROLLUPS_ENABLED
+                      entry in Env takes priority over this setting.
+                    type: boolean
+                  resourceClaims:
+                    description: |-
+                      ResourceClaims defines the Dynamic Resource Allocation claims available to
+                      the rollup CronJob pod. Container claim references must be configured
+                      separately in Resources.Claims.
+                    items:
+                      description: |-
+                        PodResourceClaim references exactly one ResourceClaim, either directly
+                        or by naming a ResourceClaimTemplate which is then turned into a ResourceClaim
+                        for the pod.
+
+                        It adds a name to it that uniquely identifies the ResourceClaim inside the Pod.
+                        Containers that need access to the ResourceClaim reference it with this name.
+                      properties:
+                        name:
+                          description: |-
+                            Name uniquely identifies this resource claim inside the pod.
+                            This must be a DNS_LABEL.
+                          type: string
+                        resourceClaimName:
+                          description: |-
+                            ResourceClaimName is the name of a ResourceClaim object in the same
+                            namespace as this pod.
+
+                            Exactly one of ResourceClaimName and ResourceClaimTemplateName must
+                            be set.
+                          type: string
+                        resourceClaimTemplateName:
+                          description: |-
+                            ResourceClaimTemplateName is the name of a ResourceClaimTemplate
+                            object in the same namespace as this pod.
+
+                            The template will be used to create a new ResourceClaim, which will
+                            be bound to this pod. When this pod is deleted, the ResourceClaim
+                            will also be deleted. The pod name and resource name, along with a
+                            generated component, will be used to form a unique name for the
+                            ResourceClaim, which will be recorded in pod.status.resourceClaimStatuses.
+
+                            This field is immutable and no changes will be made to the
+                            corresponding ResourceClaim by the control plane after creating the
+                            ResourceClaim.
+
+                            Exactly one of ResourceClaimName and ResourceClaimTemplateName must
+                            be set.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - name
+                    x-kubernetes-list-type: map
+                  resources:
+                    description: Resources configures the rollup CronJob container.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
+                  schedule:
+                    description: Schedule is a five-field cron expression. Defaults
+                      to "0 2 * * *".
+                    maxLength: 256
+                    minLength: 1
+                    type: string
+                  schedulingEnabled:
+                    description: |-
+                      SchedulingEnabled controls CronJob maintenance independently of runtime
+                      use. Defaults to true; no job is scheduled for SQLite or disabled runtime.
+                    type: boolean
+                  timeZone:
+                    description: TimeZone is an IANA timezone name. Defaults to "Etc/UTC".
+                    maxLength: 128
+                    minLength: 1
+                    type: string
+                type: object
+                x-kubernetes-validations:
+                - message: 'each traceRollups.resourceClaims entry must set exactly
+                    one non-empty value: resourceClaimName or resourceClaimTemplateName'
+                  rule: '!has(self.resourceClaims) || self.resourceClaims.all(c, ((has(c.resourceClaimName)
+                    && size(c.resourceClaimName) > 0) != (has(c.resourceClaimTemplateName)
+                    && size(c.resourceClaimTemplateName) > 0)))'
               workers:
-                default: 1
+                default: 8
                 description: |-
                   Workers is the number of uvicorn worker processes for the MLflow server.
                   Note: This is different from pod replicas. Each pod will run this many worker processes.
-                  Defaults to 1. For high-traffic deployments, consider increasing pod replicas instead.
+                  Defaults to 8. For high-traffic deployments, consider increasing pod replicas instead.
                 format: int32
                 minimum: 1
                 type: integer
@@ -3083,9 +3232,11 @@ spec:
                 || !has(self.artifactsServer.replicas) || self.artifactsServer.replicas
                 <= 1 || (has(self.storage) && size(self.storage.accessModes) > 0 &&
                 self.storage.accessModes[0] == ''ReadWriteMany'')'
-            - message: artifactsServer cannot be enabled with an inline SQLite backendStoreUri
+            - message: artifactsServer cannot be enabled with an effective SQLite
+                backend
               rule: '!has(self.artifactsServer) || !self.artifactsServer.enabled ||
-                !has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
+                (has(self.env) && self.env.exists(e, e.name == ''MLFLOW_BACKEND_STORE_URI''))
+                || !has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
                 && !self.backendStoreUri.startsWith(''sqlite+''))'
             - message: artifactsServer cannot be enabled with an inline SQLite registryStoreUri
               rule: '!has(self.artifactsServer) || !self.artifactsServer.enabled ||
@@ -3132,9 +3283,10 @@ spec:
                 || self.registryStoreUri.startsWith(''sqlite+'') || self.registryStoreUri.startsWith(''postgresql://'')
                 || self.registryStoreUri.startsWith(''postgresql+'') || self.registryStoreUri.startsWith(''mysql://'')
                 || self.registryStoreUri.startsWith(''mysql+'')'
-            - message: storage must be configured when using file-based backend store
-                (sqlite:// or file:// prefix)
-              rule: '!has(self.backendStoreUri) || (!self.backendStoreUri.startsWith(''sqlite://'')
+            - message: storage must be configured when using an effective file-based
+                backend store
+              rule: '!has(self.backendStoreUri) || (has(self.env) && self.env.exists(e,
+                e.name == ''MLFLOW_BACKEND_STORE_URI'')) || (!self.backendStoreUri.startsWith(''sqlite://'')
                 && !self.backendStoreUri.startsWith(''file://'')) || has(self.storage)'
             - message: storage must be configured when using a file-based read-replica
                 backend store (sqlite:// prefix)
@@ -3199,8 +3351,9 @@ spec:
                 ReadWriteMany as its first access mode
               rule: '!has(self.replicas) || self.replicas <= 1 || !has(self.storage)
                 || (has(self.artifactsServer) && self.artifactsServer.enabled) ||
-                !((has(self.backendStoreUri) && (self.backendStoreUri.startsWith(''sqlite://'')
-                || self.backendStoreUri.startsWith(''sqlite+''))) || has(self.backendStoreUriFrom)
+                !(((!has(self.env) || !self.env.exists(e, e.name == ''MLFLOW_BACKEND_STORE_URI''))
+                && ((has(self.backendStoreUri) && (self.backendStoreUri.startsWith(''sqlite://'')
+                || self.backendStoreUri.startsWith(''sqlite+''))) || has(self.backendStoreUriFrom)))
                 || (has(self.registryStoreUri) && (self.registryStoreUri.startsWith(''sqlite://'')
                 || self.registryStoreUri.startsWith(''sqlite+''))) || has(self.registryStoreUriFrom)
                 || (has(self.readReplicaBackendStoreUri) && (self.readReplicaBackendStoreUri.startsWith(''sqlite://'')
@@ -3211,8 +3364,9 @@ spec:
             - message: trace archival with persistent metadata storage requires ReadWriteMany
                 as its first access mode
               rule: '!has(self.traceArchival) || !self.traceArchival.enabled || !has(self.storage)
-                || !((has(self.backendStoreUri) && (self.backendStoreUri.startsWith(''sqlite://'')
-                || self.backendStoreUri.startsWith(''sqlite+''))) || has(self.backendStoreUriFrom)
+                || !(((!has(self.env) || !self.env.exists(e, e.name == ''MLFLOW_BACKEND_STORE_URI''))
+                && ((has(self.backendStoreUri) && (self.backendStoreUri.startsWith(''sqlite://'')
+                || self.backendStoreUri.startsWith(''sqlite+''))) || has(self.backendStoreUriFrom)))
                 || (has(self.registryStoreUri) && (self.registryStoreUri.startsWith(''sqlite://'')
                 || self.registryStoreUri.startsWith(''sqlite+''))) || has(self.registryStoreUriFrom))
                 || (size(self.storage.accessModes) > 0 && self.storage.accessModes[0]
@@ -3312,6 +3466,18 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              traceRollups:
+                description: |-
+                  TraceRollups mirrors the current owned CronJob's observed schedule times.
+                  It is absent when the CronJob has no timestamps or does not exist.
+                properties:
+                  lastScheduleTime:
+                    format: date-time
+                    type: string
+                  lastSuccessfulTime:
+                    format: date-time
+                    type: string
+                type: object
               url:
                 description: url is the externally reachable MLflow URL exposed through
                   the data science gateway.
