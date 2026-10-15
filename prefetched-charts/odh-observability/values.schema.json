@@ -18,6 +18,10 @@
       "type": "string",
       "description": "Namespace where Monitoring operands are deployed. Defaults to operatorNamespace when empty."
     },
+    "gatewayNamespace": {
+      "type": "string",
+      "description": "Namespace containing the external router or gateway. Empty uses the OpenShift ingress policy-group selector."
+    },
     "image": {
       "type": "object",
       "properties": {

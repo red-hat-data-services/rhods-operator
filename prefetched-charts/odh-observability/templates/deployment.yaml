@@ -38,6 +38,8 @@ spec:
               value: {{ .Chart.AppVersion | quote }}
             - name: MONITORING_NAMESPACE
               value: {{ include "odh-observability.monitoringNamespace" . | quote }}
+            - name: GATEWAY_NAMESPACE
+              value: {{ .Values.gatewayNamespace | quote }}
             {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

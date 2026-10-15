@@ -41,6 +41,7 @@ helm uninstall odh-observability --namespace odh-observability-system
 | `image.repository` | string | `"quay.io/opendatahub/odh-observability"` | Controller container image repository |
 | `image.tag` | string | `"odh-stable"` | Controller container image tag |
 | `image.pullPolicy` | string | `"Always"` | Image pull policy |
+| `gatewayNamespace` | string | `""` | Namespace containing the external router or gateway; empty uses the OpenShift ingress policy-group selector |
 | `replicaCount` | int | `1` | Number of operator replicas |
 | `resources.limits.cpu` | string | `"500m"` | CPU limit |
 | `resources.limits.memory` | string | `"256Mi"` | Memory limit |

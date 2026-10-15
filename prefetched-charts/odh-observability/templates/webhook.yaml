@@ -41,7 +41,10 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: {{ include "odh-observability.fullname" . }}-webhook
   annotations:
+    # Informational contract only: control-plane admission traffic is outside
+    # the workload NetworkPolicy managed by this chart/operator.
     cert-manager.io/inject-ca-from: {{ .Values.operatorNamespace }}/{{ include "odh-observability.fullname" . }}-webhook-cert
+    platform.opendatahub.io/webhook-network-policy: platform-managed-exception
 webhooks:
   - name: podmonitor-injector.opendatahub.io
     admissionReviewVersions: ["v1"]
