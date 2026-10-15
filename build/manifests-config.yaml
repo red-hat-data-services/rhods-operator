@@ -24,12 +24,12 @@ map:
     src: trustyai-operator-module/config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 661e43926f8f65110d67a9539b8cc18837e59174
+    git.commit: 8490e67ab44d351b5340c9227dd6b4f5a827eb93
   odh-model-registry-operator:
     src: config
     dest: aihub
     git.url: https://github.com/red-hat-data-services/model-registry-operator
-    git.commit: f6b24b2764d2a314a8238fb5e955ad37065be3f2
+    git.commit: 101d3f1438175fd02e14ff27198f68d68dd64838
   odh-dashboard-operator:
     src: dashboard-operator/charts/dashboard
     dest: dashboard-operator
@@ -66,7 +66,7 @@ map:
     dest: data
     type: chart
     git.url: https://github.com/red-hat-data-services/feast-module-operator
-    git.commit: dfee610178210050197d829040c79826c2d92127
+    git.commit: 872b65ee5b7dd2adbe99c6f012827711e433b88a
   odh-ogx-module-operator:
     src: ogx-module/config
     dest: ogx
@@ -77,13 +77,13 @@ map:
     dest: odh-observability
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-observability
-    git.commit: c1f965490d502c63a6fa327b0db74ec1206c6429
+    git.commit: d34cf58f92e4a272f74ddd2878a9a3849760f31a
   odh-db-operator:
     src: config/chart
     dest: databaseservice
     type: chart
     git.url: https://github.com/red-hat-data-services/rhai-db-operator
-    git.commit: b674216b9d62c2753b0086a6d82ed88e5e105d1b
+    git.commit: e1b856101cff526f1f6631fe9dc00297c5ca42fd
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
@@ -114,10 +114,10 @@ additional_meta:
     git.commit: 5c294001322a5010470e09704aae9e7d5529a1d1
   odh-data-connect-hub-flight:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: 0e544bdc271823a76632b1bfeda1251890756cef
+    git.commit: 5aeb6bfd429c8beda6bc5310737274163f2e2c7d
   odh-data-connect-hub-rest:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: 0e544bdc271823a76632b1bfeda1251890756cef
+    git.commit: 5aeb6bfd429c8beda6bc5310737274163f2e2c7d
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 4f93bae24e0b4b209c8fb3d1e049f8f840e94ef1
@@ -213,7 +213,7 @@ additional_meta:
     git.commit: 00305ba9f26a2b1d9d6ef0fedee2d56860c5d297
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
-    git.commit: 8c864f829fdf31e9b369fc910e5f9609e816e221
+    git.commit: c566db97df3e40c6fcef880eb6810ae59a85d98b
   odh-mlflow:
     git.url: https://github.com/red-hat-data-services/mlflow
     git.commit: 313e0a5808aed985d5716c1f5e2b006b4af3bddb
@@ -309,7 +309,7 @@ additional_meta:
     git.commit: 343c16639e455098262427a12128b5b1b6197276
   odh-openshell-dashboard:
     git.url: https://github.com/red-hat-data-services/openshell-dashboard
-    git.commit: 2bfbce40feed2f2b2911dc1bdb1e40333cc3dad2
+    git.commit: 6205983f23c763bf315764329b6e1469fd676f3e
   odh-openshell-gateway:
     git.url: https://github.com/red-hat-data-services/openshell
     git.commit: 343c16639e455098262427a12128b5b1b6197276
@@ -363,7 +363,7 @@ additional_meta:
     git.commit: 2e1b4ee2996fa355a7b4e608fe71e03b9ea1d0cb
   odh-ta-lmes-driver:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 661e43926f8f65110d67a9539b8cc18837e59174
+    git.commit: 8490e67ab44d351b5340c9227dd6b4f5a827eb93
   odh-ta-lmes-job:
     git.url: https://github.com/red-hat-data-services/lm-evaluation-harness
     git.commit: 0a5965b59d3bddcaaed2893a0020e62e294c95a1
@@ -372,7 +372,7 @@ additional_meta:
     git.commit: 45169d7c7939cf378b3d82b2db7b0dee12ae162a
   odh-th-torch-cuda-py312:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: d6d1dce4677c81e0eff821625b8f309a07d4534a
+    git.commit: f8c79cf44b6f7e15da6cae11a5bc9be921207e3a
   odh-th-torch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
     git.commit: 45169d7c7939cf378b3d82b2db7b0dee12ae162a
@@ -387,7 +387,7 @@ additional_meta:
     git.commit: 4c33c123858823e92fcf91cccb90b6c6c1da607f
   odh-trustyai-service-operator:
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 661e43926f8f65110d67a9539b8cc18837e59174
+    git.commit: 8490e67ab44d351b5340c9227dd6b4f5a827eb93
   odh-trustyai-service-py:
     git.url: https://github.com/red-hat-data-services/trustyai-service
     git.commit: d0c3a5a7087cd3289b67641f965bb200b4b76fb6

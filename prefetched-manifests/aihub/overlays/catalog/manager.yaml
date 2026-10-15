@@ -36,6 +36,8 @@ spec:
         - "catalog"
         - "--leader-elect"
         env:
+          - name: RELATED_IMAGE_ODH_MODEL_REGISTRY_OPERATOR_IMAGE
+            value: quay.io/opendatahub/model-registry-operator:latest
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
@@ -48,6 +50,10 @@ spec:
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
           - name: RELATED_IMAGE_ODH_MODEL_PERFORMANCE_DATA_IMAGE
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
+          - name: CATALOG_DATA_IMAGE_STREAM_SOURCE
+            value: ""
+          - name: BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+            value: ""
           - name: REGISTRIES_NAMESPACE
             value: ""
           - name: ENABLE_WEBHOOKS

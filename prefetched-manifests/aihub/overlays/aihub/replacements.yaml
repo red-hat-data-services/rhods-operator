@@ -79,3 +79,23 @@
         name: aihub-controller-manager
       fieldPaths:
         - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_ODH_MODEL_REGISTRY_JOB_ASYNC_UPLOAD_IMAGE].value
+- source:
+    kind: ConfigMap
+    name: aihub-controller-parameters
+    fieldPath: data.CATALOG_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: aihub-controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=CATALOG_DATA_IMAGE_STREAM_SOURCE].value
+- source:
+    kind: ConfigMap
+    name: aihub-controller-parameters
+    fieldPath: data.BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: aihub-controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=BENCHMARK_DATA_IMAGE_STREAM_SOURCE].value

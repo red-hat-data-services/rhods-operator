@@ -73,6 +73,8 @@ spec:
         image: controller
         name: manager
         env:
+          - name: RELATED_IMAGE_ODH_MODEL_REGISTRY_OPERATOR_IMAGE
+            value: quay.io/opendatahub/model-registry-operator:latest
           - name: RELATED_IMAGE_ODH_MODEL_REGISTRY_IMAGE
             value: quay.io/opendatahub/model-registry:latest
           - name: OAUTH_PROXY_IMAGE
@@ -85,6 +87,10 @@ spec:
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
           - name: RELATED_IMAGE_ODH_MODEL_PERFORMANCE_DATA_IMAGE
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
+          - name: CATALOG_DATA_IMAGE_STREAM_SOURCE
+            value: ""
+          - name: BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+            value: ""
           - name: ENABLE_WEBHOOKS
             value: "false"
           - name: CREATE_AUTH_RESOURCES

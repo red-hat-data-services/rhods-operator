@@ -9,6 +9,7 @@
         name: controller-manager
       fieldPaths:
         - spec.template.spec.containers.[name=manager].image
+        - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_ODH_MODEL_REGISTRY_OPERATOR_IMAGE].value
 - source:
     kind: ConfigMap
     name: model-registry-operator-parameters
@@ -211,3 +212,23 @@
         name: jobs-async-upload-s3-to-oci-template
       fieldPaths:
         - parameters.[name=JOB_IMAGE].value
+- source:
+    kind: ConfigMap
+    name: model-registry-operator-parameters
+    fieldPath: data.CATALOG_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=CATALOG_DATA_IMAGE_STREAM_SOURCE].value
+- source:
+    kind: ConfigMap
+    name: model-registry-operator-parameters
+    fieldPath: data.BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=BENCHMARK_DATA_IMAGE_STREAM_SOURCE].value

@@ -43,23 +43,28 @@ spec:
           spec:
             description: CatalogSpec defines the desired state of Catalog.
             properties:
-              benchmarkDataImage:
+              benchmarkDataImageStream:
                 description: |-
-                  BenchmarkDataImage overrides the benchmark data init container image by
-                  sha256 digest (e.g. "sha256:<64 hex>") or image tag (e.g. "v2.19"). The
-                  operator pins it onto the trusted repository derived from the default image.
-                  A digest is recommended because a tag can be repointed without triggering a
-                  rollout. Invalid or unset values fall back to the default image.
+                  BenchmarkDataImageStream independently selects the benchmark data image
+                  using the same empty/stable/digest choices as CatalogDataImageStream.
+                  Identical import sources share an ImageStream; separate sources are tracked
+                  independently. Unset and empty values are equivalent.
                 maxLength: 128
+                pattern: ^(|stable|sha256:[a-f0-9]{64})$
                 type: string
-              catalogDataImage:
+              catalogDataImageStream:
                 description: |-
-                  CatalogDataImage overrides the catalog data init container image by sha256
-                  digest (e.g. "sha256:<64 hex>") or image tag (e.g. "v2.19"). The operator
-                  pins it onto the trusted repository derived from the default image. A digest
-                  is recommended because a tag can be repointed without triggering a rollout.
-                  Invalid or unset values fall back to the default image.
+                  CatalogDataImageStream independently selects the catalog data image.
+                  Empty uses its current release default. "stable" follows the managed
+                  ImageStream (OpenShift only); sha256:<64 lowercase hex> pins a digest in
+                  its configured data repository. The benchmark field may select a different image.
+                  AIHub creates the initial Catalog with both fields unset to use release defaults.
+                  Selection/import failures make Catalog and AIHub unready. Successful
+                  resolution permits rollout; readiness also requires a healthy workload.
+                  Deployment scale-down is temporary containment. Runtime validation and
+                  serving enforcement will be integrated with RHOAIENG-97414.
                 maxLength: 128
+                pattern: ^(|stable|sha256:[a-f0-9]{64})$
                 type: string
               database:
                 description: Database configures storage for the catalog database.
@@ -231,9 +236,150 @@ spec:
           status:
             description: CatalogStatus defines the observed state of Catalog.
             properties:
+              activation:
+                description: Activation persists the current attempt and the last
+                  successfully validated workload.
+                properties:
+                  attemptID:
+                    maxLength: 64
+                    type: string
+                  catalogUID:
+                    maxLength: 64
+                    type: string
+                  images:
+                    description: |-
+                      CatalogDataImages identifies the independently resolved image references.
+                      Release defaults may contain tags; stable imports and pins contain digests.
+                    properties:
+                      benchmark:
+                        description: Benchmark is the resolved benchmark data image
+                          reference.
+                        maxLength: 2048
+                        minLength: 1
+                        type: string
+                      catalog:
+                        description: Catalog is the resolved catalog data image reference.
+                        maxLength: 2048
+                        minLength: 1
+                        type: string
+                    required:
+                    - benchmark
+                    - catalog
+                    type: object
+                  lastSuccessful:
+                    description: CatalogActivationSuccess is recovery metadata, never
+                      serving authorization.
+                    properties:
+                      activatedAt:
+                        maxLength: 64
+                        type: string
+                      attemptID:
+                        maxLength: 64
+                        type: string
+                      catalogUID:
+                        maxLength: 64
+                        type: string
+                      images:
+                        description: |-
+                          CatalogDataImages identifies the independently resolved image references.
+                          Release defaults may contain tags; stable imports and pins contain digests.
+                        properties:
+                          benchmark:
+                            description: Benchmark is the resolved benchmark data
+                              image reference.
+                            maxLength: 2048
+                            minLength: 1
+                            type: string
+                          catalog:
+                            description: Catalog is the resolved catalog data image
+                              reference.
+                            maxLength: 2048
+                            minLength: 1
+                            type: string
+                        required:
+                        - benchmark
+                        - catalog
+                        type: object
+                    required:
+                    - activatedAt
+                    - attemptID
+                    - catalogUID
+                    - images
+                    type: object
+                  message:
+                    maxLength: 512
+                    type: string
+                  reason:
+                    maxLength: 128
+                    type: string
+                  recoveredAt:
+                    description: |-
+                      RecoveredAt records when a retrying workload most recently became ready.
+                      A recovery window resets only after ten uninterrupted healthy minutes.
+                    format: date-time
+                    type: string
+                  requestHash:
+                    maxLength: 64
+                    type: string
+                  requestedImages:
+                    description: |-
+                      CatalogDataImages identifies the independently resolved image references.
+                      Release defaults may contain tags; stable imports and pins contain digests.
+                    properties:
+                      benchmark:
+                        description: Benchmark is the resolved benchmark data image
+                          reference.
+                        maxLength: 2048
+                        minLength: 1
+                        type: string
+                      catalog:
+                        description: Catalog is the resolved catalog data image reference.
+                        maxLength: 2048
+                        minLength: 1
+                        type: string
+                    required:
+                    - benchmark
+                    - catalog
+                    type: object
+                  stage:
+                    enum:
+                    - Activation
+                    - Import
+                    - Selection
+                    - Loading
+                    - Initialization
+                    - Pull
+                    maxLength: 32
+                    type: string
+                  startedAt:
+                    description: StartedAt begins the current activation or recovery
+                      deadline.
+                    format: date-time
+                    type: string
+                  state:
+                    enum:
+                    - Pending
+                    - Failed
+                    - Succeeded
+                    maxLength: 16
+                    type: string
+                required:
+                - attemptID
+                - catalogUID
+                - images
+                - message
+                - reason
+                - requestHash
+                - requestedImages
+                - stage
+                - startedAt
+                - state
+                type: object
               conditions:
-                description: Conditions represent the latest available observations
-                  of the Catalog's state.
+                description: |-
+                  Conditions represent the latest available observations of the Catalog's state.
+                  Ready and Available require current image resolution, validated workload, and workload health.
+                  WorkloadAvailable tracks deployment health independently of image selection.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.
@@ -294,6 +440,26 @@ spec:
                   by the controller.
                 format: int64
                 type: integer
+              resolvedImages:
+                description: |-
+                  ResolvedImages records the current pair when both selections resolve.
+                  Changing either reference invalidates the previous workload observation,
+                  including scheduled imports that do not change the Catalog generation.
+                properties:
+                  benchmark:
+                    description: Benchmark is the resolved benchmark data image reference.
+                    maxLength: 2048
+                    minLength: 1
+                    type: string
+                  catalog:
+                    description: Catalog is the resolved catalog data image reference.
+                    maxLength: 2048
+                    minLength: 1
+                    type: string
+                required:
+                - benchmark
+                - catalog
+                type: object
             type: object
         type: object
     served: true

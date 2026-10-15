@@ -55,6 +55,10 @@ spec:
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
           - name: RELATED_IMAGE_ODH_MODEL_PERFORMANCE_DATA_IMAGE
             value: quay.io/opendatahub/odh-model-metadata-collection:latest
+          - name: CATALOG_DATA_IMAGE_STREAM_SOURCE
+            value: ""
+          - name: BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+            value: ""
           - name: RELATED_IMAGE_ODH_MODEL_REGISTRY_JOB_ASYNC_UPLOAD_IMAGE
             value: quay.io/opendatahub/model-registry-job-async-upload:latest
         securityContext:

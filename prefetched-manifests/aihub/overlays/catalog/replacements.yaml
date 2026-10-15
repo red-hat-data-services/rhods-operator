@@ -9,6 +9,7 @@
         name: catalog-controller-manager
       fieldPaths:
         - spec.template.spec.containers.[name=manager].image
+        - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_ODH_MODEL_REGISTRY_OPERATOR_IMAGE].value
 - source:
     kind: ConfigMap
     name: catalog-operator-parameters
@@ -135,3 +136,23 @@
         name: catalog-controller-manager
       fieldPaths:
         - spec.template.spec.volumes.[name=^cert$].secret.secretName
+- source:
+    kind: ConfigMap
+    name: catalog-operator-parameters
+    fieldPath: data.CATALOG_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: catalog-controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=CATALOG_DATA_IMAGE_STREAM_SOURCE].value
+- source:
+    kind: ConfigMap
+    name: catalog-operator-parameters
+    fieldPath: data.BENCHMARK_DATA_IMAGE_STREAM_SOURCE
+  targets:
+    - select:
+        kind: Deployment
+        name: catalog-controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=BENCHMARK_DATA_IMAGE_STREAM_SOURCE].value
