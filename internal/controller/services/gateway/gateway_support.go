@@ -517,6 +517,15 @@ func calculateAuthConfigHash(authSecret *corev1.Secret) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// extendAuthConfigHash folds the provider CA bundle into the auth config hash so
+// that rotating the CA in the spec.providerCASecretName secret rolls the
+// kube-auth-proxy pods. The base hash is kept verbatim when no provider CA is
+// configured, so upgrades do not trigger a spurious rollout.
+func extendAuthConfigHash(authConfigHash string, providerCA []byte) string {
+	sum := sha256.Sum256([]byte(authConfigHash + "\x00" + string(providerCA)))
+	return hex.EncodeToString(sum[:])
+}
+
 // CalculateRedirectConfigHash returns a hash of the gateway hostname.
 // Used as a pod annotation so deployment rollout triggers when subdomain/domain changes.
 // Hash is fixed-length (64 chars) to avoid annotation size limits from long hostnames.
