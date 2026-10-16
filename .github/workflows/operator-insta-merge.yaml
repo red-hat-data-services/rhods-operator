@@ -18,6 +18,26 @@ env:
   GITHUB_ORG: red-hat-data-services
   GITHUB_RKA_ORG: rhoai-rhtap
   RESOLVE_CONFLICTS_FOR: build/operator-nudging.yaml
+  # ---------------------------------------------------------------------------
+  # Source-build verification gate (see the verify-source-build job).
+  # All knobs are repository variables so the gate can be tuned/rolled out
+  # without editing this workflow.
+  # ---------------------------------------------------------------------------
+  # enforce = an inconclusive verification blocks the merge.
+  # warn    = an inconclusive verification is reported but still merges.
+  # A *definitive* source-build failure always blocks, in both modes.
+  NUDGE_VERIFY_MODE: ${{ vars.NUDGE_VERIFY_MODE || 'warn' }}
+  # Grace period before the first poll: Konflux creates the nudge PR as soon as
+  # the build image is pushed, so the check-runs on the source commit may not be
+  # reported yet.
+  NUDGE_VERIFY_SETTLE_SECONDS: ${{ vars.NUDGE_VERIFY_SETTLE_SECONDS || '45' }}
+  NUDGE_VERIFY_POLL_SECONDS: ${{ vars.NUDGE_VERIFY_POLL_SECONDS || '30' }}
+  NUDGE_VERIFY_TIMEOUT_SECONDS: ${{ vars.NUDGE_VERIFY_TIMEOUT_SECONDS || '900' }}
+  # Space-separated allowlist. A nudge whose PR body points at a source repo
+  # outside these orgs is never treated as verified.
+  NUDGE_VERIFY_ALLOWED_OWNERS: ${{ vars.NUDGE_VERIFY_ALLOWED_OWNERS || 'red-hat-data-services rhoai-rhtap opendatahub-io' }}
+  # Commit-status context published on the nudge PR head SHA.
+  NUDGE_VERIFY_STATUS_CONTEXT: nudge/source-build-verification
 
 permissions:
   contents: write
@@ -35,6 +55,7 @@ jobs:
       feasible: ${{ steps.merge-feasibility-check.outputs.FEASIBLE }}
       base_branch: ${{ steps.merge-feasibility-check.outputs.BASE_BRANCH }}
       head_branch: ${{ steps.merge-feasibility-check.outputs.HEAD_BRANCH }}
+      component: ${{ steps.merge-feasibility-check.outputs.COMPONENT }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Check changed files
@@ -50,6 +71,11 @@ jobs:
       - name: Merge Feasibility Check
         if: ${{ steps.changed-files.outputs.all_count == '1' && steps.changed-files.outputs.nudging == 'true' }}
         id: merge-feasibility-check
+        # PR_TITLE is attacker-influenced data on a pull_request_target workflow,
+        # so it is passed through the environment instead of being interpolated
+        # into the script body (which would allow shell injection).
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Declare variables
           BASE_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
@@ -59,7 +85,7 @@ jobs:
           echo "SUFFIX=$SUFFIX"
           echo "HEAD_BRANCH=$HEAD_BRANCH"
 
-          TITLE="${{ github.event.pull_request.title }}"
+          TITLE="$PR_TITLE"
 
           if [[ $TITLE == chore\(deps\)* ]]
           then
@@ -68,21 +94,304 @@ jobs:
           REGEX="^Update.*-$SUFFIX to [0-9a-z]{1,40}$"
 
           FEASIBLE=No
+          COMPONENT=
           #Check if PR title is as per the convention
           if [[ "$TITLE" =~ $REGEX ]]
           then
             FEASIBLE=Yes
-            echo "It's a valid PR to merge!"
+            # "Update odh-ta-lmes-driver-v3-5 to 66809db" -> "odh-ta-lmes-driver-v3-5".
+            # This is the Konflux component name, used by verify-source-build to
+            # pick the right check-run on the source commit.
+            COMPONENT=${TITLE#Update }
+            COMPONENT=${COMPONENT% to *}
+            echo "It's a valid PR to merge! component=$COMPONENT"
           else
             echo "Insta-merge not configured to merge this PR, skipping."
           fi
           echo "FEASIBLE=$FEASIBLE" >> $GITHUB_OUTPUT
           echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_OUTPUT
           echo "HEAD_BRANCH=$HEAD_BRANCH" >> $GITHUB_OUTPUT
+          echo "COMPONENT=$COMPONENT" >> $GITHUB_OUTPUT
 
-  merge:
+  # ---------------------------------------------------------------------------
+  # Defense in depth: a nudge PR is a claim that "component X built successfully
+  # and produced image digest Y". Before we auto-merge that claim into a release
+  # branch, verify it against the source of truth.
+  #
+  # A Konflux nudge PR body starts with:
+  #   Image created from 'https://github.com/<owner>/<repo>?rev=<40-hex-git-sha>'
+  # which gives us the exact source repository and commit the image was built
+  # from. Konflux reports its PipelineRuns as check-runs on that commit:
+  #   "Konflux Production Internal / <component>-on-push"        <- the build
+  #   "Red Hat Konflux / conforma-<...> / <component>"            <- Conforma/EC
+  # We require the build check to have concluded successfully, and we refuse to
+  # merge if Conforma concluded in failure. Unrelated repo CI on the same commit
+  # is deliberately ignored.
+  # ---------------------------------------------------------------------------
+  verify-source-build:
     needs: check-files
     if: ${{ needs.check-files.outputs.feasible == 'Yes' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      verified: ${{ steps.verify.outputs.VERIFIED }}
+      verdict: ${{ steps.verify.outputs.VERDICT }}
+      source_repo: ${{ steps.source.outputs.SRC_REPO }}
+      source_sha: ${{ steps.source.outputs.SRC_SHA }}
+    steps:
+      - name: Resolve source build coordinates from the nudge PR body
+        id: source
+        # PR_BODY is attacker-influenced; keep it out of the script body and
+        # validate every field extracted from it before use.
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          COMPONENT: ${{ needs.check-files.outputs.component }}
+        run: |
+          set -euo pipefail
+
+          SRC_REPO=
+          SRC_SHA=
+          REASON=
+
+          # Konflux writes: Image created from 'https://github.com/<o>/<r>?rev=<sha>'
+          REF=$(printf '%s' "$PR_BODY" \
+            | grep -oE 'https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\?rev=[0-9a-fA-F]{40}' \
+            | head -n1 || true)
+
+          if [[ -z "$REF" ]]; then
+            REASON="PR body does not contain an 'Image created from https://github.com/<owner>/<repo>?rev=<sha>' reference"
+          else
+            REF=${REF#https://github.com/}
+            SRC_REPO=${REF%%\?rev=*}
+            SRC_SHA=${REF##*\?rev=}
+            SRC_OWNER=${SRC_REPO%%/*}
+            SRC_NAME=${SRC_REPO#*/}
+
+            # Re-validate after parsing; never trust the shape of remote input.
+            if [[ ! "$SRC_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              REASON="parsed source revision '$SRC_SHA' is not a 40-character git SHA"
+              SRC_REPO=; SRC_SHA=
+            elif [[ ! "$SRC_OWNER" =~ ^[A-Za-z0-9._-]+$ || ! "$SRC_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+              REASON="parsed source repository '$SRC_REPO' is not a valid owner/name pair"
+              SRC_REPO=; SRC_SHA=
+            elif [[ " $NUDGE_VERIFY_ALLOWED_OWNERS " != *" $SRC_OWNER "* ]]; then
+              REASON="source repository owner '$SRC_OWNER' is not in the allowlist ($NUDGE_VERIFY_ALLOWED_OWNERS)"
+              SRC_REPO=; SRC_SHA=
+            fi
+          fi
+
+          # The component name feeds a check-run name match, so constrain it too.
+          if [[ ! "$COMPONENT" =~ ^[a-z0-9][a-z0-9._-]*$ ]]; then
+            REASON="component name '$COMPONENT' derived from the PR title is not well formed"
+            SRC_REPO=; SRC_SHA=
+          fi
+
+          if [[ -n "$SRC_REPO" ]]; then
+            echo "Source build: $SRC_REPO @ $SRC_SHA (component: $COMPONENT)"
+          else
+            echo "::warning::Cannot locate source build: $REASON"
+          fi
+
+          {
+            echo "SRC_REPO=$SRC_REPO"
+            echo "SRC_SHA=$SRC_SHA"
+            echo "SRC_OWNER=${SRC_REPO%%/*}"
+            echo "SRC_NAME=${SRC_REPO#*/}"
+            echo "REASON=$REASON"
+          } >> "$GITHUB_OUTPUT"
+
+      # The default GITHUB_TOKEN is scoped to this repository only and cannot
+      # read check-runs on the source component repository. Mint a token for the
+      # source repo instead. This is best-effort: if the app is not installed
+      # there the step is skipped and the verification reports "inconclusive"
+      # rather than hard-failing.
+      - name: Generate github-app token for the source repository
+        id: src-token
+        if: ${{ steps.source.outputs.SRC_REPO != '' }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RHOAI_DEVOPS_CLIENT_ID }}
+          private-key: ${{ secrets.RHOAI_DEVOPS_APP_PRIVATE_KEY }}
+          owner: ${{ steps.source.outputs.SRC_OWNER }}
+          repositories: ${{ steps.source.outputs.SRC_NAME }}
+
+      - name: Verify the source build succeeded
+        id: verify
+        env:
+          SRC_REPO: ${{ steps.source.outputs.SRC_REPO }}
+          SRC_SHA: ${{ steps.source.outputs.SRC_SHA }}
+          SOURCE_REASON: ${{ steps.source.outputs.REASON }}
+          COMPONENT: ${{ needs.check-files.outputs.component }}
+          SRC_TOKEN: ${{ steps.src-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          VERDICT=inconclusive
+          DETAIL="$SOURCE_REASON"
+          TARGET_URL="${{ github.event.pull_request.html_url }}"
+
+          # Emits the HTTP status code on stdout and the body into $2. Kept
+          # non-failing on HTTP errors so the caller can report the real code.
+          api() {
+            curl -sS -o "$2" -w '%{http_code}' \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$1" 2>/dev/null
+          }
+
+          if [[ -z "$SRC_REPO" ]]; then
+            echo "::warning::Skipping source-build verification: ${DETAIL:-source build could not be resolved}"
+          else
+            TOKEN="${SRC_TOKEN:-$GH_TOKEN}"
+            if [[ -z "${SRC_TOKEN:-}" ]]; then
+              echo "::warning::No app token for $SRC_REPO; falling back to the repo-scoped GITHUB_TOKEN, which usually cannot read cross-repository check-runs."
+            fi
+
+            echo "Settling for ${NUDGE_VERIFY_SETTLE_SECONDS}s before polling check-runs on $SRC_REPO@$SRC_SHA ..."
+            sleep "$NUDGE_VERIFY_SETTLE_SECONDS"
+
+            URL="https://api.github.com/repos/${SRC_REPO}/commits/${SRC_SHA}/check-runs?per_page=100"
+            DEADLINE=$(( SECONDS + NUDGE_VERIFY_TIMEOUT_SECONDS ))
+
+            while :; do
+              CODE=$(api "$URL" /tmp/check-runs.json) || CODE=000
+
+              if [[ "$CODE" != "200" ]]; then
+                DETAIL="cannot read check-runs for ${SRC_REPO}@${SRC_SHA:0:7} (HTTP ${CODE})"
+                echo "::warning::$DETAIL"
+                break
+              fi
+
+              # The build PipelineRun, e.g.
+              # "Konflux Production Internal / odh-ta-lmes-driver-v3-5-on-push".
+              read -r BUILD_STATUS BUILD_CONCLUSION < <(
+                jq -r --arg c "$COMPONENT" '
+                  [ .check_runs[]
+                    | select(.app.slug == "konflux-internal-p02")
+                    | select(.name | endswith("/ " + $c + "-on-push") or . == ($c + "-on-push"))
+                  ] | sort_by(.started_at) | last
+                  | if . == null then "missing -" else "\(.status) \(.conclusion // "-")" end
+                ' /tmp/check-runs.json
+              ) || true
+
+              # Conforma / Enterprise Contract for the same component.
+              read -r EC_STATUS EC_CONCLUSION < <(
+                jq -r --arg c "$COMPONENT" '
+                  [ .check_runs[]
+                    | select(.app.slug == "konflux-internal-p02")
+                    | select(.name | ascii_downcase | contains("conforma"))
+                    | select(.name | endswith("/ " + $c))
+                  ] | sort_by(.started_at) | last
+                  | if . == null then "missing -" else "\(.status) \(.conclusion // "-")" end
+                ' /tmp/check-runs.json
+              ) || true
+
+              BUILD_STATUS=${BUILD_STATUS:-missing}; BUILD_CONCLUSION=${BUILD_CONCLUSION:--}
+              EC_STATUS=${EC_STATUS:-missing}; EC_CONCLUSION=${EC_CONCLUSION:--}
+
+              echo "build=${BUILD_STATUS}/${BUILD_CONCLUSION} conforma=${EC_STATUS}/${EC_CONCLUSION} (${SECONDS}s elapsed)"
+
+              if [[ "$BUILD_STATUS" == "completed" ]]; then
+                case "$BUILD_CONCLUSION" in
+                  success)
+                    # Conforma only blocks on a definitive failure; "neutral"
+                    # means policy warnings, which Konflux itself treats as
+                    # non-blocking.
+                    case "$EC_CONCLUSION" in
+                      failure|cancelled|timed_out|action_required)
+                        VERDICT=fail
+                        DETAIL="Conforma check for ${COMPONENT} concluded '${EC_CONCLUSION}'"
+                        ;;
+                      *)
+                        VERDICT=pass
+                        DETAIL="${COMPONENT}-on-push succeeded on ${SRC_REPO}@${SRC_SHA:0:7} (conforma: ${EC_CONCLUSION})"
+                        ;;
+                    esac
+                    ;;
+                  failure|cancelled|timed_out|action_required|stale)
+                    VERDICT=fail
+                    DETAIL="${COMPONENT}-on-push concluded '${BUILD_CONCLUSION}' on ${SRC_REPO}@${SRC_SHA:0:7}"
+                    ;;
+                  *)
+                    DETAIL="${COMPONENT}-on-push concluded '${BUILD_CONCLUSION}', which is not a success"
+                    ;;
+                esac
+                break
+              fi
+
+              if (( SECONDS >= DEADLINE )); then
+                DETAIL="timed out after ${NUDGE_VERIFY_TIMEOUT_SECONDS}s waiting for ${COMPONENT}-on-push on ${SRC_REPO}@${SRC_SHA:0:7} (last seen: ${BUILD_STATUS})"
+                echo "::warning::$DETAIL"
+                break
+              fi
+
+              sleep "$NUDGE_VERIFY_POLL_SECONDS"
+            done
+          fi
+
+          # Map the verdict onto a merge decision.
+          # A definitive failure always blocks. An inconclusive result blocks
+          # only in 'enforce' mode, so the gate can be rolled out without
+          # stalling legitimate nudges while cross-repo access is confirmed.
+          case "$VERDICT" in
+            pass) VERIFIED=yes; STATE=success ;;
+            fail) VERIFIED=no;  STATE=failure ;;
+            *)
+              STATE=success
+              if [[ "$NUDGE_VERIFY_MODE" == "enforce" ]]; then
+                VERIFIED=no
+                STATE=failure
+              else
+                VERIFIED=yes
+              fi
+              ;;
+          esac
+
+          echo "VERDICT=$VERDICT" >> "$GITHUB_OUTPUT"
+          echo "VERIFIED=$VERIFIED" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Nudge source-build verification"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Component | \`${COMPONENT:-unknown}\` |"
+            echo "| Source | \`${SRC_REPO:-unresolved}@${SRC_SHA:-?}\` |"
+            echo "| Verdict | **${VERDICT}** |"
+            echo "| Mode | \`${NUDGE_VERIFY_MODE}\` |"
+            echo "| Merge allowed | **${VERIFIED}** |"
+            echo
+            echo "${DETAIL:-no further detail}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Publish a commit status on the nudge PR head so the result is
+          # visible on the PR and can be used as a required check later.
+          jq -n \
+            --arg state "$STATE" \
+            --arg context "$NUDGE_VERIFY_STATUS_CONTEXT" \
+            --arg description "${VERDICT}: ${DETAIL:0:120}" \
+            --arg target_url "$TARGET_URL" \
+            '{state: $state, context: $context, description: $description, target_url: $target_url}' \
+            > /tmp/status.json
+          curl -sS -o /dev/null -w 'commit status POST -> %{http_code}\n' -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${{ github.event.pull_request.head.sha }}" \
+            -d @/tmp/status.json || true
+
+          if [[ "$VERDICT" == "fail" ]]; then
+            echo "::error::Refusing to auto-merge: $DETAIL"
+            exit 1
+          fi
+          echo "Verification verdict: $VERDICT (merge allowed: $VERIFIED)"
+
+  merge:
+    needs: [check-files, verify-source-build]
+    if: ${{ needs.check-files.outputs.feasible == 'Yes' && needs.verify-source-build.outputs.verified == 'yes' }}
     runs-on: ubuntu-latest
     steps:
       - name: Generate github-app token
