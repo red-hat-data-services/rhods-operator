@@ -1,0 +1,28 @@
+# Source: grid-operator/templates/clusterrole-resources.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grid-operator-resources
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "patch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    # Both Services unconditionally: the operator reads whichever one carries its
+    # signals address, and gating the grant on a value that can disagree with the
+    # Deployment's env is how it goes missing.
+    resourceNames:
+      - "grid-gateway"
+      - "grid-operator-swim"
+      - "grid-operator-signals"
+    verbs: ["get"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "patch", "update"]

@@ -1,0 +1,35 @@
+# UBI9 image for the AI Grid operator.
+FROM registry.access.redhat.com/ubi9/ubi:9.8@sha256:9295c5c688f487fa5cf27a734fa55ecd57aeb7dc0904ba537da4f42dfa1d0acb AS build
+
+RUN dnf install -y --nodocs --setopt=install_weak_deps=0 \
+        gcc gcc-c++ make cmake \
+    && dnf clean all
+
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain none
+
+WORKDIR /src
+COPY . .
+RUN cargo build --release -p operator --bin operator \
+    && cp target/release/operator /usr/local/bin/operator
+
+FROM registry.redhat.io/ubi9/ubi-minimal-pqc@sha256:fac0bde5012de6a8475bb5dc18db968cdc90b12d9dc2ffaddb4a4975d0b8a04f
+
+RUN microdnf install -y --nodocs ca-certificates \
+    && microdnf clean all
+
+COPY --from=build --chmod=0555 /usr/local/bin/operator /usr/local/bin/operator
+
+USER 65532:65532
+EXPOSE 9090/tcp
+EXPOSE 7946/udp
+ENTRYPOINT ["/usr/local/bin/operator"]
+
+LABEL com.redhat.component="odh-praxis-ai-grid-operator-container" \
+      name="odh-praxis-ai-grid-operator-rhel9" \
+      description="Kubernetes operator for AI Grid multi-site inference routing" \
+      summary="Kubernetes operator for AI Grid multi-site inference routing" \
+      io.k8s.display-name="odh-praxis-ai-grid-operator" \
+      io.k8s.description="odh-praxis-ai-grid-operator"

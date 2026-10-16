@@ -1,0 +1,33 @@
+# Values that render deploy/operator from charts/grid-operator. This is the platform base:
+# a platform operator vendors the directory, sets the image through params.env and places
+# every object in its own namespace. It assumes no platform; a flavor under
+# deploy/overlays/<name>/values.yaml layers a platform's values on top of these. Site intent
+# (the grid, the site, providers, enrollment) comes from the GridNetwork and GridSite objects
+# an administrator creates afterwards, never from here.
+#
+# Regenerate with `make generate-deploy`; CI runs `make deploy-check`.
+fullnameOverride: grid-operator
+crds:
+  enabled: false
+image:
+  repository: ghcr.io/praxis-proxy/grid-operator
+  tag: ""
+rbac:
+  create: true
+  metricsScraper: true
+swim:
+  service:
+    enabled: true
+    type: LoadBalancer
+signals:
+  enabled: true
+gateway:
+  serviceName: grid-gateway
+metrics:
+  service:
+    enabled: true
+  tls:
+    # Every grid site has an enrolled identity, and a platform flavor may pick its own CA.
+    source: siteIdentity
+serviceMonitor:
+  enabled: false
