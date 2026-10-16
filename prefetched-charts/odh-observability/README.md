@@ -12,7 +12,7 @@ The chart deploys:
 
 - OpenShift 4.14+ or Kubernetes 1.27+
 - Helm 3
-- cert-manager (if `webhook.enabled` is true)
+- cert-manager (for the webhook and metrics TargetAllocator mTLS)
 
 ## Installation
 
@@ -37,6 +37,7 @@ helm uninstall odh-observability --namespace odh-observability-system
 | `nameOverride` | string | `""` | Override the chart name |
 | `fullnameOverride` | string | `""` | Override the fully qualified app name |
 | `operatorNamespace` | string | `"opendatahub-operator-system"` | Namespace for all operator resources |
+| `otelOperatorNamespace` | string | `"openshift-opentelemetry-operator"` | Namespace of the OpenTelemetry Operator service account used for TargetAllocator mTLS |
 | `monitoringNamespace` | string | `""` | Namespace where Monitoring operands (Tempo, collector) are deployed. Defaults to `operatorNamespace` when empty. On RHOAI this is DSCI `spec.monitoring.namespace`. |
 | `image.repository` | string | `"quay.io/opendatahub/odh-observability"` | Controller container image repository |
 | `image.tag` | string | `"odh-stable"` | Controller container image tag |

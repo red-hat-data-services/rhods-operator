@@ -21,7 +21,13 @@ rules:
     resources: ["prometheuses/api"]
     verbs: ["get", "create", "update"]
   - apiGroups: ["monitoring.coreos.com"]
-    resources: ["podmonitors", "servicemonitors", "probes"]
+    resources: ["podmonitors", "servicemonitors"]
+    verbs: ["*"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["scrapeconfigs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["probes"]
     verbs: ["get", "list", "watch"]
   # OpenShift infrastructure (SNO detection + granted via generate-processors-role)
   - apiGroups: ["config.openshift.io"]
@@ -83,6 +89,10 @@ rules:
   - apiGroups: ["networking.k8s.io"]
     resources: ["networkpolicies"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # TargetAllocator discovery RBAC delegation (required by the OTel webhook).
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
   # Workloads (deployments for direct use; replicasets granted via generate-processors-role)
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
@@ -159,7 +169,7 @@ rules:
     resources: ["experiments"]
     verbs: ["update"]
   # Non-resource URLs (granted via collector RBAC for k8s API discovery)
-  - nonResourceURLs: ["/api", "/metrics", "/apis/*"]
+  - nonResourceURLs: ["/metrics", "/api", "/api/*", "/apis", "/apis/*"]
     verbs: ["get"]
   # Events
   - apiGroups: [""]

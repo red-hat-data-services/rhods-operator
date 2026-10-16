@@ -71,13 +71,13 @@ map:
     src: ogx-module/config
     dest: ogx
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: a3a29e3ac56b3c8d667c1bd1e4ebc6a3f51ab663
+    git.commit: 43f53479566b211968107ba59a374870ee10f567
   odh-observability:
     src: charts/odh-observability
     dest: odh-observability
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-observability
-    git.commit: 7203aa25148f26bec944182e720ad03d162f029f
+    git.commit: e0b2d8c705ea34608d46d1f94dd1c6a8ae8d6504
   odh-db-operator:
     src: config/chart
     dest: databaseservice
@@ -98,13 +98,13 @@ additional_meta:
     git.commit: af85cbcab72ac96215b8380e834a56d50e81cdfc
   odh-automl:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 64340e0acadb6f4007dec31a123673f8f1280cad
+    git.commit: d941dc0364dab5b1aef96e65e5b52d130c65e6d2
   odh-autorag:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 64340e0acadb6f4007dec31a123673f8f1280cad
+    git.commit: d941dc0364dab5b1aef96e65e5b52d130c65e6d2
   odh-autorag-inference:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 64340e0acadb6f4007dec31a123673f8f1280cad
+    git.commit: d941dc0364dab5b1aef96e65e5b52d130c65e6d2
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
     git.commit: 24b3a3995e3f9967977d2f60ed888eba0c8122b5
@@ -119,10 +119,10 @@ additional_meta:
     git.commit: 824c9028742b38750aed463a64378ffda1262cdd
   odh-data-connect-hub-flight:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: d5006aa1d0e3b2df21b2cd8b38d9121f6b82e883
+    git.commit: 770898740e58f7c7e0fbf837ced1fede71f159dd
   odh-data-connect-hub-rest:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: d5006aa1d0e3b2df21b2cd8b38d9121f6b82e883
+    git.commit: 770898740e58f7c7e0fbf837ced1fede71f159dd
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: 4f93bae24e0b4b209c8fb3d1e049f8f840e94ef1
@@ -308,7 +308,7 @@ additional_meta:
     git.commit: e01b4e453c7a1d315eeb80214b8f591f27bcf33c
   odh-ogx-k8s-operator:
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: a3a29e3ac56b3c8d667c1bd1e4ebc6a3f51ab663
+    git.commit: 43f53479566b211968107ba59a374870ee10f567
   odh-openshell-cli:
     git.url: https://github.com/red-hat-data-services/openshell
     git.commit: a284e3bfa285afcedc614aaa1e0f9cbbdac416ad
@@ -329,7 +329,7 @@ additional_meta:
     git.commit: ea2b0e4b883011882c7f2ea0c44e465542e1c7fa
   odh-pipelines-components:
     git.url: https://github.com/red-hat-data-services/pipelines-components
-    git.commit: 64340e0acadb6f4007dec31a123673f8f1280cad
+    git.commit: d941dc0364dab5b1aef96e65e5b52d130c65e6d2
   odh-pipeline-runtime-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 1be5a836bbbea7caf5463f2665a7744aafdd1cad
@@ -359,7 +359,7 @@ additional_meta:
     git.commit: b2491510575779b8d39db7cd7bea11a33949bfe7
   odh-praxis-extproc:
     git.url: https://github.com/red-hat-data-services/praxis-extproc
-    git.commit: 949cc6cf1457507bd13e8397d8a34605277b0ec9
+    git.commit: 8486222f18e976453e99ff33a59b7b2e8c5aef6d
   odh-rhaii-cluster-validator:
     git.url: https://github.com/red-hat-data-services/rhaii-cluster-validation
     git.commit: c03dc0b70890049a5ae88fef1caec3b93d55d42b
@@ -368,7 +368,7 @@ additional_meta:
     git.commit: c03dc0b70890049a5ae88fef1caec3b93d55d42b
   odh-rhoai-mcp:
     git.url: https://github.com/red-hat-data-services/rhoai-mcp
-    git.commit: 8f03890c4f4da87b77c673b021e79a7a19a09c77
+    git.commit: aa1516c53126cfb524684a57b4a9eced795afcd0
   odh-spark-operator:
     git.url: https://github.com/red-hat-data-services/spark-operator
     git.commit: 6a7d07ff745a44b44b356e08cdfa614ca6b2594c
@@ -392,7 +392,7 @@ additional_meta:
     git.commit: 6596a2331707a922497337cbbdfa07040c87efdf
   odh-trustyai-garak-lls-provider-dsp:
     git.url: https://github.com/red-hat-data-services/llama-stack-provider-trustyai-garak
-    git.commit: 68065d43b48538f538feaf2314193a98456a654a
+    git.commit: 4457537afac82dad3b635187d51ee202e0f78bdf
   odh-trustyai-nemo-guardrails-server:
     git.url: https://github.com/red-hat-data-services/NeMo-Guardrails
     git.commit: 9b0a9fe7f6cce0138ae87eed625f7bbd7f600d12
