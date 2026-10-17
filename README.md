@@ -594,6 +594,10 @@ metadata:
 spec: {}
 ```
 
+**WVA compatibility note:**
+
+The `spec.wva` field is deprecated and preserved only for backward compatibility. Workload Variant Autoscaler (WVA) is no longer supported, and the operator treats WVA as removed regardless of whether an existing resource previously set it to `Managed`.
+
 ### Test with customized manifests
 
 There are 2 ways to test your changes with modification:
@@ -703,8 +707,6 @@ spec:
       managementState: Managed
       nim:
         managementState: Managed
-      wva:
-        managementState: Removed
       rawDeploymentServiceConfig: Headed
     kueue:
       managementState: Removed
@@ -772,6 +774,8 @@ The GatewayConfig custom resource is used to configure gateway settings for Open
 **Automatic Creation**: The GatewayConfig CR is automatically created when a DSCInitialization CR is applied to the cluster. Users typically don't need to create this CR manually unless they want to configure OIDC authentication mode or customize ingress gateway settings.
 
 In `OcpRoute` mode, the operator applies a `60s` timeout to the default shared Gateway Route when the default IngressController's server timeout is shorter. Administrators can override this through `spec.ocpRoute.serverTimeout`. See [Configure the shared Gateway Route timeout](docs/gateway-route-timeouts.md) for examples and how this setting interacts with component HTTPRoute timeouts.
+
+For legacy Dashboard and gateway URLs, see [Route cleanup and legacy URL redirects](docs/route-gc-on-upgrade.md), including the RHOAI 3.6+ deprecation page and how to disable or re-enable redirects through GatewayConfig.
 
 Here's an example of the default GatewayConfig CR (automatically created):
 
@@ -858,23 +862,7 @@ spec:
 
 This will use the cluster's default domain with your custom subdomain: `custom-gateway.apps.cluster.example.com`
 
-For an advanced example to disable NetworkPolicy creation for auth proxy:
-
-```yaml
-apiVersion: services.platform.opendatahub.io/v1alpha1
-kind: GatewayConfig
-metadata:
-  name: default-gateway
-spec:
-  cookie: {}
-  certificate:
-    type: SelfSigned
-  networkPolicy:
-    ingress:
-      enabled: false
-```
-
-**Note:** NetworkPolicy is enabled by default to restrict access to the kube-auth-proxy.
+The operator creates a NetworkPolicy whenever it deploys kube-auth-proxy. On upgrade, a previously stored `spec.networkPolicy.ingress.enabled: false` no longer suppresses policy creation; the upgraded controller creates the policy during reconciliation. The stored GatewayConfig needs no manual migration, but remove the obsolete `spec.networkPolicy` field from manifests before applying them again.
 
 **Important Notes:**
 - The GatewayConfig name must be exactly `default-gateway`
@@ -885,7 +873,7 @@ spec:
 - Certificate types can be `OpenshiftDefaultIngress`, `SelfSigned`, or `Provided`
 - If `subdomain` is not specified or is empty, the default value `rh-ai` is used.
 - If `domain` is not specified, the cluster's default domain is used.
-- **NetworkPolicy is enabled by default** to secure kube-auth-proxy traffic. It restricts ingress to Gateway pods and monitoring namespaces only.
+- **NetworkPolicy is enabled by default** to secure kube-auth-proxy traffic. It allows only Gateway pods to reach the authentication port (TCP 8443). kube-auth-proxy serves metrics on TCP 9000, but nothing scrapes that port today: the OpenShift monitoring stack only scrapes what a PodMonitor tells it to scrape (defaulting to port 8080), and kube-auth-proxy has no PodMonitor. The monitoring ingress rules are therefore omitted to keep the policy least-privileged; they can be reintroduced together with a PodMonitor when kube-auth-proxy becomes a metrics scrape target.
 
 ### Run functional Tests
 
