@@ -53,14 +53,13 @@ spec:
             description: AIGatewaySpec defines the desired state of AIGateway.
             properties:
               aiGrid:
-                description: AIGrid controls the AI Grid sub-component (CRDs only;
-                  kept on Removed).
+                description: AIGrid controls the AI Grid sub-component.
                 properties:
                   managementState:
                     default: Removed
                     description: |-
-                      ManagementState controls whether the AI Grid CRDs are installed.
-                      Removed stops reconciling them but does not delete them.
+                      ManagementState controls whether the AI Grid CRDs and the grid operator are installed.
+                      Removed deletes the operator but keeps the CRDs.
                     enum:
                     - Managed
                     - Removed

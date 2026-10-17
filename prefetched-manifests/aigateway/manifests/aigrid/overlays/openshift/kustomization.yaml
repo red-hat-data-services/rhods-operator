@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Generated from charts/grid-operator by scripts/generate-deployment-operator.sh.
+# The namespace is a default; a platform operator or kubectl -n overrides it.
+namespace: grid-system
+
+resources:
+  - clusterrole-crd.yaml
+  - clusterrole-metrics-scraper.yaml
+  - clusterrole-resources.yaml
+  - clusterrolebinding-crd.yaml
+  - clusterrolebinding-metrics-scraper.yaml
+  - deployment.yaml
+  - networkpolicy.yaml
+  - role-metrics-scraper-token.yaml
+  - rolebinding-metrics-scraper-token.yaml
+  - rolebinding-resources.yaml
+  - service-metrics.yaml
+  - service-signals.yaml
+  - service-swim.yaml
+  - serviceaccount-metrics-scraper.yaml
+  - serviceaccount.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: grid-operator
+      app.kubernetes.io/managed-by: kustomize
+
+configMapGenerator:
+  - name: grid-operator-parameters
+    envs:
+      - params.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: grid-operator-parameters
+      fieldPath: data.grid-operator-image
+    targets:
+      - select:
+          kind: Deployment
+          name: grid-operator
+        fieldPaths:
+          - spec.template.spec.containers.[name=operator].image

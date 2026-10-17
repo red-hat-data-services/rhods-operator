@@ -1,0 +1,19 @@
+# Source: grid-operator/templates/service-signals.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grid-operator-signals
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  type: "LoadBalancer"
+  externalTrafficPolicy: "Local"
+  ports:
+    - name: signals
+      port: 9091
+      targetPort: signals
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator

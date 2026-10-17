@@ -16,8 +16,19 @@ spec:
         - jsonPath: .spec.providerKind
           name: Provider
           type: string
+        - jsonPath: .status.conditions[?(@.type=="Ready")].status
+          name: Ready
+          type: string
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+        - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+          name: Reason
+          priority: 1
+          type: string
         - jsonPath: .status.phase
           name: Phase
+          priority: 1
           type: string
       name: v1alpha1
       schema:
@@ -50,10 +61,16 @@ spec:
                   description: Authentication configuration.
                   nullable: true
                   properties:
-                    manual:
-                      default: false
+                    credentialsManagedExternally:
                       description: |-
                         Whether the user manages credentials manually.
+
+                        When true, the operator does not inject credentials
+                        and the user is responsible for configuring auth.
+                      type: boolean
+                    manual:
+                      description: |-
+                        Deprecated in favor of `credentialsManagedExternally`; this legacy field will be removed in a future release. Whether the user manages credentials manually.
 
                         When true, the operator does not inject credentials
                         and the user is responsible for configuring auth.
@@ -98,6 +115,9 @@ spec:
                   required:
                     - strategy
                   type: object
+                  x-kubernetes-validations:
+                    - message: set only `manual` or `credentialsManagedExternally`, not both
+                      rule: '!(has(self.manual) && has(self.credentialsManagedExternally))'
                 backendKind:
                   description: Backend deployment category.
                   type: string
@@ -108,6 +128,24 @@ spec:
                   minimum: 1.0
                   nullable: true
                   type: integer
+                clusterName:
+                  description: |-
+                    Optional routing identity used in overlay candidate `site` and `cluster` fields.
+
+                    When set, routing overlay candidates produced for this provider use this value
+                    instead of `metadata.name`:
+
+                    - In Phase 1 (no [`GridSite`] inventory), both `candidate.site` and `candidate.cluster` are set to this value.
+                    - When [`GridSite`] resources are present, only `candidate.cluster` is overridden; `candidate.site` is derived
+                      from the matched `GridSite`.
+
+                    Use this to align the provider's routing identity with an upstream cluster
+                    name already configured in the consumer gateway, such as a Praxis
+                    `load_balancer` cluster entry.  When absent, `metadata.name` is used.
+
+                    [`GridSite`]: crate::crd::grid_site::GridSite
+                  nullable: true
+                  type: string
                 cost:
                   description: Cost information.
                   nullable: true
@@ -128,7 +166,7 @@ spec:
                   type: string
                 gatewayRef:
                   description: |-
-                    Stable provider-gateway identity used by administrative operations.
+                    Deprecated in favor of `providerGateway`; this legacy field will be removed in a future release. Stable provider-gateway identity used by administrative operations.
 
                     Providers with the same value are drained together by the gateway-wide
                     operation. It is an explicit control-plane relationship; the operator
@@ -313,11 +351,24 @@ spec:
                       required:
                         - type
                       type: object
-                    metricsEndpoint:
+                    endpoint:
                       description: |-
                         Base URL for the metrics endpoint, independent of `spec.endpoint`.
 
-                        When set, the scrape URL is `{metrics_endpoint}{path}` instead of
+                        When set, the scrape URL is `{endpoint}{path}` instead of
+                        `{spec.endpoint}{path}`.  This allows scraping metrics from a separate
+                        service (such as an llm-d EPP) while the provider inference endpoint
+                        points at the pool's request path.
+
+                        When absent, the scrape URL uses `spec.endpoint` as before.
+                      minLength: 1
+                      nullable: true
+                      type: string
+                    metricsEndpoint:
+                      description: |-
+                        Deprecated in favor of `endpoint`; this legacy field will be removed in a future release. Base URL for the metrics endpoint, independent of `spec.endpoint`.
+
+                        When set, the scrape URL is `{endpoint}{path}` instead of
                         `{spec.endpoint}{path}`.  This allows scraping metrics from a separate
                         service (such as an llm-d EPP) while the provider inference endpoint
                         points at the pool's request path.
@@ -331,7 +382,7 @@ spec:
                       description: |-
                         HTTP path for the Prometheus metrics endpoint.
 
-                        Appended to `metrics_endpoint` (when set) or `spec.endpoint`.
+                        Appended to `endpoint` (when set) or `spec.endpoint`.
                         Defaults to `"/metrics"` when absent.
                       type: string
                     poolName:
@@ -354,7 +405,7 @@ spec:
                     queueCapacity:
                       description: |-
                         Maximum queue slot count for normalising a raw queue-size metric to
-                        0.0–1.0.
+                        the 0.0 to 1.0 range.
 
                         When set, the `queue_depth` signal value is divided by this capacity
                         and clamped to `[0.0, 1.0]` before scoring.  This allows consuming raw
@@ -362,7 +413,7 @@ spec:
                         without requiring the exporter to pre-normalise.
 
                         When absent, the `queue_depth` signal must already be normalised to
-                        0.0–1.0 by the exporter (backward compatible).
+                        the 0.0 to 1.0 range by the exporter (backward compatible).
                       format: uint32
                       minimum: 1.0
                       nullable: true
@@ -376,7 +427,7 @@ spec:
                         neutral default value (`0.5`) in scoring.
                       properties:
                         errorRate:
-                          description: Metric name for normalised error rate (0.0–1.0).
+                          description: Metric name for normalised error rate (0.0 to 1.0).
                           nullable: true
                           type: string
                         healthy:
@@ -384,7 +435,7 @@ spec:
                           nullable: true
                           type: string
                         kvCacheUtilization:
-                          description: Metric name for KV-cache utilisation (0.0–1.0).
+                          description: Metric name for KV-cache utilisation (0.0 to 1.0).
                           nullable: true
                           type: string
                         latencyP99Ms:
@@ -392,11 +443,19 @@ spec:
                           nullable: true
                           type: string
                         prefixCacheHitRatio:
-                          description: Metric name for prefix-cache hit ratio (0.0–1.0).
+                          description: Metric name for prefix-cache hit ratio (0.0 to 1.0).
                           nullable: true
                           type: string
                         queueDepth:
-                          description: Metric name for normalised queue depth (0.0–1.0).
+                          description: Metric name for normalised queue depth (0.0 to 1.0).
+                          nullable: true
+                          type: string
+                        readyEndpoints:
+                          description: |-
+                            Metric name counting the pool's ready endpoints, read for the `Ready` condition.
+
+                            Defaults to `llm_d_epp_ready_endpoints`, then `inference_pool_ready_pods`.
+                            Filtered by `poolName` when set. Zero marks the provider not ready.
                           nullable: true
                           type: string
                       type: object
@@ -542,6 +601,9 @@ spec:
                         - message: set exactly one of caSecretRef and caConfigMapRef
                           rule: has(self.caSecretRef) != has(self.caConfigMapRef)
                   type: object
+                  x-kubernetes-validations:
+                    - message: set only `metricsEndpoint` or `endpoint`, not both
+                      rule: '!(has(self.metricsEndpoint) && has(self.endpoint))'
                 modelDiscovery:
                   description: |-
                     Where to discover the models this provider serves.
@@ -707,12 +769,22 @@ spec:
                       - name
                     type: object
                   type: array
+                providerGateway:
+                  description: |-
+                    Stable provider-gateway identity used by administrative operations.
+
+                    Providers with the same value are drained together by the gateway-wide
+                    operation. It is an explicit control-plane relationship; the operator
+                    never infers it from endpoint URLs.
+                  minLength: 1
+                  nullable: true
+                  type: string
                 providerKind:
                   description: Inference provider type.
                   type: string
                 routingClusterRef:
                   description: |-
-                    Optional routing identity used in overlay candidate `site` and `cluster` fields.
+                    Deprecated in favor of `clusterName`; this legacy field will be removed in a future release. Optional routing identity used in overlay candidate `site` and `cluster` fields.
 
                     When set, routing overlay candidates produced for this provider use this value
                     instead of `metadata.name`:
@@ -860,10 +932,55 @@ spec:
                 - gridNetworkRef
                 - providerKind
               type: object
+              x-kubernetes-validations:
+                - message: set only `gatewayRef` or `providerGateway`, not both
+                  rule: '!(has(self.gatewayRef) && has(self.providerGateway))'
+                - message: set only `routingClusterRef` or `clusterName`, not both
+                  rule: '!(has(self.routingClusterRef) && has(self.clusterName))'
             status:
               description: Observed status of an [`InferenceProvider`].
               nullable: true
               properties:
+                conditions:
+                  description: |-
+                    Observed conditions. `Ready` says whether the provider can currently serve a request.
+
+                    Written by the operator's signals loop, never by provider reconciliation.
+                  items:
+                    description: One observed condition, shaped like `metav1.Condition`.
+                    properties:
+                      lastTransitionTime:
+                        description: When `status` last changed, RFC 3339.
+                        format: date-time
+                        type: string
+                      message:
+                        default: ""
+                        description: Human-readable detail.
+                        type: string
+                      observedGeneration:
+                        description: The `metadata.generation` this was computed against.
+                        format: int64
+                        nullable: true
+                        type: integer
+                      reason:
+                        description: CamelCase reason for the status.
+                        type: string
+                      status:
+                        description: '`True`, `False`, or `Unknown`.'
+                        type: string
+                      type:
+                        description: Condition type, such as `Ready`.
+                        type: string
+                    required:
+                      - lastTransitionTime
+                      - reason
+                      - status
+                      - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                    - type
+                  x-kubernetes-list-type: map
                 matchingSites:
                   default: []
                   description: Sites matched by the site selector.
@@ -909,6 +1026,7 @@ spec:
                     - `MetricsTlsSecretMissing`, `MetricsTlsKeyMissing`, `MetricsTlsMaterialInvalid`, `MetricsTlsIdentityMismatch`
                     - `HealthCheckTlsSecretMissing`, `HealthCheckTlsKeyMissing`, `HealthCheckTlsMaterialInvalid`,
                       `HealthCheckTlsIdentityMismatch`
+                    - `HealthCheckAuthCredentialUnavailable`, `HealthCheckAuthValueInvalid`
                   nullable: true
                   type: string
               type: object

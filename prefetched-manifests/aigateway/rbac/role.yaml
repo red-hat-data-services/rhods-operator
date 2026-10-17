@@ -4,6 +4,10 @@ kind: ClusterRole
 metadata:
   name: manager-role
 rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
 - apiGroups:
   - ""
   resources:
@@ -50,10 +54,19 @@ rules:
   - secrets
   verbs:
   - create
+  - delete
   - get
   - list
   - patch
   - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - grid-operator-metrics-scraper
+  resources:
+  - serviceaccounts/token
+  verbs:
+  - create
 - apiGroups:
   - ""
   - events.k8s.io
@@ -105,6 +118,7 @@ rules:
   - gridnetworks.grid.praxis.fast
   - gridsites.grid.praxis.fast
   - inferenceproviders.grid.praxis.fast
+  - siteinvites.grid.praxis.fast
   resources:
   - customresourcedefinitions
   verbs:
@@ -362,6 +376,39 @@ rules:
   verbs:
   - update
 - apiGroups:
+  - grid.praxis.fast
+  resources:
+  - agenttoolproviders
+  - gridnetworks
+  - inferenceproviders
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - grid.praxis.fast
+  resources:
+  - agenttoolproviders/status
+  - gridnetworks/status
+  - gridsites/status
+  - inferenceproviders/status
+  verbs:
+  - get
+  - patch
+- apiGroups:
+  - grid.praxis.fast
+  resources:
+  - gridsites
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - inference.opendatahub.io
   resources:
   - externalmodels
@@ -555,6 +602,18 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resourceNames:
+  - grid-operator-crd
+  - grid-operator-metrics-scraper
+  resources:
+  - clusterrolebindings
+  verbs:
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
   - llm-d-batch-gateway-operator
   resources:
   - clusterrolebindings
@@ -607,6 +666,19 @@ rules:
 - apiGroups:
   - rbac.authorization.k8s.io
   resourceNames:
+  - grid-operator-crd
+  - grid-operator-metrics-scraper
+  - grid-operator-resources
+  resources:
+  - clusterroles
+  verbs:
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
   - llm-d-batch-gateway-admin
   - llm-d-batch-gateway-operator
   - llm-d-batch-gateway-view
@@ -631,6 +703,14 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - security.openshift.io
   resourceNames:

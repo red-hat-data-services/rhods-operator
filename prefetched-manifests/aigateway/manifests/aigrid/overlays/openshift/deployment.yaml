@@ -1,0 +1,115 @@
+# Source: grid-operator/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grid-operator
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  replicas: 1
+  # One SWIM identity per site: a surge pod would gossip a second one.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grid-operator
+      app.kubernetes.io/instance: grid-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: operator
+        app.kubernetes.io/instance: grid-operator
+        app.kubernetes.io/name: grid-operator
+    spec:
+      serviceAccountName: grid-operator
+      # Service link env vars (a grid-gateway Service injects GRID_GATEWAY_PORT)
+      # would collide with the operator's GRID_* settings.
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: operator
+          image: ghcr.io/praxis-proxy/grid-operator:v0.2.0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: GRID_SWIM_BIND_ADDR
+              value: "0.0.0.0:7946"
+            - name: GRID_SWIM_ADVERTISE_ADDR
+              value: "$(POD_IP):7946"
+            - name: GRID_SWIM_ADVERTISE_FALLBACK
+              value: "$(POD_IP):7946"
+            - name: GRID_SWIM_SERVICE_NAME
+              value: "grid-operator-swim"
+            - name: GRID_GATEWAY_SERVICE_NAME
+              value: "grid-gateway"
+            - name: GRID_GATEWAY_NAMESPACE
+              value: "$(POD_NAMESPACE)"
+            - name: GRID_GATEWAY_DISCOVERY_ENABLED
+              value: "true"
+            - name: GRID_METRICS_SCRAPER_SERVICE_ACCOUNT
+              value: "grid-operator-metrics-scraper"
+            - name: GRID_METRICS_SCRAPER_NAMESPACE
+              value: "$(POD_NAMESPACE)"
+            - name: GRID_SIGNALS_LOCAL_ADDR
+              value: "grid-operator-signals.$(POD_NAMESPACE).svc:9091"
+            - name: GRID_SIGNALS_SERVICE_NAME
+              value: "grid-operator-signals"
+            - name: GRID_METRICS_ADDR
+              value: "0.0.0.0:9090"
+            - name: GRID_METRICS_TLS_CERT
+              value: "/etc/grid/metrics-tls/tls.crt"
+            - name: GRID_METRICS_TLS_KEY
+              value: "/etc/grid/metrics-tls/tls.key"
+            - name: RUST_LOG
+              value: "info"
+          volumeMounts:
+            - name: metrics-tls
+              mountPath: "/etc/grid/metrics-tls"
+              readOnly: true
+          ports:
+            - name: swim-udp
+              containerPort: 7946
+              protocol: UDP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+            - name: signals
+              containerPort: 9091
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: metrics
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: metrics-tls
+          secret:
+            secretName: "grid-operator-metrics-tls"
+            defaultMode: 0440

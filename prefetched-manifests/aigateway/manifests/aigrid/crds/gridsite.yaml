@@ -32,7 +32,44 @@ spec:
                 grid membership.
               properties:
                 egress:
-                  description: Egress endpoint for data-plane connectivity.
+                  description: Deprecated in favor of `gatewayEndpoint`; this legacy field will be removed in a future release. Gateway endpoint for data-plane connectivity.
+                  nullable: true
+                  properties:
+                    address:
+                      description: Address of the egress gateway (host:port).
+                      type: string
+                    tls:
+                      default:
+                        mode: Mutual
+                      description: TLS mode for the connection.
+                      properties:
+                        mode:
+                          default: Mutual
+                          description: TLS transport mode.
+                          enum:
+                            - Mutual
+                            - Plaintext
+                          type: string
+                        serverName:
+                          description: |-
+                            Expected DNS identity for TLS verification.
+
+                            Used as both the TLS SNI value and for certificate SAN
+                            verification.  Required when `mode` is [`EgressTlsMode::Mutual`];
+                            must be absent for [`EgressTlsMode::Plaintext`].
+
+                            Must be a valid DNS name (not an IP address), at most 253
+                            characters.
+                          maxLength: 253
+                          minLength: 1
+                          nullable: true
+                          type: string
+                      type: object
+                  required:
+                    - address
+                  type: object
+                gatewayEndpoint:
+                  description: Gateway endpoint for data-plane connectivity.
                   nullable: true
                   properties:
                     address:
@@ -130,6 +167,9 @@ spec:
               required:
                 - gridNetworkRef
               type: object
+              x-kubernetes-validations:
+                - message: set only `egress` or `gatewayEndpoint`, not both
+                  rule: '!(has(self.egress) && has(self.gatewayEndpoint))'
             status:
               description: Observed status of a [`GridSite`].
               nullable: true

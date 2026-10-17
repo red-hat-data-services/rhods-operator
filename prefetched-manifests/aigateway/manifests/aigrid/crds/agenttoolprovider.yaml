@@ -50,10 +50,16 @@ spec:
                   description: Authentication configuration.
                   nullable: true
                   properties:
-                    manual:
-                      default: false
+                    credentialsManagedExternally:
                       description: |-
                         Whether the user manages credentials manually.
+
+                        When true, the operator does not inject credentials
+                        and the user is responsible for configuring auth.
+                      type: boolean
+                    manual:
+                      description: |-
+                        Deprecated in favor of `credentialsManagedExternally`; this legacy field will be removed in a future release. Whether the user manages credentials manually.
 
                         When true, the operator does not inject credentials
                         and the user is responsible for configuring auth.
@@ -98,6 +104,9 @@ spec:
                   required:
                     - strategy
                   type: object
+                  x-kubernetes-validations:
+                    - message: set only `manual` or `credentialsManagedExternally`, not both
+                      rule: '!(has(self.manual) && has(self.credentialsManagedExternally))'
                 endpoint:
                   description: HTTP endpoint of the MCP server.
                   type: string
@@ -257,7 +266,7 @@ spec:
                 # Stable `reason` values
 
                 `reason` is `None` while the provider is healthy. When set, it is one
-                of the following stable, machine-readable strings — following the
+                of the following stable, machine-readable strings, following the
                 same naming convention as [`InferenceProvider`]'s `MetricsTls*`/
                 `HealthCheckTls*` reasons:
 
