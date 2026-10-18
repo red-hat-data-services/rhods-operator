@@ -11,6 +11,8 @@ spec:
   #   name: batch-gateway-secrets
   #   namespace: credentials-ns
   dbBackend: postgresql
+  extraEndpoints:
+  - /v1/classify
   fileStorage:
     s3:
       bucket: llm-d-batch-gateway
@@ -18,8 +20,19 @@ spec:
       endpoint: https://s3.example.com
   apiServer:
     replicas: 1
+    config:
+      batchAPI:
+        # Component-level override of spec.extraEndpoints.
+        extraEndpoints:
+        - /v1/classify
   processor:
     replicas: 1
+    config:
+      inputFileDiskBudgetPercent: 10
+      progressUpdateInterval: 15s
+      # Component-level override of spec.extraEndpoints.
+      extraEndpoints:
+      - /v1/classify
     modelGateways:
       llama-3:
         inferencePoolName: llama-pool

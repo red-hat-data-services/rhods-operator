@@ -78,6 +78,16 @@ spec:
                               retained before expiry.
                             format: int32
                             type: integer
+                          extraEndpoints:
+                            description: |-
+                              ExtraEndpoints overrides spec.extraEndpoints for the API server.
+                              Leave unset to inherit spec.extraEndpoints; an explicit empty list disables
+                              deployment-specific endpoints for the API server.
+                            items:
+                              maxLength: 2048
+                              type: string
+                            maxItems: 32
+                            type: array
                           passThroughHeaders:
                             description: PassThroughHeaders is a list of HTTP request
                               headers forwarded to the inference backend.
@@ -236,13 +246,23 @@ spec:
                 type: object
               dbBackend:
                 default: postgresql
-                description: DBBackend selects the database backend used for job state
-                  storage.
+                description: |-
+                  DBBackend selects the database backend used for job state storage.
+                  The batch-gateway control plane uses PostgreSQL. Redis is used by the
+                  async processor when dispatchMode is "async"; async is the default.
                 enum:
-                - redis
                 - postgresql
-                - valkey
                 type: string
+              extraEndpoints:
+                description: |-
+                  ExtraEndpoints adds deployment-specific inference paths to the standard
+                  OpenAI Batch API allowlist for both the API server and processor.
+                  The batch-gateway processes validate each path at startup.
+                items:
+                  maxLength: 2048
+                  type: string
+                maxItems: 32
+                type: array
               fileStorage:
                 description: |-
                   FileStorage configures the file storage backend used to persist batch
@@ -315,7 +335,7 @@ spec:
                         type: string
                       endpoint:
                         description: Endpoint overrides the S3 endpoint URL for non-AWS
-                          providers (e.g. MinIO).
+                          providers (e.g. SeaweedFS).
                         maxLength: 2048
                         pattern: ^https?://.+$
                         type: string
@@ -1024,6 +1044,16 @@ spec:
                         description: EnablePprof enables the Go pprof profiling HTTP
                           endpoints.
                         type: boolean
+                      extraEndpoints:
+                        description: |-
+                          ExtraEndpoints overrides spec.extraEndpoints for the processor.
+                          Leave unset to inherit spec.extraEndpoints; an explicit empty list disables
+                          deployment-specific endpoints for the processor.
+                        items:
+                          maxLength: 2048
+                          type: string
+                        maxItems: 32
+                        type: array
                       inferenceObjective:
                         description: |-
                           InferenceObjective is applied to globalInferenceGateway and to every
@@ -1032,6 +1062,14 @@ spec:
                           Deprecated: set inferenceObjective on the gateway instead.
                         maxLength: 253
                         type: string
+                      inputFileDiskBudgetPercent:
+                        description: |-
+                          InputFileDiskBudgetPercent is the percentage of the processor work directory
+                          reserved for local input copies when calculating effective worker capacity.
+                        format: int32
+                        maximum: 100
+                        minimum: 1
+                        type: integer
                       logging:
                         description: Logging configures log verbosity for the processor.
                         properties:
@@ -1047,10 +1085,19 @@ spec:
                         format: int32
                         type: integer
                       progressTTLSeconds:
-                        description: ProgressTTLSeconds is how long in-progress job
-                          state is retained before being considered stale.
+                        description: |-
+                          ProgressTTLSeconds is retained for API compatibility. The upstream
+                          processor now writes progress to PostgreSQL and does not use this field.
+                          Deprecated: use progressUpdateInterval.
                         format: int64
                         type: integer
+                      progressUpdateInterval:
+                        description: |-
+                          ProgressUpdateInterval is the interval between intermediate progress writes
+                          to PostgreSQL.
+                        maxLength: 32
+                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                        type: string
                       routeKeyMethod:
                         description: |-
                           RouteKeyMethod controls how modelGateways lookup keys are built.
@@ -1344,8 +1391,10 @@ spec:
                     type: object
                 type: object
               redis:
-                description: RedisClient configures Redis/Valkey client connection
-                  settings (TLS, etc.).
+                description: |-
+                  RedisClient is retained for API compatibility but is no longer used by
+                  the batch-gateway control plane. Configure Redis under processor.asyncConfig.
+                  Deprecated: do not set this field.
                 properties:
                   enableTLS:
                     description: EnableTLS enables TLS for the Redis/Valkey connection.

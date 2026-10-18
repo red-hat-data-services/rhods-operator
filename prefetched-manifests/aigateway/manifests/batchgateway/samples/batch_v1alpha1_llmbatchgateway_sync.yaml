@@ -6,6 +6,9 @@ spec:
   secretRef:
     name: batch-gateway-secrets
   dbBackend: postgresql
+  # Optional inference paths accepted by both the API server and processor.
+  extraEndpoints:
+  - /v1/classify
   fileStorage:
     s3:
       bucket: llm-d-batch-gateway
@@ -16,6 +19,9 @@ spec:
   processor:
     replicas: 1
     dispatchMode: sync
+    config:
+      inputFileDiskBudgetPercent: 10
+      progressUpdateInterval: 15s
     globalInferenceGateway:
       url: http://inference-gateway.default.svc:8000
       requestTimeout: 5m
