@@ -265,6 +265,28 @@ rules:
   - update
   - watch
 - apiGroups:
+  - dataregistry.opendatahub.io
+  resources:
+  - connections
+  verbs:
+  - use
+- apiGroups:
+  - dataregistry.opendatahub.io
+  resources:
+  - generic-tables
+  - namespaces
+  - registries
+  - tables
+  - volumes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - feast.dev
   resources:
   - featurestores
@@ -334,28 +356,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - dataregistry.opendatahub.io
-  resources:
-  - registries
-  - namespaces
-  - tables
-  - volumes
-  - generic-tables
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - dataregistry.opendatahub.io
-  resources:
-  - connections
-  verbs:
-  - use
-- apiGroups:
   - rbac.authorization.k8s.io
   resourceNames:
   - system:auth-delegator
@@ -374,6 +374,13 @@ rules:
   - list
   - update
   - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+  - update
 - apiGroups:
   - sparkoperator.k8s.io
   resources:
