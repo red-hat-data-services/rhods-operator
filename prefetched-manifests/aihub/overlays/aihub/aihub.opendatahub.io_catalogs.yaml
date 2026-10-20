@@ -43,6 +43,14 @@ spec:
           spec:
             description: CatalogSpec defines the desired state of Catalog.
             properties:
+              benchmarkDataImage:
+                description: |-
+                  BenchmarkDataImage is retained for compatibility with existing manifests.
+
+                  Deprecated: ignored by the controller. Use BenchmarkDataImageStream to select
+                  the benchmark data image.
+                maxLength: 128
+                type: string
               benchmarkDataImageStream:
                 description: |-
                   BenchmarkDataImageStream independently selects the benchmark data image
@@ -51,6 +59,14 @@ spec:
                   independently. Unset and empty values are equivalent.
                 maxLength: 128
                 pattern: ^(|stable|sha256:[a-f0-9]{64})$
+                type: string
+              catalogDataImage:
+                description: |-
+                  CatalogDataImage is retained for compatibility with existing manifests.
+
+                  Deprecated: ignored by the controller. Use CatalogDataImageStream to select
+                  the catalog data image.
+                maxLength: 128
                 type: string
               catalogDataImageStream:
                 description: |-
