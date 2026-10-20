@@ -24,3 +24,8 @@ rules:
       - gridsites/status
       - inferenceproviders/status
     verbs: ["get", "patch"]
+  # The operator creates its own GridNetwork once its identity exists.
+  - apiGroups: ["grid.praxis.fast"]
+    resources:
+      - gridnetworks
+    verbs: ["create"]

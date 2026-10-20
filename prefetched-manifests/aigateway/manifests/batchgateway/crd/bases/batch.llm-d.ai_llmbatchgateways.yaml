@@ -825,10 +825,10 @@ spec:
                       replicas:
                         default: 1
                         description: |-
-                          Replicas is the desired number of async-processor pods.
-                          Setting this to 0 suspends the async-processor; the Ready condition will be False.
-                          NOTE: the upstream async-processor chart currently hardcodes replicas to 1;
-                          this field will take effect once the upstream chart templates it from values.
+                          Replicas is reserved for the future desired number of async-processor pods.
+                          It is currently ignored: the upstream llm-d-async chart hardcodes replicas to 1.
+                          Setting this field, including 0, does not change or suspend the async processor.
+                          It will take effect only after the upstream chart templates it from values.
                         format: int32
                         minimum: 0
                         type: integer
@@ -1098,6 +1098,33 @@ spec:
                         maxLength: 32
                         pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                         type: string
+                      resumable:
+                        description: Resumable holds tunables for the resumable batch
+                          pipeline.
+                        properties:
+                          finalizeConcurrency:
+                            description: FinalizeConcurrency bounds parallel result-object
+                              fetches during finalization.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          finalizeTimeout:
+                            description: FinalizeTimeout is the budget for one resumable
+                              finalization attempt.
+                            maxLength: 32
+                            pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
+                            type: string
+                            x-kubernetes-validations:
+                            - message: finalizeTimeout must be greater than 0s
+                              rule: duration(self) > duration('0s')
+                          leaseDuration:
+                            description: |-
+                              LeaseDuration is the PostgreSQL ownership lease held by an activated batch.
+                              The owning processor renews the lease at half this interval.
+                            maxLength: 32
+                            pattern: ^([1-9][0-9]*s|[1-9][0-9]*m|[1-9][0-9]*h)([0-9]+s|[0-9]+m|[0-9]+h)*$
+                            type: string
+                        type: object
                       routeKeyMethod:
                         description: |-
                           RouteKeyMethod controls how modelGateways lookup keys are built.

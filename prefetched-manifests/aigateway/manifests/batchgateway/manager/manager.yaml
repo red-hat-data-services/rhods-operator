@@ -24,7 +24,7 @@ spec:
         args:
         - --leader-elect
         - --batch-gateway-chart-path=/charts/batch-gateway
-        - --async-chart-path=/charts/async-processor
+        - --async-chart-path=/charts/llm-d-async
         env:
         - name: POD_NAMESPACE
           valueFrom:

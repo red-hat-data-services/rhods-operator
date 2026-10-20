@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # Generated from charts/grid-operator by scripts/generate-deployment-operator.sh.
-# The namespace is a default; a platform operator or kubectl -n overrides it.
+# Set the namespace in params.env: the replacements below carry it to every object,
+# its ServiceAccount subjects, and the ServiceMonitor. This line is only the default.
 namespace: grid-system
 
 resources:
@@ -21,6 +22,7 @@ resources:
   - service-swim.yaml
   - serviceaccount-metrics-scraper.yaml
   - serviceaccount.yaml
+  - servicemonitor.yaml
 
 labels:
   - pairs:
@@ -46,3 +48,25 @@ replacements:
           name: grid-operator
         fieldPaths:
           - spec.template.spec.containers.[name=operator].image
+  - source:
+      kind: ConfigMap
+      name: grid-operator-parameters
+      fieldPath: data.namespace
+    targets:
+      - select:
+          namespace: grid-system
+        fieldPaths:
+          - metadata.namespace
+      - select:
+          kind: ServiceMonitor
+          name: grid-operator
+        fieldPaths:
+          - spec.namespaceSelector.matchNames.0
+      - select:
+          kind: ServiceMonitor
+          name: grid-operator
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 1

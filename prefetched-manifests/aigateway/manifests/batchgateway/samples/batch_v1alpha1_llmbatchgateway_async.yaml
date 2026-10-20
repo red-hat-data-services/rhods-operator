@@ -30,6 +30,10 @@ spec:
     config:
       inputFileDiskBudgetPercent: 10
       progressUpdateInterval: 15s
+      resumable:
+        leaseDuration: 5m
+        finalizeConcurrency: 16
+        finalizeTimeout: 30m
       # Component-level override of spec.extraEndpoints.
       extraEndpoints:
       - /v1/classify
@@ -40,7 +44,6 @@ spec:
         inferencePoolName: whisper-pool
     dispatchMode: async
     asyncConfig:
-      replicas: 1
       concurrency: 8
       drainTimeout: 2m
       resultPollTimeout: 30s

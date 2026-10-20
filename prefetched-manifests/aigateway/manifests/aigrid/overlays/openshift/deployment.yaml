@@ -32,7 +32,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: operator
-          image: ghcr.io/praxis-proxy/grid-operator:v0.2.0
+          image: ghcr.io/praxis-proxy/grid-operator:v0.2.1
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -58,6 +58,8 @@ spec:
               value: "$(POD_IP):7946"
             - name: GRID_SWIM_SERVICE_NAME
               value: "grid-operator-swim"
+            - name: GRID_NETWORK
+              value: "grid"
             - name: GRID_GATEWAY_SERVICE_NAME
               value: "grid-gateway"
             - name: GRID_GATEWAY_NAMESPACE
