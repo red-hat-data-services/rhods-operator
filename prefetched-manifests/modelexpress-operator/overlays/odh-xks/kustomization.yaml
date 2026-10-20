@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+components:
+- ../../components/related-image
+kind: Kustomization
+replacements:
+- source:
+    fieldPath: data.MODELEXPRESS_SERVER_IMAGE
+    kind: ConfigMap
+    name: modelexpress-operator-params
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.[name=operator].env.[name=RELATED_IMAGE_ODH_MODELEXPRESS_IMAGE].value
+    select:
+      kind: Deployment
+      name: modelexpress-operator
+resources:
+- ../../base

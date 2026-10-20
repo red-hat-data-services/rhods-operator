@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: modelexpress-operator
+  name: modelexpress-operator
+rules:
+- apiGroups:
+  - modelexpress.opendatahub.io
+  resources:
+  - modelexpressservers
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - modelexpress.opendatahub.io
+  resources:
+  - modelexpressservers/status
+  - modelexpressservers/finalizers
+  verbs:
+  - update
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - services
+  - persistentvolumeclaims
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - modelexpress.nvidia.com
+  resources:
+  - modelmetadatas
+  - modelcacheentries
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - modelexpress.nvidia.com
+  resources:
+  - modelmetadatas/status
+  - modelcacheentries/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - modelexpress.nvidia.com
+  resources:
+  - modelmetadatas/finalizers
+  - modelcacheentries/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete

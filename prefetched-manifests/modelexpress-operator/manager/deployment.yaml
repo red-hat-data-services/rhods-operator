@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: modelexpress-operator
+  name: modelexpress-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: modelexpress-operator
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '8080'
+        prometheus.io/scrape: 'true'
+      labels:
+        app.kubernetes.io/name: modelexpress-operator
+    spec:
+      containers:
+      - image: quay.io/opendatahub/odh-modelexpress-operator:odh-stable
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http-health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        name: operator
+        ports:
+        - containerPort: 8081
+          name: http-health
+        - containerPort: 8080
+          name: http-metrics
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http-health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: modelexpress-operator

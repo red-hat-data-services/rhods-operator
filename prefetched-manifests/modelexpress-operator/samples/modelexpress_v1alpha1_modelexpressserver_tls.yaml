@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+# TLS on the gRPC listener from a kubernetes.io/tls Secret. minVersion,
+# cipherSuites and groups are optional; unset, the server's defaults apply.
+apiVersion: modelexpress.opendatahub.io/v1alpha1
+kind: ModelExpressServer
+metadata:
+  name: modelexpress-tls
+spec:
+  image: nvcr.io/nvidia/ai-dynamo/modelexpress-server:0.5.0
+  metadataBackend:
+    kubernetes: {}
+  tls:
+    secretName: modelexpress-tls
+    minVersion: TLS1.2

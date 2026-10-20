@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modelexpress-operator
+spec:
+  template:
+    spec:
+      containers:
+      - env:
+        - name: RELATED_IMAGE_ODH_MODELEXPRESS_IMAGE
+          value: set from params.env
+        name: operator

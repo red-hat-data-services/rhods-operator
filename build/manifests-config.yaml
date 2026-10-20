@@ -77,7 +77,7 @@ map:
     dest: odh-observability
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-observability
-    git.commit: d6437fe4d30a9dadc6eeb3ec2a399104df8ba8b7
+    git.commit: e82a30479f6a22c3a5d80b1f3ca09034c42809d7
   odh-db-operator:
     src: config/chart
     dest: databaseservice
@@ -87,6 +87,8 @@ map:
   odh-modelexpress-operator:
     src: config/manifests
     dest: modelexpress-operator
+    git.url: https://github.com/red-hat-data-services/modelexpress
+    git.commit: 167e54bdc7a34fd9f08a9586f26c9db53e26d810
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
@@ -253,9 +255,6 @@ additional_meta:
   odh-modelexpress:
     git.url: https://github.com/red-hat-data-services/modelexpress
     git.commit: 167e54bdc7a34fd9f08a9586f26c9db53e26d810
-  odh-modelexpress-operator:
-    git.url: https://github.com/red-hat-data-services/modelexpress
-    git.commit: 167e54bdc7a34fd9f08a9586f26c9db53e26d810
   odh-model-controller:
     git.url: https://github.com/red-hat-data-services/odh-model-controller
     git.commit: 556db7869fb8dd73e1ee78326ca45d14dbe6d88b
@@ -285,7 +284,7 @@ additional_meta:
     git.commit: 5fa77303af47c30c9b102f7281f67bba29de0bd0
   odh-mod-arch-data-connect-hub:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 5fa77303af47c30c9b102f7281f67bba29de0bd0
+    git.commit: 677801dd254b4924259f234068dcd9559a6db6cb
   odh-mod-arch-data-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 5fa77303af47c30c9b102f7281f67bba29de0bd0

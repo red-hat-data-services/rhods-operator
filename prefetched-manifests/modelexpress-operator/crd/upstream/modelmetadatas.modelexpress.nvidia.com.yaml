@@ -1,0 +1,225 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelmetadatas.modelexpress.nvidia.com
+spec:
+  group: modelexpress.nvidia.com
+  names:
+    categories: []
+    kind: ModelMetadata
+    plural: modelmetadatas
+    shortNames:
+    - mxmeta
+    - mm
+    singular: modelmetadata
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: Model name
+      jsonPath: .spec.modelName
+      name: Model
+      type: string
+    - description: Source type
+      jsonPath: .spec.sourceType
+      name: Type
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ModelExpress P2P worker coordination metadata
+        properties:
+          spec:
+            description: ModelMetadata spec - the desired state
+            properties:
+              modelName:
+                description: Full model name (e.g., deepseek-ai/DeepSeek-V3)
+                type: string
+              sourceType:
+                default: unknown
+                description: Source type from SourceIdentity (e.g., weights, torch_compile_cache).
+                type: string
+            required:
+            - modelName
+            type: object
+          status:
+            description: ModelMetadata status - the observed state
+            nullable: true
+            properties:
+              conditions:
+                default: []
+                description: Conditions for ModelMetadata lifecycle
+                items:
+                  description: Standard Kubernetes condition
+                  properties:
+                    lastTransitionTime:
+                      description: Timestamp of last transition
+                      format: date-time
+                      nullable: true
+                      type: string
+                    message:
+                      description: Human-readable message
+                      nullable: true
+                      type: string
+                    reason:
+                      description: Machine-readable reason for condition
+                      nullable: true
+                      type: string
+                    status:
+                      description: 'Status: True, False, Unknown'
+                      enum:
+                      - 'True'
+                      - 'False'
+                      - Unknown
+                      type: string
+                    type:
+                      description: Condition type
+                      enum:
+                      - Ready
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+              observedGeneration:
+                default: 0
+                description: Generation observed by the controller
+                format: int64
+                type: integer
+              publishedAt:
+                description: Timestamp when first worker published
+                format: date-time
+                nullable: true
+                type: string
+              worker:
+                description: Single worker NIXL metadata and readiness state (one CR per worker)
+                nullable: true
+                properties:
+                  accelerator:
+                    default: ''
+                    description: Runtime accelerator family for compatibility filtering.
+                    type: string
+                  agentName:
+                    default: ''
+                    description: 'P2P: NIXL agent name'
+                    type: string
+                  artifactSource:
+                    description: Small discovery summary for file-backed artifact sources.
+                    nullable: true
+                    properties:
+                      artifactId:
+                        description: Digest of the canonical sealed artifact manifest.
+                        type: string
+                      chunkCount:
+                        description: Number of transfer chunks in the sealed artifact manifest.
+                        format: int64
+                        maximum: 4294967295.0
+                        minimum: 0.0
+                        type: integer
+                      fileCount:
+                        description: Number of files in the sealed artifact manifest.
+                        format: int64
+                        maximum: 4294967295.0
+                        minimum: 0.0
+                        type: integer
+                      nodeRank:
+                        default: 0
+                        description: Distributed node rank that owns this node-scoped artifact.
+                        format: int64
+                        maximum: 4294967295.0
+                        minimum: 0.0
+                        type: integer
+                      totalSize:
+                        description: Total artifact bytes across all manifest files. Kubernetes OpenAPI exposes this as int64; the backend converts to/from the proto uint64.
+                        format: int64
+                        minimum: 0.0
+                        type: integer
+                    required:
+                    - artifactId
+                    - chunkCount
+                    - fileCount
+                    - totalSize
+                    type: object
+                  backendType:
+                    description: Backend type discriminator ("nixl", "transfer_engine", "none")
+                    enum:
+                    - nixl
+                    - transfer_engine
+                    - none
+                    nullable: true
+                    type: string
+                  metadataEndpoint:
+                    default: ''
+                    description: 'P2P: NIXL listen thread endpoint (host:port)'
+                    type: string
+                  nixlMetadata:
+                    default: ''
+                    description: Base64-encoded NIXL agent metadata blob
+                    type: string
+                  sourceLoad:
+                    description: |-
+                      Source-published busyness in [0, 1] (default: RDMA NIC utilization).
+
+                      `None` must serialize as an explicit `null`, not be skipped: both status writes go out as a JSON merge patch, where an omitted key means "leave unchanged" and `null` means "delete". Skipping it would let the field go `None -> Some` but never back, so a worker the reaper marks Stale with no reading would keep advertising its last load. The CRD schema declares the field `nullable` so the API server accepts the null.
+                    format: float
+                    nullable: true
+                    type: number
+                  status:
+                    default: Unknown
+                    description: Worker lifecycle status (Initializing, Ready, Stale)
+                    enum:
+                    - Unknown
+                    - Initializing
+                    - Ready
+                    - Stale
+                    type: string
+                  tensorConfigMap:
+                    description: Name of ConfigMap containing tensor descriptors
+                    nullable: true
+                    type: string
+                  tensorCount:
+                    default: 0
+                    description: Number of tensors registered by this worker
+                    format: int32
+                    type: integer
+                  topology:
+                    additionalProperties:
+                      type: string
+                    default: {}
+                    description: Datacenter topology domain values keyed by level.
+                    type: object
+                  transferEngineSessionId:
+                    description: Mooncake TransferEngine session ID
+                    nullable: true
+                    type: string
+                  updatedAt:
+                    description: Timestamp of last status update (RFC3339)
+                    format: date-time
+                    nullable: true
+                    type: string
+                  workerGrpcEndpoint:
+                    default: ''
+                    description: 'P2P: Worker gRPC endpoint for tensor manifest (host:port)'
+                    type: string
+                  workerRank:
+                    description: Worker rank (0-indexed)
+                    format: int32
+                    type: integer
+                required:
+                - workerRank
+                type: object
+            type: object
+        required:
+        - spec
+        title: ModelMetadata
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

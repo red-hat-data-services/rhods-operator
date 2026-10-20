@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+# TLS on OpenShift: service-ca issues the certificate through the Service
+# annotation, and version, ciphers and groups follow
+# apiservers.config.openshift.io/cluster when its tlsAdherence is
+# StrictAllComponents (Intermediate otherwise). Set minVersion, cipherSuites
+# or groups under tls to pin them instead. image is left to the operator's
+# RELATED_IMAGE_ODH_MODELEXPRESS_IMAGE.
+apiVersion: modelexpress.opendatahub.io/v1alpha1
+kind: ModelExpressServer
+metadata:
+  name: modelexpress-tls
+spec:
+  metadataBackend:
+    kubernetes: {}
+  serviceMetadata:
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: modelexpress-tls-serving-cert
+  tls:
+    secretName: modelexpress-tls-serving-cert
