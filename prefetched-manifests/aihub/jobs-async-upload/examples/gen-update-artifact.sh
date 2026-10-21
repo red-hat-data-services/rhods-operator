@@ -8,7 +8,12 @@ MODEL_ID=$(curl -sk -H"Authorization: Bearer $MR_TOKEN" "$MR_BASE_URL/api/model_
 MODEL_VERSION_ID=$(curl -sk -H"Authorization: Bearer $MR_TOKEN" "$MR_BASE_URL/api/model_registry/v1alpha3/registered_models/"$MODEL_ID"/versions" | jq -r '.items | max_by(.lastUpdateTimeSinceEpoch | tonumber) | .id')
 MODEL_ARTIFACT_ID=$(curl -sk -H"Authorization: Bearer $MR_TOKEN" "$MR_BASE_URL/api/model_registry/v1alpha3/model_versions/$MODEL_VERSION_ID/artifacts" | jq -r '.items | max_by(.lastUpdateTimeSinceEpoch | tonumber) | .id')
 
-oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
+process_args=(--local)
+if [[ -n "${MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE:-}" ]]; then
+  process_args+=(-p "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE=$MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE")
+fi
+
+oc process "${process_args[@]}" -f jobs-async-upload-uri-to-oci-template.yaml \
   -p MODEL_SYNC_MODEL_UPLOAD_INTENT=update_artifact \
   -p MODEL_SYNC_MODEL_ID="$MODEL_ID" \
   -p MODEL_SYNC_MODEL_VERSION_ID="$MODEL_VERSION_ID" \

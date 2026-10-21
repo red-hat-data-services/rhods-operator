@@ -19,7 +19,8 @@ The chart deploys:
 ```bash
 helm install odh-observability charts/odh-observability \
   --namespace odh-observability-system \
-  --create-namespace
+  --create-namespace \
+  --set otelOperatorNamespace=<opentelemetry-operator-namespace>
 ```
 
 After installation, create a [Monitoring CR](../../config/samples/) to configure the observability stack.
@@ -37,7 +38,7 @@ helm uninstall odh-observability --namespace odh-observability-system
 | `nameOverride` | string | `""` | Override the chart name |
 | `fullnameOverride` | string | `""` | Override the fully qualified app name |
 | `operatorNamespace` | string | `"opendatahub-operator-system"` | Namespace for all operator resources |
-| `otelOperatorNamespace` | string | `"openshift-opentelemetry-operator"` | Namespace of the OpenTelemetry Operator service account used for TargetAllocator mTLS |
+| `otelOperatorNamespace` | string | `""` | Namespace of the active OpenTelemetry Operator service account used for TargetAllocator mTLS. Empty omits the supplemental cert-manager RBAC; the parent operator discovers and sets it. |
 | `monitoringNamespace` | string | `""` | Namespace where Monitoring operands (Tempo, collector) are deployed. Defaults to `operatorNamespace` when empty. On RHOAI this is DSCI `spec.monitoring.namespace`. |
 | `image.repository` | string | `"quay.io/opendatahub/odh-observability"` | Controller container image repository |
 | `image.tag` | string | `"odh-stable"` | Controller container image tag |

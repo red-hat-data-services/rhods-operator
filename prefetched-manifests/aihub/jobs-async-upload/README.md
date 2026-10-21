@@ -2,6 +2,10 @@
 
 This OpenShift Template generates the Job 'async-upload' developed in: https://github.com/opendatahub-io/model-registry/tree/main/jobs/async-upload
 
+Both OCI destination templates accept an optional `MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE` parameter. Omitting it uses the template's default, `public.ecr.aws/docker/library/busybox:latest` in the source templates, so existing `oc process` commands remain valid without an override. Passing `-p MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE=<image>` overrides that default. The ODH overlay can replace the installed S3 template's default through `IMAGES_JOBS_ASYNC_UPLOAD_OCI_BASE_IMAGE` in `config/overlays/odh/core/params.env` before deployment.
+
+The template writes the selected base image to the Job environment. The upload process pulls it to package model files; it is separate from `JOB_IMAGE`, which runs the Job container, and from the destination OCI registry. On disconnected clusters, mirror a base image into a registry reachable from the upload Job and set the overlay value before deployment, or pass the mirrored reference when processing a template. Omit the parameter to use the template default; do not pass an empty value, which can produce an invalid image reference.
+
 ## Examples
 
 ### Example scripts
@@ -164,6 +168,7 @@ oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
   -p MODEL_SYNC_REGISTRY_PORT="443" \
   -p MODEL_SYNC_SOURCE_URI="https://..." \
   -p MODEL_SYNC_DESTINATION_OCI_URI="bastion-registry.example.com/project/model:latest" \
+  -p MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE="mirror.example.com/library/busybox:1.0" \
   -p DESTINATION_CONNECTION=my-oci-credentials \
   -p MODEL_SYNC_DESTINATION_OCI_ENABLE_TLS_VERIFY=false \
   -o yaml \

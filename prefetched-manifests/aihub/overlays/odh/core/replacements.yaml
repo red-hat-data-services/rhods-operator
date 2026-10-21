@@ -215,6 +215,16 @@
 - source:
     kind: ConfigMap
     name: model-registry-operator-parameters
+    fieldPath: data.IMAGES_JOBS_ASYNC_UPLOAD_OCI_BASE_IMAGE
+  targets:
+    - select:
+        kind: Template
+        name: jobs-async-upload-s3-to-oci-template
+      fieldPaths:
+        - parameters.[name=MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE].value
+- source:
+    kind: ConfigMap
+    name: model-registry-operator-parameters
     fieldPath: data.CATALOG_DATA_IMAGE_STREAM_SOURCE
   targets:
     - select:

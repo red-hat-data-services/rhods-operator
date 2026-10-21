@@ -3,9 +3,10 @@ fullnameOverride: ""
 
 operatorNamespace: opendatahub-operator-system
 
-# Namespace of the Red Hat build of OpenTelemetry Operator. The supplemental
-# ClusterRoleBinding grants it cert-manager access for TargetAllocator mTLS.
-otelOperatorNamespace: openshift-opentelemetry-operator
+# Namespace of the OpenTelemetry Operator's active Collector admission webhook.
+# The parent operator discovers and sets it. Standalone installs must set it
+# explicitly to grant the operator cert-manager access for TargetAllocator mTLS.
+otelOperatorNamespace: ""
 
 # Namespace where Monitoring operands (Tempo, collector) are deployed.
 # Tempo write ACL treats this namespace name as the RBAC resource.

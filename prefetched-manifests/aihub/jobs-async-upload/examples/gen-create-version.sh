@@ -10,7 +10,12 @@ oc process --local -f configmap-create-version-template.yaml \
   -p MODEL_VERSION_NAME="v2" \
   -o yaml > model-metadata.yaml
 
-oc process --local -f jobs-async-upload-uri-to-oci-template.yaml \
+process_args=(--local)
+if [[ -n "${MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE:-}" ]]; then
+  process_args+=(-p "MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE=$MODEL_SYNC_DESTINATION_OCI_BASE_IMAGE")
+fi
+
+oc process "${process_args[@]}" -f jobs-async-upload-uri-to-oci-template.yaml \
   -p MODEL_SYNC_MODEL_UPLOAD_INTENT=create_version \
   -p MODEL_SYNC_MODEL_ID="$MODEL_ID" \
   -p MODEL_SYNC_REGISTRY_SERVER_ADDRESS="$MR_BASE_URL" \
