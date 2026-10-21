@@ -55,6 +55,18 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "list", "watch"]
+# Controller-owned credential copies (agc-cred-<hash12>) in tenant namespaces.
+# The tenant ExtProc can mount Secrets only from its own namespace, so a
+# credential Secret from elsewhere is copied there: server-side apply needs
+# create and patch, and unreferenced copies are deleted. Trust boundary: the
+# ClusterRoleBinding grants these verbs on every Secret in every namespace.
+# RBAC cannot scope verbs by label, and hashed names rule out resourceNames,
+# so the agc-cred- name and ownership labels are controller safeguards, not
+# RBAC restrictions: the controller itself must only patch or delete Secrets
+# carrying its ownership labels.
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create", "patch", "delete"]
 - apiGroups: ["maas.opendatahub.io"]
   resources: ["externalmodels"]
   verbs: ["get", "list", "watch"]
@@ -65,7 +77,7 @@ rules:
   resources: ["externalproviders", "externalmodels"]
   verbs: ["get", "list", "watch", "create", "update"]
 - apiGroups: ["inference.opendatahub.io"]
-  resources: ["externalmodels"]
+  resources: ["externalproviders", "externalmodels"]
   verbs: ["patch"]
 - apiGroups: ["inference.opendatahub.io"]
   resources: ["externalproviders/status", "externalmodels/status"]
@@ -73,22 +85,72 @@ rules:
 - apiGroups: ["inference.opendatahub.io"]
   resources: ["externalproviders/finalizers", "externalmodels/finalizers"]
   verbs: ["update"]
+# AIGuardrail is the guardrail reconciler's primary watch target. This
+# controller owns AIGuardrail.status (the accepted provider binding:
+# ResolvedRefs / ProviderReady / Accepted), hence the status subresource rule.
+# It never writes the spec, so no update/patch on the resource itself, and it
+# publishes status with a merge patch, so no update there either.
 - apiGroups: ["aigateway.opendatahub.io"]
   resources: ["aiguardrails"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["aigateway.opendatahub.io"]
+  resources: ["aiguardrails/status"]
+  verbs: ["get", "patch"]
+# Provider references: each AIGuardrail names a NemoGuardrails whose
+# spec.allowedConsumers decides whether this namespace may consume it.
+# TrustyAI's operator is the sole owner of NemoGuardrails and its status, so
+# get/list/watch only — this controller reads the authorization input and
+# never writes it.
+- apiGroups: ["trustyai.opendatahub.io"]
+  resources: ["nemoguardrails"]
+  verbs: ["get", "list", "watch"]
+# allowedConsumers Selector mode matches labels on the consuming namespace's
+# Namespace object (never labels on the AIGuardrail), so those labels are an
+# authorization input this controller must be able to read.
+- apiGroups: [""]
+  resources: ["namespaces"]
   verbs: ["get", "list", "watch"]
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["httproutes"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# A cross-namespace ExternalProvider reference must be authorized by a
+# ReferenceGrant in the provider namespace. ExternalModel Gateway attachment
+# uses HTTPRoute parent status, so no Namespace read is granted.
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["referencegrants"]
+  verbs: ["get", "list", "watch"]
+# The tenant reconciler checks that an AITenant's status.gatewayRef names an
+# existing Gateway before applying praxis-extproc.
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["gateways"]
+  verbs: ["get", "list", "watch"]
 - apiGroups: ["networking.istio.io"]
   resources: ["serviceentries"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # destinationrules already covered above (full CRUD, needed for the
 # vendored overlay's own DestinationRule), so no separate mirror rule is
 # needed here.
+# Metrics endpoint authentication and authorization (FilterProvider).
+# Required when --metrics-secure=true so the controller can validate
+# bearer tokens and check RBAC for /metrics access.
+- apiGroups: ["authentication.k8s.io"]
+  resources: ["tokenreviews"]
+  verbs: ["create"]
+- apiGroups: ["authorization.k8s.io"]
+  resources: ["subjectaccessreviews"]
+  verbs: ["create"]
 # Leader election (--leader-elect) and event recording.
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Two groups, because the manager has two recorders. Leader election emits
+# through the deprecated core/v1 one (GetEventRecorderFor), while the
+# AIGuardrail reconciler uses GetEventRecorder, whose sink is events.k8s.io/v1.
+# Dropping either group silently 403s that half of the events.
 - apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+# create and patch only: the events broadcaster never issues an update.
+- apiGroups: ["events.k8s.io"]
   resources: ["events"]
   verbs: ["create", "patch"]

@@ -27,6 +27,8 @@ spec:
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
+          - --metrics-bind-address=:8443
+          - --metrics-secure=true
           - --image=$(RELATED_IMAGE_ODH_PRAXIS_EXTPROC_IMAGE)
         env:
           - name: LOG_DEVELOPMENT
@@ -45,7 +47,7 @@ spec:
         name: manager
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 8443
           name: metrics
           protocol: TCP
         - containerPort: 8081
@@ -77,5 +79,14 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-metrics-server/metrics-certs
+          name: metrics-certs
+          readOnly: true
+      volumes:
+      - name: metrics-certs
+        secret:
+          defaultMode: 420
+          secretName: ai-gateway-controller-metrics-tls
       serviceAccountName: ai-gateway-controller
       terminationGracePeriodSeconds: 30

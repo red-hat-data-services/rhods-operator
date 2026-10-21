@@ -103,6 +103,13 @@ rules:
   - list
   - watch
 - apiGroups:
+  - aigateway.opendatahub.io
+  resources:
+  - aiguardrails/status
+  verbs:
+  - get
+  - patch
+- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
@@ -122,6 +129,17 @@ rules:
   resources:
   - customresourcedefinitions
   verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apiextensions.k8s.io
+  resourceNames:
+  - aiguardrails.aigateway.opendatahub.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - delete
   - get
   - patch
   - update
@@ -737,4 +755,12 @@ rules:
   - get
   - list
   - patch
+  - watch
+- apiGroups:
+  - trustyai.opendatahub.io
+  resources:
+  - nemoguardrails
+  verbs:
+  - get
+  - list
   - watch
