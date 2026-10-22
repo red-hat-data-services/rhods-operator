@@ -1029,6 +1029,29 @@ spec:
                     - `HealthCheckAuthCredentialUnavailable`, `HealthCheckAuthValueInvalid`
                   nullable: true
                   type: string
+                servedModels:
+                  description: |-
+                    Models the discovery loop last observed this provider serving.
+
+                    Present for a successful held set. Cleared when the set is unknown,
+                    expired, or discovery is disabled, though clearing may lag after expiry.
+                    Readers must require `servedModelsExpiresAt` to be in the future. An
+                    empty set means the backend serves no models. Bounded by the discovery
+                    caps (256 models, 256-byte names); order carries no meaning.
+                  items:
+                    type: string
+                  nullable: true
+                  type: array
+                  x-kubernetes-list-type: atomic
+                servedModelsExpiresAt:
+                  description: |-
+                    RFC 3339 UTC deadline for the corresponding `servedModels` set.
+
+                    Readers must reject the set at or after this time, even if the status
+                    field has not yet been cleared by the next discovery round.
+                  format: date-time
+                  nullable: true
+                  type: string
               type: object
           required:
             - spec
