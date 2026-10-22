@@ -1,0 +1,143 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/target_branch: '{{target_branch}}'
+    pipelinesascode.tekton.dev/cancel-in-progress: "false"
+    pipelinesascode.tekton.dev/max-keep-runs: "3"
+    # Fires on every push to an open PR.  This run does not build anything
+    # itself - it orchestrates: it reads the leader PR, forks an ephemeral
+    # eg-* branch from the right source branch, kicks operator-processor at
+    # it, and then watches for the PaC build that
+    # rhods-operator-eg-push.yaml starts once the processor has pinned the
+    # component digests.
+    #
+    # Any base branch except an ephemeral one.  This used to read
+    # `target_branch == "main" || target_branch == "stable"`, which meant a PR
+    # against a dev branch started no gate run at all - and, had the CEL alone
+    # been widened, resolve-group-configuration would still have forked the
+    # ephemeral branch from main or stable and gated code the PR does not
+    # contain.  Both halves move together: triggering-branch below carries the
+    # base branch into the pipeline, which forks from it.
+    #
+    # The eg- exclusion is a recursion guard.  The gate's own writes are
+    # pushes, not pull requests, so nothing today opens a PR against an
+    # eg-* branch - but a human doing so by hand would otherwise start a gate
+    # run whose first act is to fork from a branch the gate is about to delete.
+    pipelinesascode.tekton.dev/on-cel-expression: |
+      event == "pull_request"
+      && !target_branch.startsWith("eg-")
+  labels:
+    appstudio.openshift.io/application: rhoai-early-gate
+    appstudio.openshift.io/component: rhods-operator-eg
+    pipelines.appstudio.openshift.io/type: build
+  name: rhods-operator-eg-build
+  namespace: rhoai-tenant
+spec:
+  # 10h, not an arbitrary round number.  This has to cover the sum of every
+  # monitor budget in early-gate-component-pipeline.yaml plus the work
+  # between them, because the gate's blocks run in series:
+  #
+  #     init .. trigger-operator-processor        ~2 min
+  #     monitor-operator-processor               <= 30   (processor-timeout-minutes)
+  #     monitor-operator-build                   <= 270  (build-timeout-minutes)
+  #     clone / fork / update / process / verify  ~8
+  #     push-bundle-to-ephemeral-branch           ~1
+  #     monitor-bundle-build                     <= 90   (bundle-build-timeout-minutes)
+  #     fork / fbc-process / verify-fbc          ~10
+  #     push-fbc-to-ephemeral-branch              ~1
+  #     monitor-fbc-build                        <= 150  (fbc-build-timeout-minutes)
+  #                                              -------
+  #                                               ~562 min  (9h22m)
+  #
+  # 600 leaves ~38 minutes of slack.  That margin is for queueing - a block
+  # does not start the moment the one before it ends - not for a monitor
+  # overrunning, which cannot happen: each monitor enforces its own budget.
+  #
+  # This number is downstream of those budgets and has no independent
+  # meaning.  Changing one of them without redoing this arithmetic is the
+  # bug: at 3h the pipeline could not even reach Block 2 on a cold operator
+  # build, and run 3 timed out monitor-operator-build at 90 minutes while
+  # cleanup deleted the ephemeral branch out from under a build that was
+  # still running.  Raising a task budget without raising this one just
+  # moves the failure to the launcher.
+  #
+  # 6h -> 10h came with konflux-central#56, which raised all four monitors
+  # so that the gate's budgets fit a four-architecture build.  The operator
+  # and FBC builds are both pinned to x86_64 for now; the budgets are not,
+  # deliberately, so restoring the platform matrix is a change to the push
+  # files alone.
+  timeouts:
+    pipeline: 10h
+  params:
+  - name: leader-pr-number
+    description: Leader PR number
+  - name: rhoai-version
+    description: RHOAI version
+  # The leader PR the gate is running for.  gated-artifacts-promoter lives in
+  # red-hat-data-services alongside the component repos.
+  - name: leader-pr-repo
+    value: "red-hat-data-services/gated-artifacts-promoter"
+  # Supplied by the Leader PR Manager when dispatching this run.
+  - name: leader-pr-number
+    value: "$(params.leader-pr-number)"
+  - name: operator-repo
+    value: "red-hat-data-services/rhods-operator"
+  # The base branch of the PR that started this run.  main and stable keep the
+  # existing operator-PR heuristic in resolve-group-configuration; any other
+  # branch is forked from directly, so a PR on a dev branch gates its own code
+  # rather than main's.
+  - name: triggering-branch
+    value: '{{target_branch}}'
+  # Which RHOAI release this gate run is for.  operator-processor looks every
+  # component image up in Quay by this tag, so it decides which images resolve
+  # at all - it is not just a label.
+  #
+  # Supplied by the Leader PR Manager when dispatching this run.
+  - name: rhoai-version
+    value: "$(params.rhoai-version)"
+  # enable-group-snapshot used to be set to "false" here, because the snapshot
+  # block could not complete: generate-snapshot resolved digests through the
+  # anonymous Quay API against a private quay.io/rhoai, and
+  # resolve-group-configuration exited 1 because gated-artifacts-promoter is
+  # absent from component_repo_map.json.  Both are fixed - the snapshot now
+  # authenticates with the read-only robot below, and an unresolvable leader
+  # repo yields an empty group instead of a failure - so the block runs
+  # unconditionally and the parameter no longer exists.
+  pipelineRef:
+    resolver: git
+    params:
+    - name: url
+      value: https://github.com/red-hat-data-services/konflux-central.git
+    # Pinned to main rather than '{{ target_branch }}': target_branch here is a
+    # branch of the operator repo and would never resolve against this one.
+    - name: revision
+      value: 'main'
+    - name: pathInRepo
+      value: early-gate/early-gate-component-pipeline.yaml
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-rhods-operator-eg
+  workspaces:
+  # Deliberately not git_auth_secret.  resolve-group-configuration,
+  # fork-operator-branch, trigger-operator-processor-on-ephemeral-branch and
+  # monitor-operator-build all read $(workspaces.github-credentials.path)/token,
+  # and the third of those dispatches a workflow, which needs actions:write.
+  # The PaC token is minted from the PaC GitHub App installation for git
+  # operations and does not carry that scope.
+  #
+  # eg-github-token is a separately-created secret in rhoai-tenant whose single
+  # key is already named 'token', so no items: projection is needed here.
+  - name: github-credentials
+    secret:
+      secretName: eg-github-token
+  # The RHOAI Quay read-only robot, consumed by generate-snapshot.  quay.io/rhoai
+  # is private, so without it the snapshot resolves no component digests at all.
+  #
+  # A dockerconfigjson secret projects its key verbatim, which is what the task
+  # looks for - it reads $(workspaces.basic-auth.path)/.dockerconfigjson and
+  # hands it to skopeo as --authfile - so again no items: projection.
+  - name: quay-credentials
+    secret:
+      secretName: rhoai-quay-gap-ro
+status: {}
