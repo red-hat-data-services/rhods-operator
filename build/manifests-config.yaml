@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: 3e395abd602ca0fb04f54b29dd9f83ed7cbd0e93
+    git.commit: 977b32eba588a522055f4aa487efcc25cf1d5578
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -64,17 +64,17 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 9772b21d94be97e5467ea349ed89c96c78beb510
+    git.commit: 513c93fc755def8854534150dc212c78ffa54137
   odh-trainer:
     src: manifests
     dest: trainer
     git.url: https://github.com/red-hat-data-services/trainer
-    git.commit: f1120d947783dfe778115599e39593e56014fc7d
+    git.commit: fa67c3067ce5e98bfaebf20cce70fb396e90fcaf
   odh-mlflow-operator:
     src: config
     dest: mlflowoperator
     git.url: https://github.com/red-hat-data-services/mlflow-operator
-    git.commit: 895d4708a271438641ca7f831c5d06c40a0126dd
+    git.commit: 13c625c7c5905ee70de3c0e5cffe3a65d0a8ebf3
   odh-maas-api:
     src: deployment
     dest: maas
@@ -120,7 +120,7 @@ additional_meta:
     git.commit: 1911aab790022238c7f09f17ba5dfa4368a88383
   odh-fms-guardrails-orchestrator:
     git.url: https://github.com/red-hat-data-services/fms-guardrails-orchestrator
-    git.commit: 13cc92230cff69afa265c844af150a8ed5dda6ba
+    git.commit: 4c2a44836438d852a33236cec2f7b1f1166aaf0c
   odh-guardrails-detector-huggingface-runtime:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
     git.commit: 01f38ed0cf8f32090dc19c4ec3e2b999e33e0dd3
@@ -150,10 +150,10 @@ additional_meta:
     git.commit: c83e4e971150fd1de8d07c75645e9aad1bc91580
   odh-llm-d-batch-gateway-gc:
     git.url: https://github.com/red-hat-data-services/batch-gateway
-    git.commit: 259ce4cc49068fd8e3d806ad585d2aa47344300a
+    git.commit: c83e4e971150fd1de8d07c75645e9aad1bc91580
   odh-llm-d-batch-gateway-processor:
     git.url: https://github.com/red-hat-data-services/batch-gateway
-    git.commit: 259ce4cc49068fd8e3d806ad585d2aa47344300a
+    git.commit: c83e4e971150fd1de8d07c75645e9aad1bc91580
   odh-llm-d-inference-scheduler:
     git.url: https://github.com/red-hat-data-services/llm-d-inference-scheduler
     git.commit: 5e8655d59f7d08a0172b4b9c6817e2569f8c5309
