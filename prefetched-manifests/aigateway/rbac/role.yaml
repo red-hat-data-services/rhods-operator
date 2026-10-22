@@ -397,7 +397,6 @@ rules:
   - grid.praxis.fast
   resources:
   - agenttoolproviders
-  - gridnetworks
   - inferenceproviders
   verbs:
   - get
@@ -414,6 +413,16 @@ rules:
   verbs:
   - get
   - patch
+- apiGroups:
+  - grid.praxis.fast
+  resources:
+  - gridnetworks
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - watch
 - apiGroups:
   - grid.praxis.fast
   resources:

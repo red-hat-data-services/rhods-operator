@@ -99,6 +99,14 @@ rules:
   - update
   - watch
 - apiGroups:
+  - apiextensions.k8s.io
+  resourceNames:
+  - variantautoscalings.llmd.ai
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - delete
+- apiGroups:
   - apps
   resources:
   - daemonsets
@@ -158,11 +166,30 @@ rules:
   verbs:
   - get
 - apiGroups:
+  - extensions.kuadrant.io
+  resources:
+  - telemetrypolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - infrastructure.opendatahub.io
   resources:
   - hardwareprofiles
   verbs:
   - get
+- apiGroups:
+  - llmd.ai
+  resources:
+  - variantautoscalings
+  verbs:
+  - delete
+  - list
 - apiGroups:
   - modelexpress.opendatahub.io
   resources:
@@ -334,6 +361,7 @@ rules:
   - odh-model-controller-role
   - openshift-ai-inferenceservice-image-volume-scc
   - openshift-ai-llminferenceservice-scc
+  - openshift-ai-llmisvc-confidential-bare-metal
   - proxy-role
   - workload-variant-autoscaler-epp-metrics-reader-role
   - workload-variant-autoscaler-manager-role

@@ -49,12 +49,37 @@ spec:
               auditLoggingProfile:
                 default: Removed
                 description: |-
-                  AuditLoggingProfile selects the inference request audit logging profile.
-                  Removed disables audit events; Metadata records request and response metadata without bodies.
+                  AuditLoggingProfile selects the audit logging profile for InferenceService and
+                  LLMInferenceService traffic. Removed disables audit events; Metadata records
+                  request and response metadata without bodies.
                 enum:
                 - Removed
                 - Metadata
                 type: string
+              confidentialContainers:
+                description: |-
+                  ConfidentialContainers configures the disk-key reference and default guest
+                  init data for confidential model serving.
+                properties:
+                  initData:
+                    description: |-
+                      InitData is gzip-compressed, base64-encoded initdata.toml for the confidential
+                      guest. A model's explicit cc_init_data annotation overrides this default.
+                      When empty, the runtime's global init data is used.
+                    type: string
+                  luksResourceId:
+                    default: kbs:///default/kserve-luks-password/key
+                    description: |-
+                      LUKSResourceID identifies the disk passphrase in Trustee/KBS, not the
+                      passphrase itself. It must match the key used to encrypt the supplied disk.
+                      A service's format-disk LUKS_RESOURCE_ID environment variable overrides it.
+                    maxLength: 2048
+                    pattern: ^kbs:///[^/\s?#]+/[^/\s?#]+/[^/\s?#]+$
+                    type: string
+                    x-kubernetes-validations:
+                    - message: luksResourceId must identify a disk key as kbs:///repository/type/tag
+                      rule: self.split('/').all(p, p != '.' && p != '..')
+                type: object
               enableHardwareAwarePresets:
                 description: |-
                   Enables hardware-aware creation of accelerator LLMInferenceServiceConfig presets:
