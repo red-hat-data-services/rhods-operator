@@ -1,7 +1,12 @@
 name: Diagnose insta-merge DNS
 
-# Investigation only (RHAI-15286): no PR triggers, secrets or merge operations.
+# Investigation only (RHAI-15286): no secrets or merge operations.
 on:
+  pull_request:
+    paths:
+      - '.github/scripts/diagnose-insta-merge-dns.sh'
+      - '.github/scripts/tests/test-diagnose-insta-merge-dns.sh'
+      - '.github/workflows/diagnose-insta-merge-dns.yaml'
   workflow_dispatch:
 
 permissions:
