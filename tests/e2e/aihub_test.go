@@ -51,6 +51,14 @@ func aihubTestSuite(t *testing.T) {
 				originalInstancesNamespace = dsc.Spec.Components.AIHub.InstancesNamespace
 			}
 
+			// instancesNamespace is immutable while AI Hub is Managed; pass
+			// through Removed so the next patch can set a new namespace.
+			tc.EventuallyResourcePatched(
+				WithMinimalObject(gvk.DataScienceCluster, tc.DataScienceClusterNamespacedName),
+				WithMutateFunc(testf.Transform(`.spec.components.aiHub.managementState = "Removed"`)),
+				WithCondition(jq.Match(`.spec.components.aiHub.managementState == "Removed"`)),
+			)
+
 			// Patch DSC to Managed with a non-default instancesNamespace.
 			tc.EventuallyResourcePatched(
 				WithMinimalObject(gvk.DataScienceCluster, tc.DataScienceClusterNamespacedName),
@@ -71,6 +79,8 @@ func aihubTestSuite(t *testing.T) {
 				WithMinimalObject(moduleGVK, moduleCRNN),
 				WithEventuallyTimeout(tc.TestTimeouts.longEventuallyTimeout),
 				WithCondition(And(
+					jq.Match(`.spec.applicationNamespace == "%s"`, tc.AppsNamespace),
+					jq.Match(`.spec.instancesNamespace == "%s"`, aihubTestNamespace),
 					jq.Match(`.status.conditions[] | select(.type == "%s") | .status == "%s"`, status.ConditionTypeReady, metav1.ConditionTrue),
 					jq.Match(`.status.conditions[] | select(.type == "%s") | .status == "%s"`, status.ConditionTypeProvisioningSucceeded, metav1.ConditionTrue),
 				)),
@@ -151,6 +161,7 @@ func aihubTestSuite(t *testing.T) {
 				WithMinimalObject(moduleGVK, moduleCRNN),
 				WithEventuallyTimeout(tc.TestTimeouts.longEventuallyTimeout),
 				WithCondition(And(
+					jq.Match(`.spec.applicationNamespace == "%s"`, tc.AppsNamespace),
 					jq.Match(`.spec.instancesNamespace == "%s"`, aihubTestNamespace),
 					jq.Match(`.status.conditions[] | select(.type == "%s") | .status == "%s"`, status.ConditionTypeReady, metav1.ConditionTrue),
 				)),

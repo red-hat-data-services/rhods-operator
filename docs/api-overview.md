@@ -22,6 +22,23 @@ Package v1 contains API Schema definitions for the components v1 API group
 
 
 
+#### AIGatewayAIGridSpec
+
+
+
+AIGatewayAIGridSpec configures the AI Grid lifecycle: the grid CRDs and the grid operator.
+
+
+
+_Appears in:_
+- [AIGatewayCommonSpec](#aigatewaycommonspec)
+- [DSCAIGateway](#dscaigateway)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api/operator/v1#ManagementState)_ |  |  | Enum: [Managed Removed] <br /> |
+
+
 #### AIGatewayBatchGatewaySpec
 
 
@@ -55,6 +72,7 @@ _Appears in:_
 | --- | --- | --- | --- |
 | `modelsAsAService` _[DSCModelsAsServiceSpec](#dscmodelsasservicespec)_ | ModelsAsAService controls the Models as a Service sub-component.<br />Note: the field uses "AsA" (modelsAsAService) intentionally — this matches the<br />ai-gateway-operator CRD field name (spec.modelsAsAService). The type name<br />DSCModelsAsServiceSpec is shared with the deprecated kserve.modelsAsService field<br />and predates the rename; the JSON tag is the authoritative API surface. |  |  |
 | `batchGateway` _[AIGatewayBatchGatewaySpec](#aigatewaybatchgatewayspec)_ | BatchGateway controls the batch-gateway operator sub-component. |  |  |
+| `aiGrid` _[AIGatewayAIGridSpec](#aigatewayaigridspec)_ | AIGrid controls the AI Grid sub-component. |  |  |
 
 
 #### AIGatewayCommonStatus
@@ -83,7 +101,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `instancesNamespace` _string_ | Namespace for AI Hub registries, configurable only once when AI Hub is enabled. | odh-model-registries | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
+| `instancesNamespace` _string_ | Namespace for AI Hub registries and the model catalog service.<br />Defaults to "odh-model-registries" when omitted, or when empty and Managed.<br />It may equal the platform applications namespace. A non-empty namespace<br />cannot change while AI Hub remains Managed; set Removed before changing it. | odh-model-registries | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
 
 
 #### AIHubCommonStatus
@@ -100,7 +118,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `instancesNamespace` _string_ |  |  |  |
+| `instancesNamespace` _string_ | Effective namespace projected into the AI Hub module CR; empty when Removed. |  |  |
 
 
 #### ArgoWorkflowsControllersSpec
@@ -137,6 +155,7 @@ _Appears in:_
 | `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api/operator/v1#ManagementState)_ | Set to one of the following values:<br />- "Managed" : the operator is actively managing the component and trying to keep it active.<br />              It will only upgrade the component if it is safe to do so<br />- "Removed" : the operator is actively managing the component and will not install it,<br />              or if it is installed, the operator will try to remove it |  | Enum: [Managed Removed] <br /> |
 | `modelsAsAService` _[DSCModelsAsServiceSpec](#dscmodelsasservicespec)_ | ModelsAsAService controls the Models as a Service sub-component.<br />Note: the field uses "AsA" (modelsAsAService) intentionally — this matches the<br />ai-gateway-operator CRD field name (spec.modelsAsAService). The type name<br />DSCModelsAsServiceSpec is shared with the deprecated kserve.modelsAsService field<br />and predates the rename; the JSON tag is the authoritative API surface. |  |  |
 | `batchGateway` _[AIGatewayBatchGatewaySpec](#aigatewaybatchgatewayspec)_ | BatchGateway controls the batch-gateway operator sub-component. |  |  |
+| `aiGrid` _[AIGatewayAIGridSpec](#aigatewayaigridspec)_ | AIGrid controls the AI Grid sub-component. |  |  |
 
 
 #### DSCAIGatewayStatus
@@ -144,6 +163,24 @@ _Appears in:_
 
 
 DSCAIGatewayStatus struct holds the status for the AIGateway component exposed in the DSC.
+
+
+
+_Appears in:_
+- [ComponentsStatus](#componentsstatus)
+- [ComponentsStatus](#componentsstatus)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api/operator/v1#ManagementState)_ | Set to one of the following values:<br />- "Managed" : the operator is actively managing the component and trying to keep it active.<br />              It will only upgrade the component if it is safe to do so<br />- "Removed" : the operator is actively managing the component and will not install it,<br />              or if it is installed, the operator will try to remove it |  | Enum: [Managed Removed] <br /> |
+
+
+#### DSCAIGridStatus
+
+
+
+DSCAIGridStatus contains the observed state of the AIGrid submodule exposed
+in the DSC instance.
 
 
 
@@ -170,7 +207,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api/operator/v1#ManagementState)_ | Set to one of the following values:<br />- "Managed" : the operator is actively managing the component and trying to keep it active.<br />              It will only upgrade the component if it is safe to do so<br />- "Removed" : the operator is actively managing the component and will not install it,<br />              or if it is installed, the operator will try to remove it |  | Enum: [Managed Removed] <br /> |
-| `instancesNamespace` _string_ | Namespace for AI Hub registries, configurable only once when AI Hub is enabled. | odh-model-registries | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
+| `instancesNamespace` _string_ | Namespace for AI Hub registries and the model catalog service.<br />Defaults to "odh-model-registries" when omitted, or when empty and Managed.<br />It may equal the platform applications namespace. A non-empty namespace<br />cannot change while AI Hub remains Managed; set Removed before changing it. | odh-model-registries | MaxLength: 63 <br />Pattern: `^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$` <br /> |
 
 
 #### DSCAIHubStatus
@@ -444,6 +481,7 @@ _Appears in:_
 | `rawDeploymentServiceConfig` _[RawServiceConfig](#rawserviceconfig)_ | Configures the type of service that is created for InferenceServices using RawDeployment.<br />The values for RawDeploymentServiceConfig can be "Headless" (default value) or "Headed".<br />Headless: to set "ServiceClusterIPNone = true" in the 'inferenceservice-config' configmap for Kserve.<br />Headed: to set "ServiceClusterIPNone = false" in the 'inferenceservice-config' configmap for Kserve. | Headless | Enum: [Headless Headed] <br /> |
 | `oauthProxy` _[OAuthProxyConfig](#oauthproxyconfig)_ | Configures the OAuth proxy sidecar container resources in the<br />'inferenceservice-config' ConfigMap for KServe. Only non-nil fields<br />override the defaults shipped with the operator manifests. |  |  |
 | `nim` _[NimSpec](#nimspec)_ | Configures and enables NVIDIA NIM integration | \{  \} |  |
+| `modelExpress` _[ModelExpressSpec](#modelexpressspec)_ | Configures and enables the ModelExpress operator, a model cache and<br />GPU-to-GPU weight transfer service for distributed model serving | \{  \} |  |
 | `enableLLMInferenceServiceTLS` _boolean_ | Enables TLS for LLMInferenceService deployments.<br />When unset, the KServe default (TLS enabled) is preserved. |  |  |
 | `enableLLMInferenceServiceConsoleDashboards` _boolean_ | Enables OpenShift Developer Console dashboards for LLMInferenceService.<br />Enabled by default. |  |  |
 | `modelCache` _[ModelCacheSpec](#modelcachespec)_ | Configures and enables Model Cache integration |  |  |
@@ -1169,6 +1207,7 @@ _Appears in:_
 | `rawDeploymentServiceConfig` _[RawServiceConfig](#rawserviceconfig)_ | Configures the type of service that is created for InferenceServices using RawDeployment.<br />The values for RawDeploymentServiceConfig can be "Headless" (default value) or "Headed".<br />Headless: to set "ServiceClusterIPNone = true" in the 'inferenceservice-config' configmap for Kserve.<br />Headed: to set "ServiceClusterIPNone = false" in the 'inferenceservice-config' configmap for Kserve. | Headless | Enum: [Headless Headed] <br /> |
 | `oauthProxy` _[OAuthProxyConfig](#oauthproxyconfig)_ | Configures the OAuth proxy sidecar container resources in the<br />'inferenceservice-config' ConfigMap for KServe. Only non-nil fields<br />override the defaults shipped with the operator manifests. |  |  |
 | `nim` _[NimSpec](#nimspec)_ | Configures and enables NVIDIA NIM integration | \{  \} |  |
+| `modelExpress` _[ModelExpressSpec](#modelexpressspec)_ | Configures and enables the ModelExpress operator, a model cache and<br />GPU-to-GPU weight transfer service for distributed model serving | \{  \} |  |
 | `enableLLMInferenceServiceTLS` _boolean_ | Enables TLS for LLMInferenceService deployments.<br />When unset, the KServe default (TLS enabled) is preserved. |  |  |
 | `enableLLMInferenceServiceConsoleDashboards` _boolean_ | Enables OpenShift Developer Console dashboards for LLMInferenceService.<br />Enabled by default. |  |  |
 | `modelCache` _[ModelCacheSpec](#modelcachespec)_ | Configures and enables Model Cache integration |  |  |
@@ -1454,6 +1493,23 @@ _Appears in:_
 | `cacheSize` _[Quantity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#quantity-resource-api)_ | CacheSize specifies the storage capacity for the model cache PersistentVolume<br />and PersistentVolumeClaim (e.g., "100Gi", "500Gi", "1Ti"). |  |  |
 | `nodeNames` _string array_ | NodeNames is a list of specific node names to enable model caching on.<br />The operator will label these nodes with kserve/localmodel=worker.<br />Mutually exclusive with NodeSelector. |  | MinItems: 1 <br />Optional: \{\} <br /> |
 | `nodeSelector` _[LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#labelselector-v1-meta)_ | NodeSelector is a label selector that identifies nodes for model caching<br />using pre-existing node labels (e.g., nvidia.com/gpu).<br />The operator will label matching nodes with kserve/localmodel=worker.<br />Mutually exclusive with NodeNames. |  | Optional: \{\} <br /> |
+
+
+#### ModelExpressSpec
+
+
+
+ModelExpressSpec enables the ModelExpress operator
+
+
+
+_Appears in:_
+- [DSCKserve](#dsckserve)
+- [KserveCommonSpec](#kservecommonspec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `managementState` _[ManagementState](https://pkg.go.dev/github.com/openshift/api/operator/v1#ManagementState)_ |  | Removed | Enum: [Managed Removed] <br /> |
 
 
 #### ModelRegistryCommonSpec
@@ -2100,6 +2156,7 @@ _Appears in:_
 | `aigateway` _[DSCAIGatewayStatus](#dscaigatewaystatus)_ | AIGateway component status. |  |  |
 | `modelsAsAService` _[DSCModelsAsServiceStatus](#dscmodelsasservicestatus)_ | ModelsAsAService submodule status (submodule of AIGateway). |  |  |
 | `batchGateway` _[DSCBatchGatewayStatus](#dscbatchgatewaystatus)_ | BatchGateway submodule status (submodule of AIGateway). |  |  |
+| `aiGrid` _[DSCAIGridStatus](#dscaigridstatus)_ | AIGrid submodule status (submodule of AIGateway). |  |  |
 | `mcplifecycleoperator` _[DSCMCPLifecycleOperatorStatus](#dscmcplifecycleoperatorstatus)_ | MCPLifecycleOperator component status. |  |  |
 | `databaseservice` _[DSCDatabaseServiceStatus](#dscdatabaseservicestatus)_ | DatabaseService module status.<br />Field name must match GVK.Kind so WriteDSCComponentStatus can find it. |  |  |
 
@@ -2232,6 +2289,7 @@ _Appears in:_
 | `aigateway` _[DSCAIGatewayStatus](#dscaigatewaystatus)_ | AIGateway component status. |  |  |
 | `modelsAsAService` _[DSCModelsAsServiceStatus](#dscmodelsasservicestatus)_ | ModelsAsAService submodule status (submodule of AIGateway). |  |  |
 | `batchGateway` _[DSCBatchGatewayStatus](#dscbatchgatewaystatus)_ | BatchGateway submodule status (submodule of AIGateway). |  |  |
+| `aiGrid` _[DSCAIGridStatus](#dscaigridstatus)_ | AIGrid submodule status (submodule of AIGateway). |  |  |
 | `mcplifecycleoperator` _[DSCMCPLifecycleOperatorStatus](#dscmcplifecycleoperatorstatus)_ | MCPLifecycleOperator component status. |  |  |
 | `databaseservice` _[DSCDatabaseServiceStatus](#dscdatabaseservicestatus)_ | DatabaseService module status. |  |  |
 
@@ -2954,7 +3012,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `name` _string_ | Name is the Gateway name and stable identity of this ingress.<br />The 36-character limit keeps Istio's <Gateway>-<GatewayClass> Service name within 63 characters. |  | MaxLength: 36 <br />Pattern: `^[a-z]([-a-z0-9]*[a-z0-9])?$` <br />Required: \{\} <br /> |
-| `hostname` _string_ | Hostname is the externally visible hostname for this ingress. |  | MaxLength: 253 <br />Required: \{\} <br /> |
+| `hostname` _string_ | Hostname is the externally visible hostname for this ingress. |  | MaxLength: 253 <br />Pattern: `^([a-z0-9]([-a-z0-9]\{0,61\}[a-z0-9])?)(\.([a-z0-9]([-a-z0-9]\{0,61\}[a-z0-9])?))*$` <br />Required: \{\} <br /> |
 | `ingressControllerName` _string_ | IngressControllerName is the IngressController whose Route admission is used for readiness. |  | MaxLength: 63 <br />Pattern: `^[a-z]([-a-z0-9]*[a-z0-9])?$` <br />Required: \{\} <br /> |
 | `routeLabels` _object (keys:string, values:string)_ | RouteLabels are applied to the bridge Route and can match the target<br />IngressController route selector. They do not prevent other matching<br />IngressControllers from admitting the Route. |  | MinProperties: 1 <br />Required: \{\} <br /> |
 | `auth` _[AdditionalIngressAuth](#additionalingressauth)_ | Auth configures this ingress's client credentials and auth proxy capacity.<br />Authentication mode and provider settings are inherited from the default gateway. | \{  \} |  |
@@ -2974,7 +3032,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `oidc` _[AdditionalIngressOIDCConfig](#additionalingressoidcconfig)_ | OIDC supplies this ingress's distinct client identity in OIDC mode.<br />Required in OIDC mode; omit in integrated OpenShift OAuth mode, where the<br />operator generates a distinct OAuthClient. The issuer comes from spec.oidc. |  |  |
-| `maxReplicas` _integer_ | MaxReplicas is the maximum number of replicas for this ingress's auth proxy.<br />The minimum remains fixed at 2. This does not configure the default proxy.<br />A value of 2 requests two fixed replicas without an HPA; larger values enable autoscaling. | 10 | Maximum: 10 <br />Minimum: 2 <br /> |
+| `maxReplicas` _integer_ | MaxReplicas is the maximum number of replicas for this ingress's auth proxy.<br />The minimum remains fixed at 2. This does not configure the default proxy.<br />A value of 2 fixes the HPA minimum and maximum at two replicas. | 10 | Maximum: 10 <br />Minimum: 2 <br /> |
 
 
 #### AdditionalIngressOIDCConfig
@@ -2992,7 +3050,7 @@ _Appears in:_
 | --- | --- | --- | --- |
 | `clientID` _string_ | ClientID is distinct from the default ingress and sibling ingress client IDs. |  | MinLength: 1 <br />Required: \{\} <br /> |
 | `clientSecretRef` _[SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)_ | ClientSecretRef references an administrator-managed Secret containing the client secret.<br />Each ingress must reference a distinct Secret, including from the default ingress.<br />The operator must not own or delete this source Secret.<br />Name and key must be nonempty; optional must be omitted or false. |  | Required: \{\} <br /> |
-| `secretNamespace` _string_ | SecretNamespace is the source Secret's namespace; defaults to the gateway namespace. |  |  |
+| `secretNamespace` _string_ | SecretNamespace is the source Secret's namespace; defaults to the gateway namespace. |  | MaxLength: 63 <br />Pattern: `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$` <br /> |
 
 
 #### AdditionalIngressStatus
@@ -3028,7 +3086,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `name` _string_ | Name is the Gateway name and stable identity of this ingress.<br />The 36-character limit keeps Istio's <Gateway>-<GatewayClass> Service name within 63 characters. |  | MaxLength: 36 <br />Pattern: `^[a-z]([-a-z0-9]*[a-z0-9])?$` <br />Required: \{\} <br /> |
-| `hostname` _string_ | Hostname is the externally visible hostname for this ingress. |  | MaxLength: 253 <br />Required: \{\} <br /> |
+| `hostname` _string_ | Hostname is the externally visible hostname for this ingress. |  | MaxLength: 253 <br />Pattern: `^([a-z0-9]([-a-z0-9]\{0,61\}[a-z0-9])?)(\.([a-z0-9]([-a-z0-9]\{0,61\}[a-z0-9])?))*$` <br />Required: \{\} <br /> |
 | `ingressControllerName` _string_ | IngressControllerName is the IngressController whose Route admission is used for readiness. |  | MaxLength: 63 <br />Pattern: `^[a-z]([-a-z0-9]*[a-z0-9])?$` <br />Required: \{\} <br /> |
 | `routeLabels` _object (keys:string, values:string)_ | RouteLabels are applied to the bridge Route and can match the target<br />IngressController route selector. They do not prevent other matching<br />IngressControllers from admitting the Route. |  | MinProperties: 1 <br />Required: \{\} <br /> |
 | `auth` _[AdditionalIngressAuth](#additionalingressauth)_ | Auth configures this ingress's client credentials and auth proxy capacity.<br />Authentication mode and provider settings are inherited from the default gateway. | \{  \} |  |
@@ -3184,7 +3242,7 @@ _Appears in:_
 | `authTimeout` _string_ | AuthTimeout is the duration Envoy waits for auth proxy responses.<br />Requests timeout with 403 if exceeded.<br />Deprecated: Use AuthProxyTimeout instead. |  | Pattern: `^([0-9]+(\.[0-9]+)?(ns\|us\|µs\|ms\|s\|m\|h))+$` <br /> |
 | `authProxyTimeout` _[Duration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#duration-v1-meta)_ | AuthProxyTimeout defines the timeout for external authorization service calls (e.g., "5s", "10s")<br />This controls how long Envoy waits for a response from the authentication proxy before timing out 403 response. |  |  |
 | `authProxyMaxReplicas` _integer_ | AuthProxyMaxReplicas is the maximum number of replicas for the default gateway's auth proxy.<br />The HPA minimum is fixed at 2; setting the maximum to 2 fixes the replica count.<br />Additional ingress proxies are configured independently through their auth.maxReplicas. | 10 | Maximum: 10 <br />Minimum: 2 <br /> |
-| `networkPolicy` _[NetworkPolicyConfig](#networkpolicyconfig)_ | NetworkPolicy configuration for kube-auth-proxy |  |  |
+| `networkPolicy` _[NetworkPolicyConfig](#networkpolicyconfig)_ | NetworkPolicy configures NetworkPolicy behavior for kube-auth-proxy.<br />It is retained for backward compatibility and has no effect; the operator<br />always manages the kube-auth-proxy NetworkPolicy.<br />Deprecated: This setting is ignored and will be removed in a future API version. |  |  |
 | `providerCASecretName` _string_ | ProviderCASecretName is the name of the secret containing the CA certificate for the authentication provider.<br />Used when the OAuth/OIDC provider uses a self-signed or custom CA certificate.<br />Secret must exist in the gateway namespace and contain a 'ca.crt' key with the PEM-encoded CA certificate. |  |  |
 | `verifyProviderCertificate` _boolean_ | VerifyProviderCertificate controls TLS certificate verification for the authentication provider.<br />When true (default), certificates are verified against the system trust store and providerCASecretName.<br />When false, certificate verification is disabled (development/testing only).<br />WARNING: Setting this to false disables security and should only be used in non-production environments.<br />For production use with self-signed certificates, use ProviderCASecretName instead. | true |  |
 | `enableK8sTokenValidation` _boolean_ | EnableK8sTokenValidation enables Kubernetes service account token validation via TokenReview API.<br />When enabled, kube-auth-proxy validates bearer tokens as service account tokens alongside OAuth/OIDC authentication.<br />This allows service accounts to authenticate via bearer tokens while human users authenticate via OAuth/OIDC. | true |  |
@@ -3248,7 +3306,10 @@ _Appears in:_
 
 
 
-IngressPolicyConfig defines ingress NetworkPolicy rules
+IngressPolicyConfig is retained only for backward compatibility.
+
+Deprecated: This configuration is ignored. The operator always manages the
+kube-auth-proxy NetworkPolicy.
 
 
 
@@ -3257,7 +3318,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `enabled` _boolean_ | Enabled determines whether ingress rules are applied.<br />When true, creates NetworkPolicy allowing traffic only from Gateway pods and monitoring namespaces. |  | Required: \{\} <br /> |
+| `enabled` _boolean_ | Enabled is retained for backward compatibility and has no effect.<br />Deprecated: This setting is ignored. |  | Required: \{\} <br /> |
 
 
 #### Logs
@@ -3360,9 +3421,10 @@ _Appears in:_
 
 
 
-NetworkPolicyConfig defines network policy configuration for kube-auth-proxy.
-When nil or when Ingress is nil, NetworkPolicy ingress rules are enabled by default
-to restrict access to kube-auth-proxy pods.
+NetworkPolicyConfig is retained only for backward compatibility.
+
+Deprecated: This configuration is ignored. The operator always manages the
+kube-auth-proxy NetworkPolicy.
 
 
 
@@ -3371,7 +3433,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `ingress` _[IngressPolicyConfig](#ingresspolicyconfig)_ | Ingress defines ingress NetworkPolicy rules.<br />When nil, ingress rules are applied by default (allows traffic from Gateway pods and monitoring namespaces).<br />When specified, Enabled must be set to true to apply rules or false to skip NetworkPolicy creation.<br />Set Enabled=false only in development environments or when using alternative network security controls. |  |  |
+| `ingress` _[IngressPolicyConfig](#ingresspolicyconfig)_ | Ingress is retained for backward compatibility and has no effect.<br />Deprecated: This setting is ignored. |  |  |
 
 
 #### OCPRouteConfig

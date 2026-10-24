@@ -105,6 +105,7 @@ func populatedV2DSC() *DataScienceCluster {
 	src.Status.Components.AIGateway.ManagementState = operatorv1.Managed
 	src.Status.Components.ModelsAsAService.ManagementState = operatorv1.Managed
 	src.Status.Components.BatchGateway.ManagementState = operatorv1.Managed
+	src.Status.Components.AIGrid.ManagementState = operatorv1.Managed
 	src.Status.Components.MCPLifecycleOperator.ManagementState = operatorv1.Managed
 	src.Status.Components.DatabaseService.ManagementState = operatorv1.Managed
 	src.Spec.Components.Dashboard.MaaSConsumerPortal.ManagementState = operatorv1.Managed
@@ -114,6 +115,7 @@ func populatedV2DSC() *DataScienceCluster {
 	src.Spec.Components.AIPipelines.ArgoWorkflowsControllers = &componentApi.ArgoWorkflowsControllersSpec{ManagementState: operatorv1.Removed}
 	src.Spec.Components.ModelRegistry.RegistriesNamespace = "custom-registries"
 	src.Spec.Components.AIGateway.BatchGateway.ManagementState = operatorv1.Managed
+	src.Spec.Components.AIGateway.AIGrid.ManagementState = operatorv1.Managed
 	src.Spec.Components.Kserve.RawDeploymentServiceConfig = componentApi.KserveRawHeaded
 	src.Spec.Components.Kserve.OAuthProxy = &componentApi.OAuthProxyConfig{
 		Resources: &componentApi.OAuthProxyResourceRequirements{
@@ -162,6 +164,7 @@ func TestConversionPreservesUnchangedFields(t *testing.T) {
 	delete(expectedWire["spec"].(map[string]any)["components"].(map[string]any)["kserve"].(map[string]any), "modelsAsService")
 	delete(expectedWire["spec"].(map[string]any)["components"].(map[string]any)["kserve"].(map[string]any), "wva")
 	components := expectedWire["spec"].(map[string]any)["components"].(map[string]any)
+	components["kserve"].(map[string]any)["modelExpress"] = map[string]any{}
 	delete(components, "trainingoperator")
 	delete(components, "llamastackoperator")
 	components["dashboard"] = map[string]any{
@@ -235,6 +238,119 @@ func TestConversionPreservesUnchangedFields(t *testing.T) {
 	g.Expect(original.Spec.Components.Kserve.ModelCache.NodeSelector.MatchLabels).To(HaveKeyWithValue("cache", "enabled"))
 	g.Expect(original.Spec.Components.Kserve.OAuthProxy.Resources.Requests[corev1.ResourceCPU]).To(Equal(resource.MustParse("100m")))
 	g.Expect(*original.Spec.Components.Kserve.EnableLLMInferenceServiceTLS).To(BeFalse())
+}
+
+// TestConvertFromMapsMaaSPortalToV2 directly asserts the v3-to-v2 direction of
+// the Dashboard portal rename: the MaaSPortalAvailable condition, the
+// maasPortal spec stanza, and the MaaSPortal status component must all come
+// back in their v2 spelling. Uses the portal-only shape (standard Removed,
+// portal Managed) from RHOAIENG-99044.
+func TestConvertFromMapsMaaSPortalToV2(t *testing.T) {
+	g := NewWithT(t)
+
+	hub := &dscApi.DataScienceCluster{
+		TypeMeta: metav1.TypeMeta{APIVersion: dscApi.GroupVersion.String(), Kind: "DataScienceCluster"},
+	}
+	hub.Spec.Components.Dashboard.Standard.ManagementState = operatorv1.Removed
+	hub.Spec.Components.Dashboard.MaaSPortal.ManagementState = operatorv1.Managed
+	hub.Status.Components.Dashboard.ManagementState = operatorv1.Managed
+	hub.Status.Components.MaaSPortal.ManagementState = operatorv1.Managed
+	hub.Status.Conditions = []common.Condition{
+		{Type: "Ready", Status: metav1.ConditionTrue, Reason: "Ready"},
+		{Type: "MaaSPortalAvailable", Status: metav1.ConditionTrue, Reason: "Available"},
+	}
+
+	dst := &DataScienceCluster{
+		TypeMeta: metav1.TypeMeta{APIVersion: GroupVersion.String(), Kind: "DataScienceCluster"},
+	}
+	g.Expect(dst.ConvertFrom(hub)).To(Succeed())
+
+	g.Expect(dst.Spec.Components.Dashboard.ManagementState).To(Equal(operatorv1.Removed))
+	g.Expect(dst.Spec.Components.Dashboard.MaaSConsumerPortal.ManagementState).To(Equal(operatorv1.Managed))
+	g.Expect(dst.Status.Components.Dashboard.ManagementState).To(Equal(operatorv1.Managed))
+	g.Expect(dst.Status.Components.MaaSConsumerPortal.ManagementState).To(Equal(operatorv1.Managed))
+
+	g.Expect(dst.Status.Conditions).To(ContainElement(common.Condition{
+		Type: "MaaSConsumerPortalAvailable", Status: metav1.ConditionTrue, Reason: "Available",
+	}))
+	g.Expect(dst.Status.Conditions).To(ContainElement(common.Condition{
+		Type: "Ready", Status: metav1.ConditionTrue, Reason: "Ready",
+	}))
+	for _, condition := range dst.Status.Conditions {
+		g.Expect(condition.Type).ToNot(Equal("MaaSPortalAvailable"),
+			"v3 condition spelling must not leak into the v2 view")
+	}
+}
+
+// TestModelExpressSurvivesV3ToV2ToV3 covers the v3-only modelExpress field,
+// which v2 cannot represent and must carry in a conversion annotation.
+func TestModelExpressSurvivesV3ToV2ToV3(t *testing.T) {
+	for _, state := range []operatorv1.ManagementState{operatorv1.Managed, operatorv1.Removed} {
+		t.Run(string(state), func(t *testing.T) {
+			g := NewWithT(t)
+
+			hub := &dscApi.DataScienceCluster{}
+			hub.Annotations = map[string]string{"example": "kept"}
+			hub.Spec.Components.Kserve.ManagementState = operatorv1.Managed
+			hub.Spec.Components.Kserve.ModelExpress.ManagementState = state
+
+			v2 := &DataScienceCluster{}
+			g.Expect(v2.ConvertFrom(hub)).To(Succeed())
+			_, marked := v2.Annotations[ModelExpressV3StateAnnotation]
+			g.Expect(marked).To(Equal(state == operatorv1.Managed))
+
+			back := &dscApi.DataScienceCluster{}
+			g.Expect(v2.ConvertTo(back)).To(Succeed())
+			if state == operatorv1.Managed {
+				g.Expect(back.Spec.Components.Kserve.ModelExpress.ManagementState).To(Equal(operatorv1.Managed))
+			} else {
+				g.Expect(back.Spec.Components.Kserve.ModelExpress.ManagementState).To(BeEmpty())
+			}
+			g.Expect(back.Annotations).To(Equal(map[string]string{"example": "kept"}))
+		})
+	}
+}
+
+func TestConvertToRejectsUnknownModelExpressMarker(t *testing.T) {
+	g := NewWithT(t)
+
+	v2 := &DataScienceCluster{}
+	v2.Annotations = map[string]string{ModelExpressV3StateAnnotation: "bogus"}
+	g.Expect(v2.ConvertTo(&dscApi.DataScienceCluster{})).ToNot(Succeed())
+}
+
+// TestDashboardSpecConversionCombinations covers all four standard/portal
+// management state combinations through the v3<->v2 spec mapping.
+func TestDashboardSpecConversionCombinations(t *testing.T) {
+	tests := []struct {
+		name     string
+		standard operatorv1.ManagementState
+		portal   operatorv1.ManagementState
+	}{
+		{name: "both managed", standard: operatorv1.Managed, portal: operatorv1.Managed},
+		{name: "standard only", standard: operatorv1.Managed, portal: operatorv1.Removed},
+		{name: "portal only", standard: operatorv1.Removed, portal: operatorv1.Managed},
+		{name: "both removed", standard: operatorv1.Removed, portal: operatorv1.Removed},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			v3 := componentApi.DSCDashboard{
+				DashboardCommonSpec: componentApi.DashboardCommonSpec{
+					Standard:   componentApi.DashboardStandardSpec{ManagementSpec: common.ManagementSpec{ManagementState: tt.standard}},
+					MaaSPortal: componentApi.DashboardMaaSPortalSpec{ManagementSpec: common.ManagementSpec{ManagementState: tt.portal}},
+				},
+			}
+
+			v2 := dashboardV3ToV2(v3)
+			g.Expect(v2.ManagementState).To(Equal(tt.standard))
+			g.Expect(v2.MaaSConsumerPortal.ManagementState).To(Equal(tt.portal))
+
+			g.Expect(dashboardV2ToV3(v2)).To(Equal(v3))
+		})
+	}
 }
 
 func TestWithConditionTypeMapping(t *testing.T) {
