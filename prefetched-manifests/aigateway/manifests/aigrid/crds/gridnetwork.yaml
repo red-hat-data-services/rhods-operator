@@ -163,10 +163,9 @@ spec:
                           When absent or `generate: false`, this gateway behaves exactly as before:
                           only the routing overlay `ConfigMap` is applied.  When `generate: true`, the
                           operator additionally renders a consumer Praxis `ConfigMap` containing the
-                          inference-model `intelligent_route` candidates (with credential
-                          `secretRef` data), a `credential_inject` section for credential-bearing
-                          inference candidates, and a `load_balancer` section with one cluster
-                          entry per unique inference cluster. Other capability kinds remain in the
+                          routing filter `siteRouter` selects, `intelligent_route` or `grid_site_route`,
+                          a `credential_inject` section for credential-bearing inference candidates, and a `load_balancer` section with
+                          one cluster entry per unique inference cluster. Other capability kinds remain in the
                           routing overlay for dedicated data-plane pipelines.
 
                           The generated `ConfigMap` contains no token bytes. Credential-bearing
@@ -415,6 +414,23 @@ spec:
                                 description: Enable delegated mount reconciliation. Defaults to `false`.
                                 type: boolean
                             type: object
+                          siteRouter:
+                            default: intelligentRoute
+                            description: |-
+                              The filter that picks a candidate for each request.
+
+                              `gridSiteRoute` reads the serving config, so it needs the operator's
+                              poll signal transport. It also needs an enabled `mountReconciliation`,
+                              whose rollout per config revision re-reads the provider-hop backends,
+                              and an empty `providerHopEndpoints`, since hops follow `clusterEndpoints`.
+                              Every cluster is health-checked, so the gateway's readiness probe must
+                              ask Praxis `/healthy`: `/ready` fails while any one site is down.
+
+                              Default: `intelligentRoute`.
+                            enum:
+                              - intelligentRoute
+                              - gridSiteRoute
+                            type: string
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -531,10 +547,9 @@ spec:
                           When absent or `generate: false`, this gateway behaves exactly as before:
                           only the routing overlay `ConfigMap` is applied.  When `generate: true`, the
                           operator additionally renders a consumer Praxis `ConfigMap` containing the
-                          inference-model `intelligent_route` candidates (with credential
-                          `secretRef` data), a `credential_inject` section for credential-bearing
-                          inference candidates, and a `load_balancer` section with one cluster
-                          entry per unique inference cluster. Other capability kinds remain in the
+                          routing filter `siteRouter` selects, `intelligent_route` or `grid_site_route`,
+                          a `credential_inject` section for credential-bearing inference candidates, and a `load_balancer` section with
+                          one cluster entry per unique inference cluster. Other capability kinds remain in the
                           routing overlay for dedicated data-plane pipelines.
 
                           The generated `ConfigMap` contains no token bytes. Credential-bearing
@@ -799,6 +814,23 @@ spec:
                             x-kubernetes-validations:
                               - message: deploymentName is required when mount reconciliation is enabled
                                 rule: '!has(self.enabled) || !self.enabled || has(self.deploymentName)'
+                          siteRouter:
+                            default: intelligentRoute
+                            description: |-
+                              The filter that picks a candidate for each request.
+
+                              `gridSiteRoute` reads the serving config, so it needs the operator's
+                              poll signal transport. It also needs an enabled `mountReconciliation`,
+                              whose rollout per config revision re-reads the provider-hop backends,
+                              and an empty `providerHopEndpoints`, since hops follow `clusterEndpoints`.
+                              Every cluster is health-checked, so the gateway's readiness probe must
+                              ask Praxis `/healthy`: `/ready` fails while any one site is down.
+
+                              Default: `intelligentRoute`.
+                            enum:
+                              - intelligentRoute
+                              - gridSiteRoute
+                            type: string
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -888,9 +920,11 @@ spec:
                       providerHopEndpoints:
                         description: |-
                           Explicit mTLS provider-hop endpoints for the embedded `grid-gateway`
-                          serving config. This allowlist is independent of `praxisConfig`, so a
-                          missing or disabled generated Praxis config cannot alter embedded
-                          serving behavior. Every entry must declare `mutual_tls` and a nonblank
+                          serving config. With the default `praxisConfig.siteRouter`
+                          `intelligentRoute` this allowlist is independent of `praxisConfig`, so a
+                          missing or disabled generated Praxis config cannot alter embedded serving
+                          behavior. With `gridSiteRoute` the hops are the generated config's mutual
+                          TLS endpoints instead, and this must be empty. Every entry must declare `mutual_tls` and a nonblank
                           SNI. The embedded gateway compares each declaration against the
                           loaded Praxis load-balancer's verified mTLS backend before it sends
                           provider-hop context. Changing Praxis backend transport requires a
@@ -992,10 +1026,9 @@ spec:
                           When absent or `generate: false`, this gateway behaves exactly as before:
                           only the routing overlay `ConfigMap` is applied.  When `generate: true`, the
                           operator additionally renders a consumer Praxis `ConfigMap` containing the
-                          inference-model `intelligent_route` candidates (with credential
-                          `secretRef` data), a `credential_inject` section for credential-bearing
-                          inference candidates, and a `load_balancer` section with one cluster
-                          entry per unique inference cluster. Other capability kinds remain in the
+                          routing filter `siteRouter` selects, `intelligent_route` or `grid_site_route`,
+                          a `credential_inject` section for credential-bearing inference candidates, and a `load_balancer` section with
+                          one cluster entry per unique inference cluster. Other capability kinds remain in the
                           routing overlay for dedicated data-plane pipelines.
 
                           The generated `ConfigMap` contains no token bytes. Credential-bearing
@@ -1244,6 +1277,23 @@ spec:
                                 description: Enable delegated mount reconciliation. Defaults to `false`.
                                 type: boolean
                             type: object
+                          siteRouter:
+                            default: intelligentRoute
+                            description: |-
+                              The filter that picks a candidate for each request.
+
+                              `gridSiteRoute` reads the serving config, so it needs the operator's
+                              poll signal transport. It also needs an enabled `mountReconciliation`,
+                              whose rollout per config revision re-reads the provider-hop backends,
+                              and an empty `providerHopEndpoints`, since hops follow `clusterEndpoints`.
+                              Every cluster is health-checked, so the gateway's readiness probe must
+                              ask Praxis `/healthy`: `/ready` fails while any one site is down.
+
+                              Default: `intelligentRoute`.
+                            enum:
+                              - intelligentRoute
+                              - gridSiteRoute
+                            type: string
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -1360,10 +1410,9 @@ spec:
                           When absent or `generate: false`, this gateway behaves exactly as before:
                           only the routing overlay `ConfigMap` is applied.  When `generate: true`, the
                           operator additionally renders a consumer Praxis `ConfigMap` containing the
-                          inference-model `intelligent_route` candidates (with credential
-                          `secretRef` data), a `credential_inject` section for credential-bearing
-                          inference candidates, and a `load_balancer` section with one cluster
-                          entry per unique inference cluster. Other capability kinds remain in the
+                          routing filter `siteRouter` selects, `intelligent_route` or `grid_site_route`,
+                          a `credential_inject` section for credential-bearing inference candidates, and a `load_balancer` section with
+                          one cluster entry per unique inference cluster. Other capability kinds remain in the
                           routing overlay for dedicated data-plane pipelines.
 
                           The generated `ConfigMap` contains no token bytes. Credential-bearing
@@ -1612,6 +1661,23 @@ spec:
                                 description: Enable delegated mount reconciliation. Defaults to `false`.
                                 type: boolean
                             type: object
+                          siteRouter:
+                            default: intelligentRoute
+                            description: |-
+                              The filter that picks a candidate for each request.
+
+                              `gridSiteRoute` reads the serving config, so it needs the operator's
+                              poll signal transport. It also needs an enabled `mountReconciliation`,
+                              whose rollout per config revision re-reads the provider-hop backends,
+                              and an empty `providerHopEndpoints`, since hops follow `clusterEndpoints`.
+                              Every cluster is health-checked, so the gateway's readiness probe must
+                              ask Praxis `/healthy`: `/ready` fails while any one site is down.
+
+                              Default: `intelligentRoute`.
+                            enum:
+                              - intelligentRoute
+                              - gridSiteRoute
+                            type: string
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -1701,9 +1767,11 @@ spec:
                       providerHopEndpoints:
                         description: |-
                           Explicit mTLS provider-hop endpoints for the embedded `grid-gateway`
-                          serving config. This allowlist is independent of `praxisConfig`, so a
-                          missing or disabled generated Praxis config cannot alter embedded
-                          serving behavior. Every entry must declare `mutual_tls` and a nonblank
+                          serving config. With the default `praxisConfig.siteRouter`
+                          `intelligentRoute` this allowlist is independent of `praxisConfig`, so a
+                          missing or disabled generated Praxis config cannot alter embedded serving
+                          behavior. With `gridSiteRoute` the hops are the generated config's mutual
+                          TLS endpoints instead, and this must be empty. Every entry must declare `mutual_tls` and a nonblank
                           SNI. The embedded gateway compares each declaration against the
                           loaded Praxis load-balancer's verified mTLS backend before it sends
                           provider-hop context. Changing Praxis backend transport requires a
