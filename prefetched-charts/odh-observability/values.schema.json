@@ -20,7 +20,7 @@
     },
     "monitoringNamespace": {
       "type": "string",
-      "description": "Namespace where Monitoring operands are deployed. Defaults to operatorNamespace when empty."
+      "description": "Namespace where Monitoring operands are deployed, and the only namespace allowed to scrape operator metrics. Defaults to operatorNamespace when empty."
     },
     "gatewayNamespace": {
       "type": "string",
@@ -152,6 +152,38 @@
         "secretName": {
           "type": "string",
           "description": "TLS secret name for webhook certs"
+        }
+      }
+    },
+    "webhookIngressCIDRs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "description": "CIDRs allowed to reach the admission webhook on TCP 9443. Defaults are the OpenShift and ROSA install defaults. Replace the machine CIDR when the cluster was created with a different one."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Operator metrics scrape settings.",
+      "properties": {
+        "prometheusServiceAccount": {
+          "type": "string",
+          "description": "Prometheus ServiceAccount granted get on /metrics. The MonitoringStack creates it as <name>-prometheus in monitoringNamespace."
+        },
+        "serviceMonitor": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Create a ServiceMonitor. Enable only after the monitoring.rhobs ServiceMonitor CRD is installed."
+            },
+            "apiVersion": {
+              "type": "string",
+              "description": "API version of the operator ServiceMonitor."
+            }
+          }
         }
       }
     },

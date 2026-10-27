@@ -51,7 +51,7 @@ spec:
             {{- end }}
           ports:
             - name: metrics
-              containerPort: 8080
+              containerPort: 8443
               protocol: TCP
             - name: health
               containerPort: 8081
@@ -75,6 +75,9 @@ spec:
             - name: webhook-certs
               mountPath: /tmp/k8s-webhook-server/serving-certs
               readOnly: true
+            - name: metrics-tls
+              mountPath: /etc/metrics-tls
+              readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
@@ -83,6 +86,9 @@ spec:
         - name: webhook-certs
           secret:
             secretName: {{ include "odh-observability.fullname" . }}-webhook-cert
+        - name: metrics-tls
+          secret:
+            secretName: {{ include "odh-observability.fullname" . }}-metrics-tls
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

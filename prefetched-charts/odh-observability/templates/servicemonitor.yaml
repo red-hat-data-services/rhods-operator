@@ -1,0 +1,40 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-metrics-ca
+  namespace: {{ .Values.monitoringNamespace | default .Values.operatorNamespace }}
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+  annotations:
+    # The OpenShift service-ca controller injects the service CA bundle under
+    # the service-ca.crt key, letting the ServiceMonitor verify the metrics
+    # serving certificate issued by service.beta.openshift.io/serving-cert.
+    service.beta.openshift.io/inject-cabundle: "true"
+---
+apiVersion: {{ .Values.metrics.serviceMonitor.apiVersion }}
+kind: ServiceMonitor
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-metrics
+  namespace: {{ .Values.monitoringNamespace | default .Values.operatorNamespace }}
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+spec:
+  endpoints:
+    - path: /metrics
+      port: https
+      scheme: https
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        ca:
+          configMap:
+            name: {{ include "odh-observability.fullname" . }}-metrics-ca
+            key: service-ca.crt
+        serverName: {{ include "odh-observability.fullname" . }}-metrics.{{ .Values.operatorNamespace }}.svc
+  selector:
+    matchLabels:
+      {{- include "odh-observability.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.operatorNamespace }}
+{{- end }}

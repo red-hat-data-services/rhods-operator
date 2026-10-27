@@ -12,6 +12,7 @@ otelOperatorNamespace: ""
 # Tempo write ACL treats this namespace name as the RBAC resource.
 # Defaults to operatorNamespace when empty. On RHOAI this is
 # spec.monitoring.namespace (e.g. redhat-ods-monitoring).
+# Also used as the allowed source for operator metrics NetworkPolicy ingress.
 monitoringNamespace: ""
 
 # Namespace containing the external router or gateway that reaches the
@@ -68,3 +69,25 @@ affinity: {}
 env: []
 # - name: RELATED_IMAGE_PERSES_IMAGE
 #   value: "registry.redhat.io/cluster-observability-operator/perses-rhel9:1.5.0-1781116652"
+
+# CIDRs allowed to reach the admission webhook (TCP 9443).
+# kube-apiserver is host-networked, so the source is a node IP in the machine
+# CIDR. These three ranges are the OpenShift and ROSA install defaults.
+# Replace 10.0.0.0/16 when the cluster was created with another machine CIDR
+# (required when the VPC is not 10.0.0.0/16). That value is per cluster.
+# See the chart README for how to read it from the cluster.
+webhookIngressCIDRs:
+  - 172.30.0.0/16  # service network
+  - 10.128.0.0/14  # pod network
+  - 10.0.0.0/16    # machine network (node IPs; kube-apiserver source)
+
+metrics:
+  # ServiceAccount name that Prometheus uses (created by MonitoringStack).
+  # Granted read access to operator /metrics endpoint via ClusterRoleBinding.
+  prometheusServiceAccount: data-science-monitoringstack-prometheus
+  # Enable ServiceMonitor resource creation for Prometheus Operator.
+  serviceMonitor:
+    # Enable after the RHOBS ServiceMonitor CRD is available.
+    # Supported deployments must enable this explicitly to scrape metrics.
+    enabled: false
+    apiVersion: monitoring.rhobs/v1
