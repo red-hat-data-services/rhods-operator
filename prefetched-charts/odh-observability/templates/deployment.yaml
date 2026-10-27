@@ -34,10 +34,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: OPERATOR_NAME
+              value: {{ include "odh-observability.fullname" . | quote }}
+            - name: OPERATOR_POD_PREFIX
+              value: {{ include "odh-observability.fullname" . | quote }}
             - name: OPERATOR_VERSION
               value: {{ .Chart.AppVersion | quote }}
             - name: MONITORING_NAMESPACE
               value: {{ include "odh-observability.monitoringNamespace" . | quote }}
+            - name: WEBHOOK_PROBE_NAMESPACE
+              value: {{ include "odh-observability.webhookProbeNamespace" . | quote }}
             - name: GATEWAY_NAMESPACE
               value: {{ .Values.gatewayNamespace | quote }}
             {{- with .Values.env }}

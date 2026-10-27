@@ -14,12 +14,13 @@ rules:
     verbs: ["get", "update", "patch"]
   # COO / Prometheus (RHOBS API group)
   - apiGroups: ["monitoring.rhobs"]
-    resources: ["monitoringstacks", "thanosqueriers", "servicemonitors", "prometheusrules"]
+    resources: ["monitoringstacks", "thanosqueriers", "servicemonitors", "podmonitors", "prometheusrules"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # Upstream Prometheus Operator (granted via cluster-monitoring-view binding)
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["prometheuses/api"]
     verbs: ["get", "create", "update"]
+  # Read-only: granted to the collector via collector-rbac (operator must hold what it grants)
   - apiGroups: ["monitoring.coreos.com"]
     resources: ["podmonitors", "servicemonitors"]
     verbs: ["*"]
@@ -73,13 +74,9 @@ rules:
   - apiGroups: ["perses.dev"]
     resources: ["perses", "persesdatasources", "persesdashboards"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # Admission policies and webhook configuration
+  # Admission policies (ValidatingAdmissionPolicy deployed by reconciler)
   - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["validatingadmissionpolicies", "validatingadmissionpolicybindings", "mutatingwebhookconfigurations"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  # cert-manager (for webhook TLS provisioning)
-  - apiGroups: ["cert-manager.io"]
-    resources: ["issuers", "certificates"]
+    resources: ["validatingadmissionpolicies", "validatingadmissionpolicybindings"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   # RBAC
   - apiGroups: ["rbac.authorization.k8s.io"]

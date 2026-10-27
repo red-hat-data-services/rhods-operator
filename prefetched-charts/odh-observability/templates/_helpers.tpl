@@ -56,3 +56,12 @@ Falls back to operatorNamespace when monitoringNamespace is unset.
 {{- define "odh-observability.monitoringNamespace" -}}
 {{- default .Values.operatorNamespace .Values.monitoringNamespace }}
 {{- end }}
+
+{{/*
+Namespace holding the webhook admission probe canary.
+Falls back to <fullname>-webhook-probe when webhook.probe.namespace is unset.
+*/}}
+{{- define "odh-observability.webhookProbeNamespace" -}}
+{{- $default := printf "%s-webhook-probe" (include "odh-observability.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- default $default ((.Values.webhook).probe).namespace }}
+{{- end }}

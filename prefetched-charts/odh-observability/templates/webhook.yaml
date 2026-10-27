@@ -54,16 +54,16 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         path: /mutate-prometheus-monitors
         port: 9443
-    failurePolicy: Ignore
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
     namespaceSelector:
+      matchLabels:
+        monitoring.opendatahub.io/scrape: "true"
+    objectSelector:
       matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values:
-            - {{ .Values.operatorNamespace }}
-            - kube-system
+        - key: monitoring.opendatahub.io/scrape
+          operator: DoesNotExist
     rules:
-      - apiGroups: ["monitoring.coreos.com"]
+      - apiGroups: ["monitoring.coreos.com", "monitoring.rhobs"]
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE"]
         resources: ["podmonitors"]
@@ -77,16 +77,16 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         path: /mutate-prometheus-monitors
         port: 9443
-    failurePolicy: Ignore
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
     namespaceSelector:
+      matchLabels:
+        monitoring.opendatahub.io/scrape: "true"
+    objectSelector:
       matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: NotIn
-          values:
-            - {{ .Values.operatorNamespace }}
-            - kube-system
+        - key: monitoring.opendatahub.io/scrape
+          operator: DoesNotExist
     rules:
-      - apiGroups: ["monitoring.coreos.com"]
+      - apiGroups: ["monitoring.coreos.com", "monitoring.rhobs"]
         apiVersions: ["v1"]
         operations: ["CREATE", "UPDATE"]
         resources: ["servicemonitors"]

@@ -1,0 +1,9 @@
+{{- if ne ((.Values.webhook).probe).createNamespace false }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "odh-observability.webhookProbeNamespace" . }}
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+    monitoring.opendatahub.io/scrape: "true"
+{{- end }}

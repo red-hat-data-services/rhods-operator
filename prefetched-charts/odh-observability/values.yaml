@@ -37,6 +37,24 @@ resources:
 # Leader election - enable when running multiple replicas.
 leaderElect: false
 
+# Webhook admission policy configuration.
+# failurePolicy controls what happens when the webhook is unavailable.
+# Use Ignore (default) for single-replica deployments to avoid blocking
+# PodMonitor/ServiceMonitor admission during operator restarts or node drains.
+# Switch to Fail only after enabling HA (replicaCount >= 2, leaderElect: true).
+webhook:
+  failurePolicy: Ignore
+  # The admission probe periodically writes a canary PodMonitor and checks that
+  # the webhook labels it. The canary lives in a dedicated namespace labeled
+  # monitoring.opendatahub.io/scrape=true, so the webhook namespaceSelector
+  # matches it without opting any real monitors into scraping.
+  probe:
+    # Defaults to <fullname>-webhook-probe when empty.
+    namespace: ""
+    # Set to false when the namespace is provisioned outside this chart. It must
+    # then carry the monitoring.opendatahub.io/scrape=true label.
+    createNamespace: true
+
 # Image pull secrets for private registries.
 imagePullSecrets: []
 

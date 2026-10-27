@@ -56,6 +56,9 @@ helm uninstall odh-observability --namespace odh-observability-system
 | `affinity` | object | `{}` | Affinity rules for pod scheduling |
 | `webhook.enabled` | bool | `true` | Enable the mutating admission webhook |
 | `webhook.port` | int | `9443` | Webhook listener port |
+| `webhook.failurePolicy` | string | `"Ignore"` | Webhook failure policy: `Ignore` (fail open) or `Fail` (fail closed). Use `Fail` only with HA. |
+| `webhook.probe.namespace` | string | `""` | Namespace for the webhook admission probe canary. Defaults to `<fullname>-webhook-probe`. |
+| `webhook.probe.createNamespace` | bool | `true` | Create the probe namespace labeled `monitoring.opendatahub.io/scrape=true`. When `false`, the namespace must already exist with that label. |
 | `certManager.enabled` | bool | `true` | Enable cert-manager for webhook TLS provisioning |
 | `certManager.certificateName` | string | `"odh-observability-webhook-cert"` | cert-manager Certificate resource name |
 | `certManager.secretName` | string | `"odh-observability-webhook-cert"` | TLS secret name for webhook certs |
