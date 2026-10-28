@@ -290,7 +290,24 @@ jobs:
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin ${{ github.ref_name }})
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Updating the operator repo with latest images and manifests"
+          # Konflux / other jobs often push to the same branch while this workflow runs.
+          # Retry with rebase so a non-fast-forward does not hard-fail the nightly trigger.
+          for i in 1 2 3 4 5; do
+            if git push origin "${{ github.ref_name }}"; then
+              echo "Push succeeded on attempt $i"
+              exit 0
+            fi
+            echo "Push rejected (attempt $i); rebasing onto remote..."
+            git pull --rebase origin "${{ github.ref_name }}"
+            sleep $((i * 2))
+          done
+          echo "Push failed after retries"
+          exit 1
 
       - name: Upload debug logs
         if: always()
