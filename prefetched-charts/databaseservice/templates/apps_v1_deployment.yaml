@@ -41,6 +41,9 @@ spec:
           periodSeconds: 20
         name: manager
         ports:
+        - containerPort: {{ default 9443 (int (index .Values.config "controller.webhook.port")) }}
+          name: webhook-server
+          protocol: TCP
         - containerPort: 8081
           name: health
           protocol: TCP
@@ -59,6 +62,9 @@ spec:
             - ALL
           readOnlyRootFilesystem: true
         volumeMounts:
+        - mountPath: {{ default "/tmp/k8s-webhook-server/serving-certs" (index .Values.config "controller.webhook.cert-dir") | quote }}
+          name: cert
+          readOnly: true
         - mountPath: /etc/controller/config
           name: config
           readOnly: true
@@ -73,6 +79,10 @@ spec:
       serviceAccountName: {{ default (include "chart.fullname" .) .Values.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
       volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
       - configMap:
           name: odh-databaseservice-config
         name: config

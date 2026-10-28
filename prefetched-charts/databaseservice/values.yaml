@@ -1,5 +1,9 @@
 config: {}
+fullnameOverride: ""
 imagePullSecrets: []
+nameOverride: ""
+openshift:
+  securityContextConstraints: false
 operator:
   image:
     pullPolicy: Always
@@ -15,4 +19,6 @@ operator:
 platform:
   type: OpenDataHub
   version: ""
-serviceAccount: {}
+serviceAccount:
+  annotations: {}
+  name: ""

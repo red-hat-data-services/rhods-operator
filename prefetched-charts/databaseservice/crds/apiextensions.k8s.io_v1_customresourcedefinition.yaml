@@ -111,6 +111,11 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
+              defaultProviderName:
+                description: |-
+                  DefaultProviderName records the install-time name so later configuration
+                  changes cannot silently redirect providerless claims.
+                type: string
               observedGeneration:
                 description: The generation observed by the resource controller.
                 format: int64

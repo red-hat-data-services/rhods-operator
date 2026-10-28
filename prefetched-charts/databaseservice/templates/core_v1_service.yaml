@@ -13,3 +13,16 @@ spec:
     targetPort: 8443
   selector:
     app.kubernetes.io/name: opendatahub-db-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odh-db-operator-webhook-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: webhook-server
+  selector:
+    app.kubernetes.io/name: opendatahub-db-operator

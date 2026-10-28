@@ -1,6 +1,57 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: odh-db-operator-internal-provider-writer
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - persistentvolumeclaims
+  - secrets
+  - services
+  - serviceaccounts
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  - issuers
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: odh-db-operator-manager-role
 rules:
 - nonResourceURLs:
@@ -11,11 +62,32 @@ rules:
   - ""
   resources:
   - configmaps
-  - persistentvolumeclaims
+  - serviceaccounts
   - services
   verbs:
   - get
   - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - apiextensions.k8s.io
@@ -64,19 +136,43 @@ rules:
 - apiGroups:
   - infrastructure.opendatahub.io
   resources:
-  - databaseproviders
+  - databaseclaims
+  - schemaclaims
   verbs:
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - infrastructure.opendatahub.io
   resources:
+  - databaseclaims/finalizers
+  - databaseproviders/finalizers
+  - schemaclaims/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseclaims/status
   - databaseproviders/status
+  - schemaclaims/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseproviders
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
 - apiGroups:
   - networking.k8s.io
   resources:
@@ -86,13 +182,37 @@ rules:
   - list
   - watch
 - apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - odh-db-internal-postgres
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - use
+- apiGroups:
   - services.platform.opendatahub.io
   resources:
   - databaseservices
   verbs:
   - get
   - list
+  - update
   - watch
+- apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - databaseservices/finalizers
+  verbs:
+  - update
 - apiGroups:
   - services.platform.opendatahub.io
   resources:
@@ -129,3 +249,22 @@ rules:
   - /metrics
   verbs:
   - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: internal-postgres-scc
+    app.kubernetes.io/name: odh-db-internal-postgres
+    app.kubernetes.io/part-of: opendatahub-db-operator
+    db.infrastructure.opendatahub.io/internal-postgres-scc: owned
+  name: odh-db-internal-postgres
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - odh-db-internal-postgres
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use

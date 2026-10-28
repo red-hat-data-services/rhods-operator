@@ -36,6 +36,18 @@
         "pullPolicy"
       ]
     },
+    "OpenShiftSpec": {
+      "properties": {
+        "securityContextConstraints": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "securityContextConstraints"
+      ]
+    },
     "OperatorSpec": {
       "properties": {
         "image": {
@@ -107,7 +119,11 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "name",
+        "annotations"
+      ]
     },
     "Values": {
       "properties": {
@@ -132,6 +148,9 @@
         "platform": {
           "$ref": "#/$defs/PlatformSpec"
         },
+        "openshift": {
+          "$ref": "#/$defs/OpenShiftSpec"
+        },
         "config": {
           "additionalProperties": {
             "type": "string"
@@ -142,10 +161,13 @@
       "additionalProperties": false,
       "type": "object",
       "required": [
+        "nameOverride",
+        "fullnameOverride",
         "operator",
         "serviceAccount",
         "imagePullSecrets",
         "platform",
+        "openshift",
         "config"
       ]
     }
