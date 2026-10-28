@@ -40,11 +40,11 @@ leaderElect: false
 
 # Webhook admission policy configuration.
 # failurePolicy controls what happens when the webhook is unavailable.
-# Use Ignore (default) for single-replica deployments to avoid blocking
-# PodMonitor/ServiceMonitor admission during operator restarts or node drains.
-# Switch to Fail only after enabling HA (replicaCount >= 2, leaderElect: true).
+# Fail is the secure default: admission timeouts reject PodMonitor and
+# ServiceMonitor updates rather than allowing them through unscraped. Set
+# Ignore for deployments that prefer availability during operator restarts.
 webhook:
-  failurePolicy: Ignore
+  failurePolicy: Fail
   # The admission probe periodically writes a canary PodMonitor and checks that
   # the webhook labels it. The canary lives in a dedicated namespace labeled
   # monitoring.opendatahub.io/scrape=true, so the webhook namespaceSelector

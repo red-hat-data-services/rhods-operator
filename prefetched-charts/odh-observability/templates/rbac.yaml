@@ -157,10 +157,10 @@ rules:
   - apiGroups: ["authorization.k8s.io"]
     resources: ["subjectaccessreviews"]
     verbs: ["create"]
-  # Metrics API (operator must hold this to grant it via data-science-metrics-view ClusterRole)
+  # Metrics API read access for observability resources.
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods"]
-    verbs: ["get", "list", "create"]
+    verbs: ["get", "list"]
   # MLflow (operator must hold this to grant it via collector-mlflow-trace-export ClusterRole)
   - apiGroups: ["mlflow.kubeflow.org"]
     resources: ["experiments"]

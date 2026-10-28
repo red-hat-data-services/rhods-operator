@@ -55,6 +55,7 @@ webhooks:
         path: /mutate-prometheus-monitors
         port: 9443
     failurePolicy: {{ .Values.webhook.failurePolicy }}
+    timeoutSeconds: 5
     namespaceSelector:
       matchLabels:
         monitoring.opendatahub.io/scrape: "true"
@@ -78,6 +79,7 @@ webhooks:
         path: /mutate-prometheus-monitors
         port: 9443
     failurePolicy: {{ .Values.webhook.failurePolicy }}
+    timeoutSeconds: 5
     namespaceSelector:
       matchLabels:
         monitoring.opendatahub.io/scrape: "true"
