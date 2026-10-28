@@ -38,15 +38,11 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  # Must be a PUBLIC repo: the monitor resolves digests with quay's anonymous
-  # token, which odh-rhel9-operator answers with 401. Component prefix because
-  # the gate's three blocks share it.
-  #
-  # A fallback - the gate rewrites it on the ephemeral branch. Left templated so
-  # a failed rewrite gives a unique tag the monitor misses, not a fixed one that
-  # collides. Keep in step with image-tag on monitor-operator-build.
+  # Publish to the downstream repository under an early-gate tag.
+  # The gate pins this fallback on its ephemeral branch; keep its destination
+  # aligned with the EG Component and the matching monitor's output-image.
   - name: output-image
-    value: quay.io/rhoai/pull-request-pipelines:odh-operator-{{target_branch}}-{{revision}}
+    value: quay.io/rhoai/odh-rhel9-operator:odh-operator-{{target_branch}}-{{revision}}
   - name: image-expires-after
     value: 30d
   - name: dockerfile
