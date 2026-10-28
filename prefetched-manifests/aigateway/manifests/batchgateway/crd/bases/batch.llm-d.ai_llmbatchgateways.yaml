@@ -772,8 +772,8 @@ spec:
                               QueuesConfig is a list of per-queue configurations.
                               When set, overrides the single-queue settings (RequestPathURL, GateType, etc.).
                             items:
-                              description: AsyncQueueConfig configures a single Redis
-                                queue for the async-processor.
+                              description: AsyncQueueConfig configures a single async-processor
+                                request queue.
                               properties:
                                 gateParams:
                                   additionalProperties:
@@ -793,11 +793,8 @@ spec:
                                   pattern: ^https?://.+$
                                   type: string
                                 name:
-                                  description: |-
-                                    Name is the Redis sorted-set key for this queue.
-                                    Must follow the convention: llm-d-async:requests:<inferencePoolName>
-                                    where <inferencePoolName> matches the corresponding modelGateways entry.
-                                    The result queue (llm-d-async:results:<inferencePoolName>) is auto-configured by the batch processor.
+                                  description: Name is the transport-specific request
+                                    queue name.
                                   maxLength: 253
                                   type: string
                                 requestPathURL:
@@ -899,6 +896,97 @@ spec:
                         maxLength: 32
                         pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
                         type: string
+                      sql:
+                        description: |-
+                          SQL configures the PostgreSQL SQL message queue backend.
+                          Redis and SQL are mutually exclusive; async dispatch requires one of them.
+                        properties:
+                          batchSize:
+                            default: 10
+                            description: BatchSize is the number of requests to dispatch
+                              per poll cycle.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          handoffTimeoutSeconds:
+                            description: HandoffTimeoutSeconds bounds graceful partition
+                              handoff during processor shutdown.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          leaseTTLSeconds:
+                            description: LeaseTTLSeconds controls SQL partition lease
+                              expiry after a processor stops heartbeating.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          maxConnections:
+                            description: |-
+                              MaxConnections caps the SQL connection pool for each Batch Gateway
+                              processor replica (async_dispatch.max_connections). It is separate from
+                              the async processor dispatcher's own SQL pool.
+                              When omitted, the chart default (8) applies. Explicit values must be positive.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          pollIntervalMs:
+                            default: 1000
+                            description: PollIntervalMs is the interval in milliseconds
+                              for polling SQL queues.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          queuesConfig:
+                            description: QueuesConfig configures SQL request queues
+                              and their dispatch gates.
+                            items:
+                              description: AsyncQueueConfig configures a single async-processor
+                                request queue.
+                              properties:
+                                gateParams:
+                                  additionalProperties:
+                                    type: string
+                                  description: GateParams overrides the gate parameters
+                                    for this queue.
+                                  type: object
+                                gateType:
+                                  description: GateType overrides the gating mechanism
+                                    for this queue.
+                                  maxLength: 253
+                                  type: string
+                                igwBaseURL:
+                                  description: IGWBaseURL overrides the top-level
+                                    asyncConfig.inferenceGateway URL for this queue.
+                                  maxLength: 2048
+                                  pattern: ^https?://.+$
+                                  type: string
+                                name:
+                                  description: Name is the transport-specific request
+                                    queue name.
+                                  maxLength: 253
+                                  type: string
+                                requestPathURL:
+                                  description: RequestPathURL overrides the request
+                                    path for this queue.
+                                  maxLength: 2048
+                                  type: string
+                                workerPoolID:
+                                  description: |-
+                                    WorkerPoolID assigns this queue to a named worker pool.
+                                    Must match a workerPools[].name entry. Defaults to "default" if omitted.
+                                  maxLength: 253
+                                  type: string
+                              required:
+                              - name
+                              type: object
+                            type: array
+                          resultBatchSize:
+                            description: ResultBatchSize is the maximum number of
+                              results written per transaction.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                        type: object
                       tls:
                         description: TLS configures TLS for connections to inference
                           gateways.
@@ -976,6 +1064,10 @@ spec:
                           type: object
                         type: array
                     type: object
+                    x-kubernetes-validations:
+                    - message: asyncConfig.redis and asyncConfig.sql are mutually
+                        exclusive
+                      rule: '!(has(self.redis) && has(self.sql))'
                   config:
                     description: Config holds fine-grained processor configuration.
                     properties:
@@ -1401,6 +1493,10 @@ spec:
                 - message: .spec.processor.asyncConfig is required when dispatchMode
                     is 'async'
                   rule: self.dispatchMode != 'async' || has(self.asyncConfig)
+                - message: asyncConfig.redis or asyncConfig.sql is required when dispatchMode
+                    is 'async'
+                  rule: self.dispatchMode != 'async' || (has(self.asyncConfig) &&
+                    (has(self.asyncConfig.redis) || has(self.asyncConfig.sql)))
               prometheusRule:
                 description: PrometheusRule configures a PrometheusRule resource with
                   pre-built alerting rules.

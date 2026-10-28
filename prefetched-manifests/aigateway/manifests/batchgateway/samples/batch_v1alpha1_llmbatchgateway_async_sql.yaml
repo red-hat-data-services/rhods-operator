@@ -1,0 +1,45 @@
+apiVersion: batch.llm-d.ai/v1alpha1
+kind: LLMBatchGateway
+metadata:
+  name: batch-gateway-async-sql
+spec:
+  secretRef:
+    name: batch-gateway-secrets
+  dbBackend: postgresql
+  fileStorage:
+    s3:
+      bucket: llm-d-batch-gateway
+      region: us-east-1
+      endpoint: https://s3.example.com
+  apiServer:
+    replicas: 1
+  gc:
+    replicas: 1
+    interval: 30m
+  processor:
+    dispatchMode: async
+    modelGateways:
+      llama-3:
+        inferencePoolName: llama-pool
+        requestQueueName: llm-d-async:requests:llama-pool
+        resultQueueName: llm-d-async:results:llama-pool
+    asyncConfig:
+      resultPollTimeout: 30s
+      inferenceGateway:
+        url: http://inference-gateway.default.svc:8000
+      prometheusURL: http://prometheus.default.svc.cluster.local:9090
+      sql:
+        # Per-replica SQL pool cap for the Batch Gateway processor.
+        # Omit to use the chart default (8). An explicit 0 is passed through
+        # and rejected by the processor's configuration validation.
+        maxConnections: 8
+        pollIntervalMs: 1000
+        batchSize: 10
+        queuesConfig:
+          - name: llm-d-async:requests:llama-pool
+            workerPoolID: default
+            gateType: prometheus-budget
+            gateParams:
+              pool: llama-pool
+              max_concurrency: "100"
+              baseline: "0.05"
