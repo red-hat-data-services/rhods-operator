@@ -58,6 +58,31 @@ spec:
                   Projected by the orchestrator from the platform GatewayConfig.
                 maxLength: 253
                 type: string
+              ingressContract:
+                description: |-
+                  ingressContract identifies the contract and source generation for the
+                  projected ingress data. It is optional until the platform enables the
+                  contract-v1 rollout gate.
+                properties:
+                  sourceGeneration:
+                    description: |-
+                      sourceGeneration is the GatewayConfig generation represented by the
+                      projected ingress data.
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  version:
+                    description: |-
+                      version identifies the ingress projection contract understood by the
+                      downstream Workbenches and Notebook controllers.
+                    enum:
+                    - v1
+                    maxLength: 2
+                    type: string
+                required:
+                - sourceGeneration
+                - version
+                type: object
               ingresses:
                 description: |-
                   ingresses are Gateway assignments projected by the orchestrator.
@@ -130,6 +155,22 @@ spec:
                   mlflowEnabled indicates whether the MLflow integration is active.
                   Projected by the orchestrator from DSC MLflowOperator state.
                 type: boolean
+              odhNotebookControllerProbe:
+                description: |-
+                  odhNotebookControllerProbe configures the notebook controller workbench probe policy.
+                  When omitted, the notebook controller enforces the Kubernetes default timeout of 1 second.
+                properties:
+                  timeoutSeconds:
+                    default: 1
+                    description: |-
+                      timeoutSeconds is the timeout in seconds enforced on existing liveness and readiness
+                      probes of the main workbench container and its injected kube-rbac-proxy sidecar.
+                      Startup probes and other probe settings are not changed.
+                    format: int32
+                    maximum: 2147483647
+                    minimum: 1
+                    type: integer
+                type: object
               platform:
                 description: |-
                   platform identifies the platform type (OpenDataHub, SelfManagedRhoai).

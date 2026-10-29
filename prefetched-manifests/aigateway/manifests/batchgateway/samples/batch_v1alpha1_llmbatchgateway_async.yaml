@@ -42,7 +42,6 @@ spec:
         inferencePoolName: llama-pool
       whisper-large:
         inferencePoolName: whisper-pool
-    dispatchMode: async
     asyncConfig:
       concurrency: 8
       drainTimeout: 2m
@@ -80,12 +79,16 @@ spec:
           quota_key: "dispatch-quota"
       prometheusURL: http://prometheus:9090
       prometheusCacheTTL: 30s
+      # TLS for the async processor -> inference gateway connection. One
+      # configuration covers every queue; there is no per-queue TLS.
+      # Keys below are keys in the referenced Secret. secretName is required
+      # whenever a cert key is set, and certKey/keyKey must be set together.
       # tls:
       #   secretName: igw-tls-certs
-      #   insecureSkipVerify: false
-      #   caCertKey: ca.crt
-      #   certKey: tls.crt
-      #   keyKey: tls.key
+      #   caCertKey: ca.crt        # custom CA for verifying the gateway
+      #   certKey: tls.crt         # mTLS client cert (needs keyKey)
+      #   keyKey: tls.key          # mTLS client key (needs certKey)
+      #   insecureSkipVerify: false  # not recommended in production
       # transformConfig:
       #   requestTransforms:
       #   - name: gcs-whisper

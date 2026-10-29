@@ -180,6 +180,7 @@ spec:
                     description: |-
                       Replicas is the desired number of API server pods.
                       Setting this to 0 suspends the API server; the Ready condition will be False.
+                      Every replica must be ready before the component is reported Available.
                     format: int32
                     minimum: 0
                     type: integer
@@ -248,8 +249,9 @@ spec:
                 default: postgresql
                 description: |-
                   DBBackend selects the database backend used for job state storage.
-                  The batch-gateway control plane uses PostgreSQL. Redis is used by the
-                  async processor when dispatchMode is "async"; async is the default.
+                  The batch-gateway control plane uses PostgreSQL. The async processor's
+                  request/result queues use a separate transport, configured under
+                  processor.asyncConfig.redis or processor.asyncConfig.sql.
                 enum:
                 - postgresql
                 type: string
@@ -423,6 +425,7 @@ spec:
                     description: |-
                       Replicas is the desired number of GC pods.
                       Setting this to 0 suspends the GC; the Ready condition will be False.
+                      Every replica must be ready before the component is reported Available.
                     format: int32
                     minimum: 0
                     type: integer
@@ -600,8 +603,9 @@ spec:
                 properties:
                   asyncConfig:
                     description: |-
-                      AsyncConfig configures the async-processor deployment.
-                      Required when dispatchMode is "async".
+                      AsyncConfig configures the async-processor deployment that dispatches
+                      batch inference requests to inference gateways through an async queue
+                      transport (Redis or PostgreSQL SQL).
                     properties:
                       concurrency:
                         default: 8
@@ -629,83 +633,13 @@ spec:
                           InferenceGateway configures the connection to the inference gateway
                           EPP (EndpointPicker) service where inference requests are sent.
                         properties:
-                          inferenceObjective:
-                            description: InferenceObjective specifies the scheduling
-                              objective for this gateway (e.g. "throughput", "latency").
-                            maxLength: 253
-                            type: string
-                          inferencePoolName:
-                            description: |-
-                              InferencePoolName identifies the async dispatch pool for this model.
-                              Required when dispatchMode is set to 'async'.
-                            maxLength: 253
-                            type: string
-                          initialBackoff:
-                            description: InitialBackoff is the wait duration before
-                              the first retry (e.g. "500ms").
-                            maxLength: 32
-                            pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                            type: string
-                          maxBackoff:
-                            description: MaxBackoff is the maximum wait duration between
-                              retries (e.g. "30s").
-                            maxLength: 32
-                            pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                            type: string
-                          maxRetries:
-                            description: MaxRetries is the maximum number of retry
-                              attempts on transient errors.
-                            format: int32
-                            type: integer
-                          requestQueueName:
-                            description: |-
-                              RequestQueueName is the Redis request queue used in async dispatch mode.
-                              Set together with resultQueueName to override the queue derived from inferencePoolName.
-                            maxLength: 253
-                            type: string
-                          requestTimeout:
-                            description: RequestTimeout is the maximum time to wait
-                              for a single inference response (e.g. "5m").
-                            maxLength: 32
-                            pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                            type: string
-                          resultQueueName:
-                            description: |-
-                              ResultQueueName is the Redis result queue base used in async dispatch mode.
-                              Set together with requestQueueName.
-                            maxLength: 253
-                            type: string
-                          tlsCACertFile:
-                            description: TLSCACertFile is the path to a custom CA
-                              certificate file for verifying the gateway's TLS certificate.
-                            maxLength: 4096
-                            type: string
-                          tlsClientCertFile:
-                            description: TLSClientCertFile is the path to the client
-                              TLS certificate file for mutual TLS.
-                            maxLength: 4096
-                            type: string
-                          tlsClientKeyFile:
-                            description: TLSClientKeyFile is the path to the client
-                              TLS private key file for mutual TLS.
-                            maxLength: 4096
-                            type: string
-                          tlsInsecureSkipVerify:
-                            description: TLSInsecureSkipVerify disables TLS certificate
-                              verification. Not recommended for production.
-                            type: boolean
                           url:
-                            description: |-
-                              URL is the base URL of the inference gateway (e.g. "http://gateway.svc:8000").
-                              Required when dispatchMode is set to 'sync'.
+                            description: URL is the base URL of the inference gateway
+                              (e.g. "http://gateway.svc:8000").
                             maxLength: 2048
                             pattern: ^https?://.+$
                             type: string
                         type: object
-                        x-kubernetes-validations:
-                        - message: tlsInsecureSkipVerify is not allowed; configure
-                            trusted CA certificates instead
-                          rule: '!has(self.tlsInsecureSkipVerify) || !self.tlsInsecureSkipVerify'
                       modelServerMonitor:
                         description: ModelServerMonitor configs a PodMonitor that
                           scrapes model server metrics.
@@ -770,7 +704,12 @@ spec:
                           queuesConfig:
                             description: |-
                               QueuesConfig is a list of per-queue configurations.
-                              When set, overrides the single-queue settings (RequestPathURL, GateType, etc.).
+                              When set, overrides the single-queue settings (RequestPathURL, GateType, etc.)
+                              and must cover every request queue the processor publishes to, which is
+                              derived from processor.modelGateways.
+                              When omitted, one queue per processor.modelGateways entry is derived,
+                              named llm-d-async:requests:<inferencePoolName> unless the model sets
+                              requestQueueName; the single-queue settings above apply to each of them.
                             items:
                               description: AsyncQueueConfig configures a single async-processor
                                 request queue.
@@ -992,22 +931,48 @@ spec:
                           gateways.
                         properties:
                           caCertKey:
+                            description: |-
+                              CACertKey is the key in SecretName holding a custom CA certificate used to
+                              verify the inference gateway.
                             maxLength: 253
+                            minLength: 1
                             type: string
                           certKey:
+                            description: |-
+                              CertKey is the key in SecretName holding the client certificate for mutual
+                              TLS. Requires keyKey.
                             maxLength: 253
+                            minLength: 1
                             type: string
                           insecureSkipVerify:
+                            description: |-
+                              InsecureSkipVerify disables verification of the inference gateway's TLS
+                              certificate. Not recommended for production; prefer caCertKey.
                             type: boolean
                           keyKey:
-                            description: KeyKey is the key in the Secret holding the
-                              private key.
+                            description: |-
+                              KeyKey is the key in SecretName holding the client private key for mutual
+                              TLS. Requires certKey.
                             maxLength: 253
+                            minLength: 1
                             type: string
                           secretName:
+                            description: |-
+                              SecretName is the name of the Secret, in the LLMBatchGateway's namespace,
+                              that holds the CA certificate and optional client certificate/key. Its
+                              keys are selected with caCertKey, certKey and keyKey below.
                             maxLength: 253
+                            minLength: 1
                             type: string
                         type: object
+                        x-kubernetes-validations:
+                        - message: tls.secretName is required when tls.caCertKey,
+                            tls.certKey or tls.keyKey are set
+                          rule: '!(has(self.caCertKey) || has(self.certKey) || has(self.keyKey))
+                            || has(self.secretName)'
+                        - message: tls.certKey and tls.keyKey must both be set or
+                            both be empty
+                          rule: has(self.certKey) == has(self.keyKey)
                       transformConfig:
                         description: TransformConfig modifies request bodies before
                           forwarding to the inference gateway.
@@ -1146,14 +1111,6 @@ spec:
                           type: string
                         maxItems: 32
                         type: array
-                      inferenceObjective:
-                        description: |-
-                          InferenceObjective is applied to globalInferenceGateway and to every
-                          modelGateways entry that does not set its own inferenceObjective.
-
-                          Deprecated: set inferenceObjective on the gateway instead.
-                        maxLength: 253
-                        type: string
                       inputFileDiskBudgetPercent:
                         description: |-
                           InputFileDiskBudgetPercent is the percentage of the processor work directory
@@ -1232,98 +1189,17 @@ spec:
                         type: boolean
                     type: object
                   dispatchMode:
-                    default: async
                     description: |-
-                      DispatchMode controls how batch requests are dispatched to inference backends.
-                      - "async" (default) deploys an async-processor that dispatches via a message queue.
-                      - "sync" sends requests directly via HTTP. Set this explicitly to preserve synchronous dispatch.
+                      DispatchMode is retained so manifests written before synchronous dispatch
+                      was removed keep applying; the operator always dispatches asynchronously
+                      and ignores the value.
+
+                      Deprecated: async is the only supported value. Remove this field from new
+                      manifests; setting it to "sync" is rejected, and resources that still use
+                      synchronous dispatch must be drained and re-deployed as async.
                     enum:
-                    - sync
                     - async
                     type: string
-                  globalInferenceGateway:
-                    description: |-
-                      GlobalInferenceGateway is the default inference gateway used for all models
-                      unless overridden by a ModelGateways entry.
-                      Not supported when dispatchMode is "async"; use modelGateways with inferencePoolName instead.
-                    properties:
-                      inferenceObjective:
-                        description: InferenceObjective specifies the scheduling objective
-                          for this gateway (e.g. "throughput", "latency").
-                        maxLength: 253
-                        type: string
-                      inferencePoolName:
-                        description: |-
-                          InferencePoolName identifies the async dispatch pool for this model.
-                          Required when dispatchMode is set to 'async'.
-                        maxLength: 253
-                        type: string
-                      initialBackoff:
-                        description: InitialBackoff is the wait duration before the
-                          first retry (e.g. "500ms").
-                        maxLength: 32
-                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                        type: string
-                      maxBackoff:
-                        description: MaxBackoff is the maximum wait duration between
-                          retries (e.g. "30s").
-                        maxLength: 32
-                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                        type: string
-                      maxRetries:
-                        description: MaxRetries is the maximum number of retry attempts
-                          on transient errors.
-                        format: int32
-                        type: integer
-                      requestQueueName:
-                        description: |-
-                          RequestQueueName is the Redis request queue used in async dispatch mode.
-                          Set together with resultQueueName to override the queue derived from inferencePoolName.
-                        maxLength: 253
-                        type: string
-                      requestTimeout:
-                        description: RequestTimeout is the maximum time to wait for
-                          a single inference response (e.g. "5m").
-                        maxLength: 32
-                        pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                        type: string
-                      resultQueueName:
-                        description: |-
-                          ResultQueueName is the Redis result queue base used in async dispatch mode.
-                          Set together with requestQueueName.
-                        maxLength: 253
-                        type: string
-                      tlsCACertFile:
-                        description: TLSCACertFile is the path to a custom CA certificate
-                          file for verifying the gateway's TLS certificate.
-                        maxLength: 4096
-                        type: string
-                      tlsClientCertFile:
-                        description: TLSClientCertFile is the path to the client TLS
-                          certificate file for mutual TLS.
-                        maxLength: 4096
-                        type: string
-                      tlsClientKeyFile:
-                        description: TLSClientKeyFile is the path to the client TLS
-                          private key file for mutual TLS.
-                        maxLength: 4096
-                        type: string
-                      tlsInsecureSkipVerify:
-                        description: TLSInsecureSkipVerify disables TLS certificate
-                          verification. Not recommended for production.
-                        type: boolean
-                      url:
-                        description: |-
-                          URL is the base URL of the inference gateway (e.g. "http://gateway.svc:8000").
-                          Required when dispatchMode is set to 'sync'.
-                        maxLength: 2048
-                        pattern: ^https?://.+$
-                        type: string
-                    type: object
-                    x-kubernetes-validations:
-                    - message: tlsInsecureSkipVerify is not allowed; configure trusted
-                        CA certificates instead
-                      rule: '!has(self.tlsInsecureSkipVerify) || !self.tlsInsecureSkipVerify'
                   imagePullPolicy:
                     description: |-
                       ImagePullPolicy overrides the image pull policy for the processor container.
@@ -1335,96 +1211,47 @@ spec:
                     type: string
                   modelGateways:
                     additionalProperties:
-                      description: InferenceGatewaySpec configures a connection to
-                        an inference gateway.
+                      description: ModelGatewaySpec maps a model to the async dispatch
+                        pool that serves it.
                       properties:
                         inferenceObjective:
-                          description: InferenceObjective specifies the scheduling
-                            objective for this gateway (e.g. "throughput", "latency").
+                          description: |-
+                            InferenceObjective specifies the scheduling objective for this model
+                            (e.g. "throughput", "latency").
                           maxLength: 253
                           type: string
                         inferencePoolName:
-                          description: |-
-                            InferencePoolName identifies the async dispatch pool for this model.
-                            Required when dispatchMode is set to 'async'.
+                          description: InferencePoolName identifies the async dispatch
+                            pool for this model.
                           maxLength: 253
                           type: string
-                        initialBackoff:
-                          description: InitialBackoff is the wait duration before
-                            the first retry (e.g. "500ms").
-                          maxLength: 32
-                          pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                          type: string
-                        maxBackoff:
-                          description: MaxBackoff is the maximum wait duration between
-                            retries (e.g. "30s").
-                          maxLength: 32
-                          pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                          type: string
-                        maxRetries:
-                          description: MaxRetries is the maximum number of retry attempts
-                            on transient errors.
-                          format: int32
-                          type: integer
                         requestQueueName:
                           description: |-
-                            RequestQueueName is the Redis request queue used in async dispatch mode.
+                            RequestQueueName is the async request queue used by the async processor.
+                            It is a Redis sorted-set key or a SQL queue name, depending on
+                            asyncConfig.redis or asyncConfig.sql.
                             Set together with resultQueueName to override the queue derived from inferencePoolName.
                           maxLength: 253
                           type: string
-                        requestTimeout:
-                          description: RequestTimeout is the maximum time to wait
-                            for a single inference response (e.g. "5m").
-                          maxLength: 32
-                          pattern: ^([0-9]+(\.[0-9]+)?(ms|s|m|h))+$
-                          type: string
                         resultQueueName:
                           description: |-
-                            ResultQueueName is the Redis result queue base used in async dispatch mode.
+                            ResultQueueName is the async result queue base used by the async processor.
+                            The processor appends its replica identity to this base. It is a Redis list
+                            key or a SQL queue name, depending on asyncConfig.redis or asyncConfig.sql.
                             Set together with requestQueueName.
                           maxLength: 253
                           type: string
-                        tlsCACertFile:
-                          description: TLSCACertFile is the path to a custom CA certificate
-                            file for verifying the gateway's TLS certificate.
-                          maxLength: 4096
-                          type: string
-                        tlsClientCertFile:
-                          description: TLSClientCertFile is the path to the client
-                            TLS certificate file for mutual TLS.
-                          maxLength: 4096
-                          type: string
-                        tlsClientKeyFile:
-                          description: TLSClientKeyFile is the path to the client
-                            TLS private key file for mutual TLS.
-                          maxLength: 4096
-                          type: string
-                        tlsInsecureSkipVerify:
-                          description: TLSInsecureSkipVerify disables TLS certificate
-                            verification. Not recommended for production.
-                          type: boolean
-                        url:
-                          description: |-
-                            URL is the base URL of the inference gateway (e.g. "http://gateway.svc:8000").
-                            Required when dispatchMode is set to 'sync'.
-                          maxLength: 2048
-                          pattern: ^https?://.+$
-                          type: string
                       type: object
-                      x-kubernetes-validations:
-                      - message: tlsInsecureSkipVerify is not allowed; configure trusted
-                          CA certificates instead
-                        rule: '!has(self.tlsInsecureSkipVerify) || !self.tlsInsecureSkipVerify'
                     description: |-
-                      ModelGateways maps model names to per-model inference gateway configurations.
-                      In sync mode, overrides GlobalInferenceGateway for the listed models.
-                      In async mode, this is required and each entry must include an inferencePoolName.
+                      ModelGateways maps model names to their async dispatch pool.
+                      Each entry must include an inferencePoolName.
                     type: object
                   replicas:
                     default: 1
                     description: |-
                       Replicas is the desired number of processor pods.
                       Setting this to 0 suspends the processor; the Ready condition will be False.
+                      Every replica must be ready before the component is reported Available.
                     format: int32
                     minimum: 0
                     type: integer
@@ -1488,15 +1315,12 @@ spec:
                           More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
                         type: object
                     type: object
+                required:
+                - asyncConfig
                 type: object
                 x-kubernetes-validations:
-                - message: .spec.processor.asyncConfig is required when dispatchMode
-                    is 'async'
-                  rule: self.dispatchMode != 'async' || has(self.asyncConfig)
-                - message: asyncConfig.redis or asyncConfig.sql is required when dispatchMode
-                    is 'async'
-                  rule: self.dispatchMode != 'async' || (has(self.asyncConfig) &&
-                    (has(self.asyncConfig.redis) || has(self.asyncConfig.sql)))
+                - message: asyncConfig.redis or asyncConfig.sql is required
+                  rule: has(self.asyncConfig) && (has(self.asyncConfig.redis) || has(self.asyncConfig.sql))
               prometheusRule:
                 description: PrometheusRule configures a PrometheusRule resource with
                   pre-built alerting rules.
@@ -1512,20 +1336,6 @@ spec:
                       Labels are additional labels applied to the PrometheusRule resource,
                       used to match Prometheus operator rule selectors.
                     type: object
-                type: object
-              redis:
-                description: |-
-                  RedisClient is retained for API compatibility but is no longer used by
-                  the batch-gateway control plane. Configure Redis under processor.asyncConfig.
-                  Deprecated: do not set this field.
-                properties:
-                  enableTLS:
-                    description: EnableTLS enables TLS for the Redis/Valkey connection.
-                    type: boolean
-                  insecure:
-                    description: Insecure skips TLS certificate verification. Only
-                      effective when enableTLS is true.
-                    type: boolean
                 type: object
               secretRef:
                 description: |-
@@ -1629,13 +1439,19 @@ spec:
                       Deployment.
                     properties:
                       readyReplicas:
-                        description: ReadyReplicas is the number of pods that have
-                          passed their readiness checks.
+                        description: |-
+                          ReadyReplicas is the number of replicas that have passed their readiness
+                          checks, capped at Replicas. It is reported as 0 while the workload is still
+                          rolling out, following the same conditions as kubectl rollout status: the
+                          controller has not observed the latest spec, not every desired replica runs
+                          the current pod template, an outdated replica is still present, or the pod
+                          template revision is still changing. A non-zero value therefore means the
+                          rollout finished.
                         format: int32
                         type: integer
                       replicas:
-                        description: Replicas is the total number of non-terminated
-                          pods.
+                        description: Replicas is the number of replicas requested
+                          in the workload spec.
                         format: int32
                         type: integer
                     required:
@@ -1643,19 +1459,23 @@ spec:
                     - replicas
                     type: object
                   asyncProcessor:
-                    description: |-
-                      AsyncProcessor reports the replica status of the async-processor Deployment.
-                      Absent when spec.processor.dispatchMode is "sync" (do no Deployment).
-                      Present with actual replica counts when dispatchMode is "async".
+                    description: AsyncProcessor reports the replica status of the
+                      async-processor Deployment.
                     properties:
                       readyReplicas:
-                        description: ReadyReplicas is the number of pods that have
-                          passed their readiness checks.
+                        description: |-
+                          ReadyReplicas is the number of replicas that have passed their readiness
+                          checks, capped at Replicas. It is reported as 0 while the workload is still
+                          rolling out, following the same conditions as kubectl rollout status: the
+                          controller has not observed the latest spec, not every desired replica runs
+                          the current pod template, an outdated replica is still present, or the pod
+                          template revision is still changing. A non-zero value therefore means the
+                          rollout finished.
                         format: int32
                         type: integer
                       replicas:
-                        description: Replicas is the total number of non-terminated
-                          pods.
+                        description: Replicas is the number of replicas requested
+                          in the workload spec.
                         format: int32
                         type: integer
                     required:
@@ -1667,13 +1487,19 @@ spec:
                       Deployment.
                     properties:
                       readyReplicas:
-                        description: ReadyReplicas is the number of pods that have
-                          passed their readiness checks.
+                        description: |-
+                          ReadyReplicas is the number of replicas that have passed their readiness
+                          checks, capped at Replicas. It is reported as 0 while the workload is still
+                          rolling out, following the same conditions as kubectl rollout status: the
+                          controller has not observed the latest spec, not every desired replica runs
+                          the current pod template, an outdated replica is still present, or the pod
+                          template revision is still changing. A non-zero value therefore means the
+                          rollout finished.
                         format: int32
                         type: integer
                       replicas:
-                        description: Replicas is the total number of non-terminated
-                          pods.
+                        description: Replicas is the number of replicas requested
+                          in the workload spec.
                         format: int32
                         type: integer
                     required:
@@ -1685,13 +1511,19 @@ spec:
                       StatefulSet.
                     properties:
                       readyReplicas:
-                        description: ReadyReplicas is the number of pods that have
-                          passed their readiness checks.
+                        description: |-
+                          ReadyReplicas is the number of replicas that have passed their readiness
+                          checks, capped at Replicas. It is reported as 0 while the workload is still
+                          rolling out, following the same conditions as kubectl rollout status: the
+                          controller has not observed the latest spec, not every desired replica runs
+                          the current pod template, an outdated replica is still present, or the pod
+                          template revision is still changing. A non-zero value therefore means the
+                          rollout finished.
                         format: int32
                         type: integer
                       replicas:
-                        description: Replicas is the total number of non-terminated
-                          pods.
+                        description: Replicas is the number of replicas requested
+                          in the workload spec.
                         format: int32
                         type: integer
                     required:

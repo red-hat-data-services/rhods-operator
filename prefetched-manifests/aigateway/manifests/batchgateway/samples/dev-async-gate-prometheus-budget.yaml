@@ -24,7 +24,6 @@ spec:
   processor:
     replicas: 1
     imagePullPolicy: IfNotPresent
-    dispatchMode: async
     modelGateways:
       sim-model:
         inferencePoolName: sim-pool-prom-budget

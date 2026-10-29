@@ -99,6 +99,12 @@ spec:
                   Enables TLS for LLMInferenceService deployments.
                   When unset, the KServe default (TLS enabled) is preserved.
                 type: boolean
+              enableLLMMonitoringIngressNetworkPolicy:
+                description: |-
+                  EnableLLMMonitoringIngressNetworkPolicy enables per-LLMInferenceService ingress
+                  NetworkPolicies that restrict Prometheus and gateway traffic (same rules as the
+                  3.6 restricted defaults). Disabled by default for seamless upgrades.
+                type: boolean
               managementState:
                 default: Managed
                 description: |-
