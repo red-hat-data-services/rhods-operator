@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 8a199f03db950a279fa401cf69bb919b4977fd36
+    git.commit: 2acd8997987978a08b512880b08a8e46ccff2374
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
@@ -94,6 +94,12 @@ map:
     git.commit: ff141ed2f2ebe9afd8572f56c7359bc2cb3b4452
   odh-workbench-jupyter-minimal-cpu-py312:
     git.commit: 6fd3d908acfd3a9656e35e0d34398345178fff8e
+  odh-autorag:
+    git.commit: 3b4bcc0b82d597a92f4f229b0e6b80ad4d63c3f0
+  odh-fms-guardrails-orchestrator:
+    git.commit: a2ad7b99dec16cb3d050b82e3fa225e6cfebbe38
+  odh-model-metadata-collection:
+    git.commit: 7f46705f9d8143683aa2997ae151ceafb4117147
 additional_meta:
   odh-ai-gateway-payload-processing:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
