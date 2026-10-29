@@ -1,0 +1,217 @@
+{{- $gatewayEnabled := .Values.enabled }}
+{{- $gatewayConfigured := and $gatewayEnabled .Values.gateway.domain }}
+{{- $cleanupOnUpgrade := and .Release.IsUpgrade .Values.cleanupOnDisable (not $gatewayConfigured) }}
+{{- if or $gatewayEnabled $cleanupOnUpgrade }}
+{{- $hookEvents := ternary "pre-upgrade,post-install,post-upgrade,pre-delete" "pre-upgrade" $gatewayEnabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xks-gateway-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: {{ $hookEvents }}
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xks-gateway-config
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: {{ $hookEvents }}
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+rules:
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - services.platform.opendatahub.io
+    resources:
+      - gatewayconfigs
+    verbs:
+      - get
+      - create
+      - delete
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xks-gateway-config
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: {{ $hookEvents }}
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: xks-gateway-config
+subjects:
+  - kind: ServiceAccount
+    name: xks-gateway-config
+    namespace: {{ .Release.Namespace }}
+{{- if $cleanupOnUpgrade }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: xks-gateway-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "-9"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "xks-gateway.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: xks-gateway-config
+      {{- with .Values.hooks.imagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway-config
+          image: {{ required "hooks.cliImage is required" .Values.hooks.cliImage | quote }}
+          resources:
+            {{- toYaml .Values.hooks.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+{{ tpl (.Files.Get "files/delete-owned-gateway-config.sh") . | trim | indent 14 }}
+{{- end }}
+{{- end }}
+{{- if $gatewayConfigured }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: xks-gateway-config-apply
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "-9"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "xks-gateway.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: xks-gateway-config
+      {{- with .Values.hooks.imagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway-config
+          image: {{ required "hooks.cliImage is required" .Values.hooks.cliImage | quote }}
+          resources:
+            {{- toYaml .Values.hooks.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              kubectl wait --for=condition=Established crd/gatewayconfigs.services.platform.opendatahub.io --timeout=300s
+              echo "Applying GatewayConfig..."
+              kubectl apply -f - <<'GATEWAY_CONFIG'
+{{ include "xks-gateway.gatewayConfigManifest" . | trim | indent 14 }}
+              GATEWAY_CONFIG
+{{- end }}
+{{- if $gatewayEnabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: xks-gateway-config-delete
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "xks-gateway.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "-9"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "xks-gateway.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: xks-gateway-config
+      {{- with .Values.hooks.imagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: delete-gateway-config
+          image: {{ required "hooks.cliImage is required" .Values.hooks.cliImage | quote }}
+          resources:
+            {{- toYaml .Values.hooks.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+{{ tpl (.Files.Get "files/delete-owned-gateway-config.sh") . | trim | indent 14 }}
+{{- end -}}

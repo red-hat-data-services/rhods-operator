@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Helm global values (passed by parent charts)"
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable or disable the xks-gateway chart. When enabled, Helm installs or updates the GatewayConfig CRD and manages the gateway namespace, GatewayConfig CR, and OIDC resources. Helm retains an installed CRD as a cluster resource when this chart is disabled or uninstalled.",
+      "default": true
+    },
+    "cleanupOnDisable": {
+      "type": "boolean",
+      "description": "Delete the release-owned GatewayConfig on upgrade when the gateway is disabled or unconfigured.",
+      "default": true
+    },
+    "hooks": {
+      "type": "object",
+      "description": "GatewayConfig lifecycle hook configuration",
+      "properties": {
+        "cliImage": {
+          "type": "string",
+          "description": "Image containing kubectl and bash for lifecycle hooks",
+          "default": "registry.redhat.io/openshift4/ose-cli-rhel9:v4.20@sha256:d876c1d98b39d65c00c4261431bb84b90284699f3aef84d8701a25c786fb79a1"
+        },
+        "resources": {
+          "type": "object",
+          "description": "Resources for the lifecycle hook Job",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              },
+              "additionalProperties": false
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "imagePullSecretName": {
+          "type": "string",
+          "description": "Optional pull Secret for the GatewayConfig lifecycle Jobs"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gateway": {
+      "type": "object",
+      "description": "Gateway configuration for XKS environments",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "Base DNS domain (e.g., example.com); wildcards are unsupported. The operator adds the subdomain (default rh-ai). Empty disables gateway resources.",
+          "pattern": "^$|^([a-z0-9]([-a-z0-9]*[a-z0-9])?\\.)*[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "subdomain": {
+          "type": "string",
+          "description": "Subdomain prefix for the gateway",
+          "maxLength": 63,
+          "pattern": "^$|^([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+        },
+        "ingressMode": {
+          "type": "string",
+          "description": "How the gateway is exposed externally on XKS (LoadBalancer only)",
+          "enum": ["LoadBalancer"],
+          "default": "LoadBalancer"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Namespace created by this chart. Must be rh-ai-gateway to match the operator (not configurable).",
+          "const": "rh-ai-gateway",
+          "default": "rh-ai-gateway"
+        },
+        "certificate": {
+          "type": "object",
+          "description": "TLS certificate configuration",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "TLS strategy: SelfSigned (auto-generated) or Provided (BYO secret in gateway namespace)",
+              "enum": ["SelfSigned", "Provided"],
+              "default": "SelfSigned"
+            },
+            "secretName": {
+              "type": "string",
+              "description": "Name of TLS Secret (required when type is Provided)"
+            }
+          },
+          "additionalProperties": false
+        },
+        "oidc": {
+          "type": "object",
+          "description": "OIDC authentication configuration",
+          "properties": {
+            "issuerURL": {
+              "type": "string",
+              "description": "OIDC provider URL (e.g., https://keycloak.example.com/realms/rhai). Required at install.",
+              "pattern": "^$|^https://\\S+$"
+            },
+            "clientID": {
+              "type": "string",
+              "description": "OIDC client ID. Required at install."
+            },
+            "oidcClientSecret": {
+              "type": "string",
+              "description": "OIDC client secret for chart-managed Secret (dev/test). Prefer clientSecretRef for production; value is stored in the Helm release Secret."
+            },
+            "clientSecretRef": {
+              "type": "object",
+              "description": "Reference to the OIDC client secret (BYO mode) or chart-created secret name (managed mode)",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the Kubernetes Secret. Required when oidcClientSecret is not set; defaults to oidc-client-secret when oidcClientSecret is set."
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Key within the Secret that holds the client secret value",
+                  "default": "client-secret"
+                }
+              },
+              "additionalProperties": false
+            },
+            "secretNamespace": {
+              "type": "string",
+              "description": "Namespace where the client secret is located (defaults to gateway.namespace if empty)"
+            }
+          },
+          "additionalProperties": false
+        },
+        "cookie": {
+          "type": "object",
+          "description": "Cookie configuration for OAuth2 proxy sessions",
+          "properties": {
+            "expire": {
+              "type": "string",
+              "description": "Session cookie expiry duration (e.g., 24h, 8h)",
+              "default": "24h"
+            },
+            "refresh": {
+              "type": "string",
+              "description": "Access token refresh interval — must be less than OIDC provider's Access Token Lifespan",
+              "default": "1h"
+            }
+          },
+          "additionalProperties": false
+        },
+        "providerCASecretName": {
+          "type": "string",
+          "description": "Name of Secret containing CA cert for the auth provider (must have ca.crt key, in gateway namespace)"
+        },
+        "verifyProviderCertificate": {
+          "type": "boolean",
+          "description": "Verify auth provider TLS certificate. Set to false only for development.",
+          "default": true
+        },
+        "networkPolicy": {
+          "type": "object",
+          "description": "Network policy configuration",
+          "properties": {
+            "ingress": {
+              "type": "object",
+              "description": "Ingress NetworkPolicy rules",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable ingress NetworkPolicy for kube-auth-proxy",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
