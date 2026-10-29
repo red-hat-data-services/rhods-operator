@@ -150,12 +150,17 @@ jobs:
       - name: Execute Operator Processor
         env:
           BRANCH: ${{ steps.config.outputs.release_branch }}
+          EG_MODE: ${{ inputs.eg-mode }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
           COMPONENT_SUFFIX=${RHOAI_VERSION//./-}
           ODH_OPERATOR_COMPONENT_NAME=odh-operator-${COMPONENT_SUFFIX}
           PUSH_PIPELINE_PATH=rhods-operator/.tekton/${ODH_OPERATOR_COMPONENT_NAME}-push.yaml
+          # main/stable carry the EG PipelineRun, not a release-versioned one.
+          if [[ "${EG_MODE}" == "true" ]]; then
+            PUSH_PIPELINE_PATH=rhods-operator/.tekton/rhods-operator-eg-push.yaml
+          fi
           
           PATCH_YAML_PATH=RBC/bundle/bundle-patch.yaml
           OPERANDS_MAP_PATH=rhods-operator/build/operands-map.yaml
