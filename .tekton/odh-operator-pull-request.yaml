@@ -11,7 +11,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/on-cel-expression: |-
       event == "pull_request"
-      && "build/schedule/operator-tekton-trigger.txt".pathChanged()
+      && (files.all.exists(p, ! (p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/') || p.matches('^\\.github/workflows/') || p.matches('^Dockerfiles/bundle\\.Dockerfile$')) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-pull-request.yaml".pathChanged()))
   labels:
     appstudio.openshift.io/application: rhoai-v3-6
     appstudio.openshift.io/component: odh-operator-v3-6
