@@ -300,6 +300,35 @@ spec:
                     maxLength: 64
                     type: string
                 type: object
+              ingressContract:
+                description: |-
+                  ingressContract records the observed ingress contract projection and
+                  rollout evidence. Consumed by the platform orchestrator to gate
+                  assigning ingresses to this module.
+                properties:
+                  deploymentGeneration:
+                    description: |-
+                      deploymentGeneration is the highest generation among the notebook
+                      controller deployments observed to have completed rollout with the
+                      current contract projection.
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  sourceGeneration:
+                    description: |-
+                      sourceGeneration is the GatewayConfig generation observed in the
+                      projected ConfigMap.
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  version:
+                    description: version is the contract version observed in the projected
+                      ConfigMap.
+                    enum:
+                    - v1
+                    maxLength: 2
+                    type: string
+                type: object
               observedGeneration:
                 description: observedGeneration is the most recent generation observed
                   by the controller.
