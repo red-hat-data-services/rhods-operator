@@ -127,6 +127,11 @@ spec:
                 description: Metrics configures metrics collection via the MonitoringStack
                   operator.
                 properties:
+                  builtinDCGMScrapeEnabled:
+                    description: |-
+                      BuiltinDCGMScrapeEnabled controls the built-in HTTP scrape for DCGM exporter metrics.
+                      It defaults to enabled; set false when collecting DCGM through a ServiceMonitor or PodMonitor instead.
+                    type: boolean
                   exporters:
                     additionalProperties:
                       type: object
@@ -260,10 +265,77 @@ spec:
                 description: UsageLogs configures usage log collection and forwarding
                   to Loki.
                 properties:
+                  attributes:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Attributes are resource attributes stamped onto records sent to Exporters only.
+                      They never reach the local write, so a cluster identity added here cannot
+                      disturb the spoke-local pipeline or its dashboards. Set cluster_name and
+                      cluster_id here to attribute records to the cluster that produced them; the
+                      gateway already uses cluster_name for its own upstream cluster, so these are
+                      applied after the pipeline's cleanup stage rather than merged into it.
+                    maxProperties: 20
+                    type: object
+                  credentialSecret:
+                    description: |-
+                      CredentialSecret names a Secret in the monitoring namespace holding a bearer
+                      token under the key 'token', for authenticating to the Exporters' endpoint. It
+                      is mounted as a file and read through a bearertokenauth extension named
+                      'bearertokenauth/remote', which an exporter selects with
+                      auth: {authenticator: bearertokenauth/remote}.
+
+                      The token is never written into the collector object, and because the extension
+                      re-reads the file, rotating the Secret reaches a running collector — projecting
+                      a credential as an environment variable would not, since env vars are read once
+                      at process start. A token also cannot be inlined into an exporter's headers:
+                      exporter values are capped at 1024 characters and a ServiceAccount token is
+                      longer than that.
+                    maxLength: 253
+                    pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                    type: string
+                  exporters:
+                    additionalProperties:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    description: |-
+                      Exporters defines additional usage-log exporters, for forwarding a copy of every
+                      usage record to an observability backend outside this cluster — typically a
+                      LokiStack on an ACM hub that aggregates a fleet. The configuration follows the
+                      OpenTelemetry Collector exporter format. They are added alongside the local
+                      write, which is left untouched, making it a dual-write rather than a redirect;
+                      with storage omitted they are the only destination and nothing is written locally.
+                      Reserved name 'otlphttp/loki' cannot be used.
+                      Maximum 10 exporters allowed.
+                    type: object
+                    x-kubernetes-validations:
+                    - message: exporter name 'otlphttp/loki' is reserved and cannot
+                        be used
+                      rule: '!(''otlphttp/loki'' in self)'
+                    - message: maximum 10 exporters allowed
+                      rule: size(self) <= 10
+                  size:
+                    default: 1x.extra-small
+                    description: |-
+                      Size selects the LokiStack t-shirt size for the usage-log store. The default
+                      1x.extra-small requests 1 CPU and 5.25Gi per ingester across three ingesters,
+                      which does not schedule on smaller clusters; the LokiStack then never reports
+                      Ready and the usage-logs collector is never deployed. 1x.demo carries identical
+                      ingestion limits with a single ingester and no resource requests at all, so it
+                      fits where the default cannot, but it has no redundancy. Ignored when storage is
+                      omitted, since no LokiStack is deployed.
+                    enum:
+                    - 1x.demo
+                    - 1x.pico
+                    - 1x.extra-small
+                    - 1x.small
+                    - 1x.medium
+                    type: string
                   storage:
                     description: |-
                       Storage configures the LokiStack storage backend (S3).
                       When configured, the operator deploys a LokiStack instance and auto-configures the collector endpoint.
+                      Omit when forwarding only: no LokiStack is deployed and no object storage is needed.
                     properties:
                       credentialMode:
                         default: static
@@ -297,9 +369,11 @@ spec:
                     - secretName
                     - type
                     type: object
-                required:
-                - storage
                 type: object
+                x-kubernetes-validations:
+                - message: usageLogs requires storage and/or at least one exporter
+                  rule: has(self.storage) || (has(self.exporters) && size(self.exporters)
+                    > 0)
             type: object
             x-kubernetes-validations:
             - message: Alerting configuration requires metrics.storage to be configured
@@ -419,8 +493,17 @@ spec:
               usageLogsEndpoint:
                 description: |-
                   UsageLogsEndpoint is the Loki OTLP endpoint for sending usage logs.
-                  Populated when usageLogs is configured.
+                  Populated when usage-log storage is configured and its LokiStack is ready.
                 type: string
+              usageLogsForwarding:
+                description: |-
+                  UsageLogsForwarding names the remote usage-log exporters carried by the deployed
+                  collector. It reports what passed validation and was rendered, so it is empty
+                  when no collector is deployed, which the UsageLogsCollectorAvailable condition
+                  explains.
+                items:
+                  type: string
+                type: array
             type: object
         type: object
         x-kubernetes-validations:
