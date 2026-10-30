@@ -72,16 +72,13 @@ jobs:
               echo "::error::eg-mode is true but eg-branch is empty."
               exit 1
             fi
-            # Accept 3.5, 3.5.2, rhoai-3.5 and rhoai-3.5.2, and reduce to
-            # major.minor.  The gate takes rhoai-version from the .tekton push
-            # file, which carries the z-stream, and RELEASE_BRANCH below is a
-            # branch name: rhoai-3.5 exists, rhoai-3.5.2 does not.  Requiring
-            # rhoai-X.Y here rejected the value the gate actually sends.
-            MAJOR_MINOR=$(printf '%s' "${RHOAI_VERSION#rhoai-}" | cut -d. -f1,2)
-            if [[ ! "$MAJOR_MINOR" =~ ^[23]\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
-              echo "::error::eg-mode is true but rhoai-version '${RHOAI_VERSION}' is not a RHOAI version (expected 3.5, 3.5.2 or rhoai-3.5)."
+            # Keep EA identity when reducing an explicit build version to a branch.
+            VERSION="${RHOAI_VERSION#rhoai-}"
+            if [[ ! "$VERSION" =~ ^([0-9]+)\.([0-9]+)(\.[0-9]+)?(-ea\.([0-9]+))?$ ]]; then
+              echo "::error::Invalid EG rhoai-version '${RHOAI_VERSION}'; expected X.Y[.Z][-ea.N]."
               exit 1
             fi
+            MAJOR_MINOR="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}${BASH_REMATCH[4]}"
             BRANCH="$EG_BRANCH"
             RELEASE_BRANCH="rhoai-${MAJOR_MINOR}"
             RBC_REF="rhoai-${MAJOR_MINOR}"
@@ -316,6 +313,10 @@ jobs:
 
                   if [[ "$ref_type" == "branch" ]]; then
                     git_commit=$(git ls-remote "$git_url" "refs/heads/$BRANCH" | awk '{print $1}')
+                    if [[ -z "$git_commit" ]]; then
+                      echo "::error::Could not resolve chart branch '$BRANCH' in $git_url."
+                      exit 1
+                    fi
                     echo "Resolved git.commit for branch '$BRANCH' to commit SHA $git_commit"
 
                     value="$value" git_commit="$git_commit" yq -i eval '.map[strenv(value)]["git.commit"] = strenv(git_commit)' ${CHARTS_CONFIG_PATH}
