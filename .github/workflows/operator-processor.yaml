@@ -313,6 +313,10 @@ jobs:
 
                   if [[ "$ref_type" == "branch" ]]; then
                     git_commit=$(git ls-remote "$git_url" "refs/heads/$BRANCH" | awk '{print $1}')
+                    if [[ -z "$git_commit" ]]; then
+                      echo "::error::Could not resolve chart branch '$BRANCH' in $git_url."
+                      exit 1
+                    fi
                     echo "Resolved git.commit for branch '$BRANCH' to commit SHA $git_commit"
 
                     value="$value" git_commit="$git_commit" yq -i eval '.map[strenv(value)]["git.commit"] = strenv(git_commit)' ${CHARTS_CONFIG_PATH}
