@@ -14,12 +14,25 @@ spec:
         - jsonPath: .spec.siteName
           name: Site
           type: string
-        - jsonPath: .status.conditions[?(@.type=='Ready')].status
-          name: Ready
-          type: string
         - jsonPath: .status.expiresAt
           name: Expires
           type: date
+        - jsonPath: .status.conditions[?(@.type=='Available')].status
+          name: Available
+          type: string
+        - jsonPath: .status.conditions[?(@.type=='Progressing')].status
+          name: Progressing
+          type: string
+        - jsonPath: .status.conditions[?(@.type=='Degraded')].status
+          name: Degraded
+          type: string
+        - jsonPath: .status.conditions[?(@.type=='Available')].lastTransitionTime
+          name: Since
+          type: date
+        - jsonPath: .status.conditions[?(@.type=='Available')].message
+          name: Message
+          priority: 1
+          type: string
       name: v1alpha1
       schema:
         openAPIV3Schema:

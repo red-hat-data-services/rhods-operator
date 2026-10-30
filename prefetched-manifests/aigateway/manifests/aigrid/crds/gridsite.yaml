@@ -13,11 +13,28 @@ spec:
   scope: Cluster
   versions:
     - additionalPrinterColumns:
-        - jsonPath: .status.phase
-          name: Phase
-          type: string
         - jsonPath: .spec.gridNetworkRef
           name: Network
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Available")].status
+          name: Available
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Progressing")].status
+          name: Progressing
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Degraded")].status
+          name: Degraded
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Available")].lastTransitionTime
+          name: Since
+          type: date
+        - jsonPath: .status.conditions[?(@.type=="Available")].message
+          name: Message
+          priority: 1
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          priority: 1
           type: string
       name: v1alpha1
       schema:
@@ -115,6 +132,33 @@ spec:
                   description: Deployment region.
                   nullable: true
                   type: string
+                signalsEndpoint:
+                  description: |-
+                    Where this site serves its signals, where its gateway endpoint does not say.
+
+                    Absent, signals are polled at the gateway endpoint's host under the server name
+                    `<site>-signals.grid.internal`, at the operator's signals port setting or the gateway's.
+                  nullable: true
+                  properties:
+                    address:
+                      description: |-
+                        `host:port` of the signals listener: a DNS name, an IPv4 address, or a bracketed IPv6
+                        address. Absent, the gateway endpoint's host.
+                      maxLength: 263
+                      minLength: 3
+                      nullable: true
+                      pattern: ^(\[[0-9A-Fa-f:.]+\]|[A-Za-z0-9.-]+):[0-9]{1,5}$
+                      type: string
+                    serverName:
+                      description: |-
+                        TLS server name sent to the signals listener, which a router in front selects on.
+                        Absent, `<site>-signals.grid.internal`.
+                      maxLength: 253
+                      minLength: 1
+                      nullable: true
+                      pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$
+                      type: string
+                  type: object
                 sovereigntyZone:
                   description: Sovereignty zone for data residency constraints.
                   nullable: true
@@ -202,6 +246,48 @@ spec:
                       description: Site offers inference access.
                       type: boolean
                   type: object
+                conditions:
+                  description: |-
+                    Observed conditions: `Connected`, and the `Available`, `Progressing` and `Degraded`
+                    roll-up, on every site, this cluster's own included. Its `Accepted`, `ResolvedRefs`,
+                    `Enrolled`, `IdentityValid` and `RotationOnSchedule` live on the `GridNetwork`. Under
+                    Local membership, a peer's also carries this site's `SignalsReachable` and
+                    `CatalogAccepted` view of it. The phase stays, kept for v1alpha1 readers.
+                  items:
+                    description: One observed condition, shaped like `metav1.Condition`.
+                    properties:
+                      lastTransitionTime:
+                        description: When `status` last changed, RFC 3339.
+                        format: date-time
+                        type: string
+                      message:
+                        default: ""
+                        description: Human-readable detail.
+                        type: string
+                      observedGeneration:
+                        description: The `metadata.generation` this was computed against.
+                        format: int64
+                        nullable: true
+                        type: integer
+                      reason:
+                        description: CamelCase reason for the status.
+                        type: string
+                      status:
+                        description: '`True`, `False`, or `Unknown`.'
+                        type: string
+                      type:
+                        description: Condition type, such as `Ready`.
+                        type: string
+                    required:
+                      - lastTransitionTime
+                      - reason
+                      - status
+                      - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                    - type
+                  x-kubernetes-list-type: map
                 lastProbeTime:
                   description: |-
                     Timestamp of the last probe whose resulting status was persisted.

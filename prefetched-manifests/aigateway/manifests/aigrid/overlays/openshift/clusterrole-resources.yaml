@@ -12,14 +12,20 @@ rules:
     verbs: ["get", "create", "patch"]
   - apiGroups: [""]
     resources: ["services"]
-    # Both Services unconditionally: the operator reads whichever one carries its
-    # signals address, and gating the grant on a value that can disagree with the
-    # Deployment's env is how it goes missing.
+    # Under swim both Services, since the operator reads whichever one carries its signals
+    # address. grid.membership.source also sets GRID_MEMBERSHIP_SOURCE, so the two cannot disagree, and a
+    # Local site renders and reads no SWIM Service.
     resourceNames:
       - "grid-gateway"
       - "grid-operator-swim"
       - "grid-operator-signals"
     verbs: ["get"]
+  # A rotation rolls the gateway, which loads its upstream client certificate only at start.
+  # Unconditional: any identified site renews once the operator config names a signer.
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["grid-gateway"]
+    verbs: ["get", "patch"]
   - apiGroups: ["events.k8s.io"]
     resources: ["events"]
     verbs: ["create", "patch"]

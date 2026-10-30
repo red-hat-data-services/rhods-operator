@@ -16,12 +16,37 @@ spec:
         - jsonPath: .status.gridId
           name: Grid ID
           type: string
-        - jsonPath: .status.phase
-          name: Phase
-          type: string
         - jsonPath: .status.connectedSites
           name: Sites
           type: integer
+        - jsonPath: .status.conditions[?(@.type=="Available")].status
+          name: Available
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Progressing")].status
+          name: Progressing
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Degraded")].status
+          name: Degraded
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Available")].lastTransitionTime
+          name: Since
+          type: date
+        - jsonPath: .status.conditions[?(@.type=="Available")].message
+          name: Message
+          priority: 1
+          type: string
+        - jsonPath: .status.phase
+          name: Phase
+          priority: 1
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Enrolled")].status
+          name: Enrolled
+          priority: 1
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="IdentityValid")].status
+          name: Identity
+          priority: 1
+          type: string
       name: v1alpha1
       schema:
         openAPIV3Schema:
@@ -1859,9 +1884,27 @@ spec:
                 gridId:
                   default: ""
                   description: |-
-                    Grid ID for tenancy. Empty on creation; auto-generated
-                    on first join with another site.
+                    The grid this network belongs to, set once by bootstrap or its delivery automation.
+                    The operator waits until this is declared and never generates a grid ID.
+                    Moving to another grid means recreating the network.
+                  maxLength: 63
+                  pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
                   type: string
+                membership:
+                  description: |-
+                    Grid-wide membership source. When absent, the install's startup setting applies.
+                    A change causes the operator to restart gracefully into the declared mode.
+                  nullable: true
+                  properties:
+                    mode:
+                      description: 'Membership source. Local requires `signalTransport.mode: poll`.'
+                      enum:
+                        - Swim
+                        - Local
+                      type: string
+                  required:
+                    - mode
+                  type: object
                 metricsRefreshInterval:
                   description: |-
                     Maximum time between metric refreshes and score/ranking recalculation.
@@ -2167,6 +2210,10 @@ spec:
               x-kubernetes-validations:
                 - message: placementPolicy must be set if and only if selectionPolicy.mode is weightedRandom
                   rule: has(self.placementPolicy) == (has(self.selectionPolicy) && self.selectionPolicy.mode == 'weightedRandom')
+                - message: gridId cannot change once set
+                  rule: '!has(oldSelf.gridId) || oldSelf.gridId == '''' || (has(self.gridId) && self.gridId == oldSelf.gridId)'
+                - message: membership.mode Local requires signalTransport.mode poll
+                  rule: '!has(self.membership) || self.membership.mode != ''Local'' || (has(self.signalTransport) && self.signalTransport.mode == ''poll'')'
                 - message: set only `gatewayRefs` or `consumerGateways`, not both
                   rule: '!(has(self.gatewayRefs) && has(self.consumerGateways))'
             status:
@@ -2315,35 +2362,6 @@ spec:
                   default: ""
                   description: The negotiated grid ID.
                   type: string
-                identity:
-                  description: 'This site''s identity certificate: when it expires and when rotation is due.'
-                  nullable: true
-                  properties:
-                    fingerprint:
-                      description: SHA-256 of the certificate DER, the digest peers pin.
-                      type: string
-                    message:
-                      description: How to recover.
-                      type: string
-                    notAfter:
-                      description: When the certificate expires, RFC 3339.
-                      type: string
-                    reason:
-                      description: |-
-                        `IdentityExpired` once the certificate has expired, `IdentityUnreadable` when the
-                        Secret holds no usable certificate.
-                      pattern: ^(IdentityExpired|IdentityUnreadable)$
-                      type: string
-                    rotateAfter:
-                      description: |-
-                        When rotation is due, a third of the lifetime before `notAfter`, RFC 3339. Empty
-                        under pin peer trust, or when this site's operator does not rotate.
-                      type: string
-                  required:
-                    - fingerprint
-                    - notAfter
-                    - rotateAfter
-                  type: object
                 mountReconciliationStatus:
                   description: |-
                     Per-gateway Secret requirements and optional mount reconciliation status.

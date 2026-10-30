@@ -8,9 +8,11 @@ metadata:
     app.kubernetes.io/instance: grid-operator
 spec:
   replicas: 1
-  # One SWIM identity per site: a surge pod would gossip a second one.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: grid-operator
@@ -32,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: operator
-          image: ghcr.io/praxis-proxy/grid-operator:v0.2.2
+          image: ghcr.io/praxis-proxy/grid-operator:v0.3.0-rc.2
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -50,6 +52,24 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: GRID_LEADER_LEASE
+              value: "grid-operator"
+            - name: GRID_LEADER_IDENTITY
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: GRID_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: GRID_LEADER_REPLICA_SELECTOR
+              value: "app.kubernetes.io/name=grid-operator,app.kubernetes.io/instance=grid-operator"
+            - name: GRID_LEADER_SIGNALS_SERVICES
+              value: "grid-operator-signals"
+            - name: GRID_LEADER_SWIM_SERVICES
+              value: "grid-operator-swim"
+            - name: GRID_MEMBERSHIP_SOURCE
+              value: "Swim"
             - name: GRID_SWIM_BIND_ADDR
               value: "0.0.0.0:7946"
             - name: GRID_SWIM_ADVERTISE_ADDR
@@ -60,6 +80,8 @@ spec:
               value: "grid-operator-swim"
             - name: GRID_NETWORK
               value: "grid"
+            - name: GRID_OPERATOR_CONFIG
+              value: "grid-operator-config"
             - name: GRID_GATEWAY_SERVICE_NAME
               value: "grid-gateway"
             - name: GRID_GATEWAY_NAMESPACE

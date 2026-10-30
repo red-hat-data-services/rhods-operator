@@ -16,14 +16,27 @@ spec:
         - jsonPath: .spec.providerKind
           name: Provider
           type: string
-        - jsonPath: .status.conditions[?(@.type=="Ready")].status
-          name: Ready
+        - jsonPath: .status.conditions[?(@.type=="Available")].status
+          name: Available
           type: string
+        - jsonPath: .status.conditions[?(@.type=="Progressing")].status
+          name: Progressing
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Degraded")].status
+          name: Degraded
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Available")].lastTransitionTime
+          name: Since
+          type: date
         - jsonPath: .metadata.creationTimestamp
           name: Age
           type: date
-        - jsonPath: .status.conditions[?(@.type=="Ready")].reason
-          name: Reason
+        - jsonPath: .status.conditions[?(@.type=="Available")].message
+          name: Message
+          priority: 1
+          type: string
+        - jsonPath: .status.conditions[?(@.type=="Ready")].status
+          name: Ready
           priority: 1
           type: string
         - jsonPath: .status.phase
@@ -610,8 +623,8 @@ spec:
 
                     When set, the operator polls the backend on a fixed cadence and holds
                     the served-model set in memory, expiring it when polls stop succeeding.
-                    Discovery does not yet affect routing or gossip; `spec.models` remains
-                    the routing source.
+                    Until route and provider-record formats support inventory expiry,
+                    discovered names are withheld and do not fall back to `spec.models`.
                     When absent, no discovery runs.
                   nullable: true
                   oneOf:
@@ -1052,6 +1065,15 @@ spec:
                   format: date-time
                   nullable: true
                   type: string
+                servedModelsObservedGeneration:
+                  description: |-
+                    Provider generation that produced the corresponding `servedModels` set.
+
+                    Readers must require this value to equal `metadata.generation`; a spec
+                    change invalidates the inventory until discovery succeeds again.
+                  format: int64
+                  nullable: true
+                  type: integer
               type: object
           required:
             - spec

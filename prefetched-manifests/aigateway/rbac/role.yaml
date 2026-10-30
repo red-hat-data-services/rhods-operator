@@ -370,7 +370,6 @@ rules:
   - gateway.networking.k8s.io
   resources:
   - gateways
-  - referencegrants
   verbs:
   - get
   - list
@@ -379,6 +378,7 @@ rules:
   - gateway.networking.k8s.io
   resources:
   - httproutes
+  - referencegrants
   verbs:
   - create
   - delete

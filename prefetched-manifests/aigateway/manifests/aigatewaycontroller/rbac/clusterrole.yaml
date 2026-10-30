@@ -115,15 +115,21 @@ rules:
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["get", "list", "watch"]
+# The consumer portal resolves the dashboard namespace from the
+# DSCInitialization singleton's spec.applicationsNamespace; read-only.
+- apiGroups: ["dscinitialization.opendatahub.io"]
+  resources: ["dscinitializations"]
+  verbs: ["get", "list", "watch"]
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["httproutes"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # A cross-namespace ExternalProvider reference must be authorized by a
 # ReferenceGrant in the provider namespace. ExternalModel Gateway attachment
-# uses HTTPRoute parent status, so no Namespace read is granted.
+# uses HTTPRoute parent status, so no Namespace read is granted. The consumer
+# portal also creates a ReferenceGrant for the dashboard Service backend.
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["referencegrants"]
-  verbs: ["get", "list", "watch"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # The tenant reconciler checks that an AITenant's status.gatewayRef names an
 # existing Gateway before applying praxis-extproc.
 - apiGroups: ["gateway.networking.k8s.io"]
@@ -131,6 +137,11 @@ rules:
   verbs: ["get", "list", "watch"]
 - apiGroups: ["networking.istio.io"]
   resources: ["serviceentries"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# The consumer portal enforces OIDC sessions with route-level Kuadrant
+# AuthPolicies (anonymous /oauth2 route plus the protected portal route).
+- apiGroups: ["kuadrant.io"]
+  resources: ["authpolicies"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # destinationrules already covered above (full CRUD, needed for the
 # vendored overlay's own DestinationRule), so no separate mirror rule is
