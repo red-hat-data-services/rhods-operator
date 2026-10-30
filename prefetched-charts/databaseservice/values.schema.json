@@ -3,6 +3,36 @@
   "$id": "https://github.com/opendatahub-io/opendatahub-db-operator/cmd/chartgen/values",
   "$ref": "#/$defs/Values",
   "$defs": {
+    "CollectorServiceAccountSpec": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": "data-science-collector-collector"
+        },
+        "namespace": {
+          "type": "string",
+          "default": "opendatahub"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "namespace"
+      ]
+    },
+    "CollectorSpec": {
+      "properties": {
+        "serviceAccount": {
+          "$ref": "#/$defs/CollectorServiceAccountSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "serviceAccount"
+      ]
+    },
     "ImagePullSecretRef": {
       "properties": {
         "name": {
@@ -36,16 +66,32 @@
         "pullPolicy"
       ]
     },
+    "MonitoringSpec": {
+      "properties": {
+        "serviceMonitor": {
+          "$ref": "#/$defs/ServiceMonitorSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "serviceMonitor"
+      ]
+    },
     "OpenShiftSpec": {
       "properties": {
         "securityContextConstraints": {
+          "type": "boolean"
+        },
+        "serviceCA": {
           "type": "boolean"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "required": [
-        "securityContextConstraints"
+        "securityContextConstraints",
+        "serviceCA"
       ]
     },
     "OperatorSpec": {
@@ -125,6 +171,23 @@
         "annotations"
       ]
     },
+    "ServiceMonitorSpec": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "collector": {
+          "$ref": "#/$defs/CollectorSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enabled",
+        "collector"
+      ]
+    },
     "Values": {
       "properties": {
         "nameOverride": {
@@ -144,6 +207,9 @@
             "$ref": "#/$defs/ImagePullSecretRef"
           },
           "type": "array"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/MonitoringSpec"
         },
         "platform": {
           "$ref": "#/$defs/PlatformSpec"
@@ -166,6 +232,7 @@
         "operator",
         "serviceAccount",
         "imagePullSecrets",
+        "monitoring",
         "platform",
         "openshift",
         "config"

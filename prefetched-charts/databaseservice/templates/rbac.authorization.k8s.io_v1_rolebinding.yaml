@@ -6,7 +6,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: odh-db-operator-internal-provider-writer
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "internal-provider-writer")
+    }}'
 subjects:
 - kind: ServiceAccount
   name: {{ default (include "chart.fullname" .) .Values.serviceAccount.name }}

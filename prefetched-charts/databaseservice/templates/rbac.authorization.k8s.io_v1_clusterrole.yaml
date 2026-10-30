@@ -1,7 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: odh-db-operator-internal-provider-writer
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "internal-provider-writer")
+    }}'
 rules:
 - apiGroups:
   - ""
@@ -52,7 +53,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: odh-db-operator-manager-role
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "manager-role")
+    }}'
 rules:
 - nonResourceURLs:
   - /metrics
@@ -225,7 +227,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: odh-db-operator-metrics-auth-role
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-auth-role")
+    }}'
 rules:
 - apiGroups:
   - authentication.k8s.io
@@ -243,7 +246,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: odh-db-operator-metrics-reader
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-reader")
+    }}'
 rules:
 - nonResourceURLs:
   - /metrics

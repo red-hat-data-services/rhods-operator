@@ -12,6 +12,16 @@ Release fullname, truncated to 63 chars.
 {{- default .Release.Name .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{- define "chart.clusterResourceName" -}}
+{{- $root := .root -}}
+{{- $suffix := .suffix -}}
+{{- $identity := printf "%s/%s" $root.Release.Name $root.Release.Namespace -}}
+{{- $identityHash := sha256sum $identity | trunc 12 -}}
+{{- $maxBaseLength := int (sub 63 (add 14 (len $suffix))) -}}
+{{- $base := include "chart.fullname" $root | trunc $maxBaseLength | trimSuffix "-" -}}
+{{- printf "%s-%s-%s" $base $identityHash $suffix | trimSuffix "-" -}}
+{{- end }}
+
 {{/*
 Standard labels.
 */}}

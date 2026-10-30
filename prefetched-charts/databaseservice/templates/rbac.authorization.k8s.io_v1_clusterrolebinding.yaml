@@ -3,11 +3,13 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: opendatahub-db-operator
-  name: odh-db-operator-manager-rolebinding
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "manager-rolebinding")
+    }}'
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: odh-db-operator-manager-role
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "manager-role")
+    }}'
 subjects:
 - kind: ServiceAccount
   name: {{ default (include "chart.fullname" .) .Values.serviceAccount.name }}
@@ -16,12 +18,30 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: odh-db-operator-metrics-auth-rolebinding
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-auth-rolebinding")
+    }}'
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: odh-db-operator-metrics-auth-role
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-auth-role")
+    }}'
 subjects:
 - kind: ServiceAccount
   name: {{ default (include "chart.fullname" .) .Values.serviceAccount.name }}
   namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-reader-binding")
+    }}'
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-reader")
+    }}'
+subjects:
+- kind: ServiceAccount
+  name: '{{ .Values.monitoring.serviceMonitor.collector.serviceAccount.name }}'
+  namespace: '{{ .Values.monitoring.serviceMonitor.collector.serviceAccount.namespace
+    }}'

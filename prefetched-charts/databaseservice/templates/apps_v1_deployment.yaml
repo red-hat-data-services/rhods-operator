@@ -65,6 +65,9 @@ spec:
         - mountPath: {{ default "/tmp/k8s-webhook-server/serving-certs" (index .Values.config "controller.webhook.cert-dir") | quote }}
           name: cert
           readOnly: true
+        - mountPath: /tmp/k8s-metrics-server/serving-certs
+          name: metrics-certs
+          readOnly: true
         - mountPath: /etc/controller/config
           name: config
           readOnly: true
@@ -83,6 +86,11 @@ spec:
         secret:
           defaultMode: 420
           secretName: webhook-server-cert
+      - name: metrics-certs
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: metrics-server-cert
       - configMap:
           name: odh-databaseservice-config
         name: config

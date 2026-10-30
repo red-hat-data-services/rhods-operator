@@ -1,9 +1,17 @@
 config: {}
 fullnameOverride: ""
 imagePullSecrets: []
+monitoring:
+  serviceMonitor:
+    collector:
+      serviceAccount:
+        name: data-science-collector-collector
+        namespace: opendatahub
+    enabled: true
 nameOverride: ""
 openshift:
   securityContextConstraints: false
+  serviceCA: false
 operator:
   image:
     pullPolicy: Always
