@@ -5,6 +5,45 @@ resources:
 - ../../default
 - ../../prometheus
 
+# ServiceMonitor serverName injection from the metrics Service DNS name.
+# The monitor_tls_patch (enabled in ../../prometheus) leaves
+# SERVICE_NAME.SERVICE_NAMESPACE.svc placeholders in tlsConfig.serverName;
+# these replacements resolve them from the metrics Service. They must live at
+# this overlay level because the ServiceMonitor only enters the build via
+# ../../prometheus here. Selection is by kind alone: the overlay renames the
+# monitor below, and target selection by name would race the rename patch.
+replacements:
+- source:
+    kind: Service
+    version: v1
+    name: controller-manager-metrics-service
+    fieldPath: metadata.name
+  targets:
+    - select:
+        kind: ServiceMonitor
+        group: monitoring.coreos.com
+        version: v1
+      fieldPaths:
+        - spec.endpoints.0.tlsConfig.serverName
+      options:
+        delimiter: '.'
+        index: 0
+- source:
+    kind: Service
+    version: v1
+    name: controller-manager-metrics-service
+    fieldPath: metadata.namespace
+  targets:
+    - select:
+        kind: ServiceMonitor
+        group: monitoring.coreos.com
+        version: v1
+      fieldPaths:
+        - spec.endpoints.0.tlsConfig.serverName
+      options:
+        delimiter: '.'
+        index: 1
+
 patches:
 - target:
     kind: Namespace
