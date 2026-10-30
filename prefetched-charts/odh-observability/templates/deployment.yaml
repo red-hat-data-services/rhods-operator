@@ -40,6 +40,11 @@ spec:
               value: {{ include "odh-observability.fullname" . | quote }}
             - name: OPERATOR_VERSION
               value: {{ .Chart.AppVersion | quote }}
+            # Reused as the image for the namespace-proxy method-gate sidecar, which
+            # runs this same binary's "method-gate" subcommand. In RHOAI/CSV builds
+            # this is replaced with the operator's pinned, mirrored digest.
+            - name: OPERATOR_IMAGE
+              value: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             - name: MONITORING_NAMESPACE
               value: {{ include "odh-observability.monitoringNamespace" . | quote }}
             - name: WEBHOOK_PROBE_NAMESPACE
