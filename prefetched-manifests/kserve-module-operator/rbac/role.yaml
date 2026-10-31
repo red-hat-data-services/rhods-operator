@@ -39,6 +39,16 @@ rules:
   - ""
   resources:
   - namespaces
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - nodes
   verbs:
   - get
@@ -46,6 +56,13 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
 - apiGroups:
   - ""
   resources:
@@ -119,6 +136,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - delete
+  - get
+  - list
 - apiGroups:
   - cert-manager.io
   resources:
@@ -444,6 +469,14 @@ rules:
   verbs:
   - list
   - patch
+- apiGroups:
+  - serving.kserve.io
+  resources:
+  - localmodelcaches
+  - localmodelnamespacecaches
+  verbs:
+  - get
+  - list
 - apiGroups:
   - serving.kserve.io
   resources:
