@@ -12,6 +12,10 @@ patches:
   target:
     kind: Service
     name: modelexpress-operator-metrics
+- path: networkpolicy-patch.yaml
+  target:
+    kind: NetworkPolicy
+    name: modelexpress-operator
 resources:
 - openshift-clusterrole.yaml
 - openshift-clusterrolebinding.yaml

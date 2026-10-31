@@ -860,11 +860,11 @@ spec:
                       rule: has(self.url) != has(self.urlSecret)
                 type: object
               networkPolicy:
-                description: Opt-in NetworkPolicy for the gRPC port. Governs the metadata plane only; worker-to-worker RDMA never crosses the CNI.
+                description: Profile of the NetworkPolicy the operator always applies to the server pods. Unset or with an empty allowFrom (compatibility profile), the gRPC port, Istio ambient's HBONE port 15008 and the metrics port 9401 admit any source. With allowFrom (restrictive profile), gRPC and 15008 admit only allowFrom and the metrics port only monitoringFrom. Governs the metadata plane only; worker-to-worker RDMA never crosses the CNI.
                 nullable: true
                 properties:
                   allowFrom:
-                    description: 'Who may connect. Deliberately required and non-empty: an empty `from` in a NetworkPolicy rule means allow-everywhere, which is what *not* setting networkPolicy already gives you.'
+                    description: Sources admitted to the gRPC port and to Istio ambient's HBONE port 15008. Empty admits any source (compatibility profile); non-empty admits only these (restrictive profile).
                     items:
                       description: NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of fields are allowed
                       properties:
@@ -950,10 +950,95 @@ spec:
                           type: object
                       type: object
                     maxItems: 32
-                    minItems: 1
                     type: array
-                required:
-                - allowFrom
+                  monitoringFrom:
+                    description: Sources admitted to the metrics port in the restrictive profile. Defaults to openshift-monitoring, openshift-user-workload-monitoring and redhat-ods-monitoring.
+                    items:
+                      description: NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of fields are allowed
+                      properties:
+                        ipBlock:
+                          description: ipBlock defines policy on a particular IPBlock. If this field is set then neither of the other fields can be.
+                          properties:
+                            cidr:
+                              description: cidr is a string representing the IPBlock Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                              type: string
+                            except:
+                              description: except is a slice of CIDRs that should not be included within an IPBlock Valid examples are "192.168.1.0/24" or "2001:db8::/64" Except values will be rejected if they are outside the cidr range
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - cidr
+                          type: object
+                        namespaceSelector:
+                          description: |-
+                            namespaceSelector selects namespaces using cluster-scoped labels. This field follows standard label selector semantics; if present but empty, it selects all namespaces.
+
+                            If podSelector is also set, then the NetworkPolicyPeer as a whole selects the pods matching podSelector in the namespaces selected by namespaceSelector. Otherwise it selects all pods in the namespaces selected by namespaceSelector.
+                          properties:
+                            matchExpressions:
+                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                              items:
+                                description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                                properties:
+                                  key:
+                                    description: key is the label key that the selector applies to.
+                                    type: string
+                                  operator:
+                                    description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                                    type: string
+                                  values:
+                                    description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                                    items:
+                                      type: string
+                                    type: array
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                              type: object
+                          type: object
+                        podSelector:
+                          description: |-
+                            podSelector is a label selector which selects pods. This field follows standard label selector semantics; if present but empty, it selects all pods.
+
+                            If namespaceSelector is also set, then the NetworkPolicyPeer as a whole selects the pods matching podSelector in the Namespaces selected by NamespaceSelector. Otherwise it selects the pods matching podSelector in the policy's own namespace.
+                          properties:
+                            matchExpressions:
+                              description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                              items:
+                                description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                                properties:
+                                  key:
+                                    description: key is the label key that the selector applies to.
+                                    type: string
+                                  operator:
+                                    description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                                    type: string
+                                  values:
+                                    description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                                    items:
+                                      type: string
+                                    type: array
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                              type: object
+                          type: object
+                      type: object
+                    maxItems: 32
+                    type: array
                 type: object
                 x-kubernetes-validations: []
               nodeSelector:
@@ -1279,7 +1364,7 @@ spec:
                   allowedServiceAccounts:
                     description: MODEL_EXPRESS_SECURITY_ALLOWED_SERVICE_ACCOUNTS (rendered `ns:sa,...`).
                     items:
-                      description: An allowed caller, rendered as `<namespace>:<serviceAccount>`. maxLength bounds keep the regex rules inside the apiserver's CEL cost budget; unbounded strings get costed at worst case and rejected.
+                      description: 'An allowed caller, rendered as `<namespace>:<serviceAccount>`. `serviceAccount: "*"` admits every ServiceAccount in the namespace. maxLength bounds keep the regex rules inside the apiserver''s CEL cost budget; unbounded strings get costed at worst case and rejected.'
                       properties:
                         namespace:
                           maxLength: 63
@@ -1291,8 +1376,8 @@ spec:
                           maxLength: 253
                           type: string
                           x-kubernetes-validations:
-                          - message: serviceAccount must be a DNS-1123 subdomain
-                            rule: self.matches('^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$')
+                          - message: serviceAccount must be '*' or a DNS-1123 subdomain
+                            rule: self == '*' || self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
                       required:
                       - namespace
                       - serviceAccount
@@ -1313,6 +1398,13 @@ spec:
                     - disabled
                     - enforce
                     type: string
+                  tenantIsolation:
+                    default: disabled
+                    description: 'MODEL_EXPRESS_SECURITY_TENANT_ISOLATION. Scopes P2P sources to the caller''s verified namespace; requires `mode: enforce`.'
+                    enum:
+                    - disabled
+                    - enforce
+                    type: string
                   tokenAudiences:
                     description: MODEL_EXPRESS_SECURITY_TOKEN_AUDIENCES (rendered comma-separated).
                     items:
@@ -1323,6 +1415,8 @@ spec:
                 x-kubernetes-validations:
                 - message: enforce mode requires tokenAudiences and allowedServiceAccounts
                   rule: '!(has(self.mode) && self.mode == ''enforce'') || (has(self.tokenAudiences) && size(self.tokenAudiences) > 0 && has(self.allowedServiceAccounts) && size(self.allowedServiceAccounts) > 0)'
+                - message: tenantIsolation enforce requires mode enforce
+                  rule: '!(has(self.tenantIsolation) && self.tenantIsolation == ''enforce'') || (has(self.mode) && self.mode == ''enforce'')'
               serviceAccountName:
                 description: Run the server as an existing ServiceAccount instead of the generated `<cr-name>-server`. Binding the metadata Role to it becomes your job.
                 maxLength: 253
@@ -1412,7 +1506,7 @@ spec:
             nullable: true
             properties:
               conditions:
-                description: Standard conditions; Ready is the rollup.
+                description: Standard conditions. Ready reports whether the server's resources were applied, NetworkPolicyReady whether its NetworkPolicy was.
                 items:
                   description: Condition contains details for one aspect of the current state of this API Resource.
                   properties:
