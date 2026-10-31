@@ -258,9 +258,12 @@ spec:
                                       nullable: true
                                       properties:
                                         key:
-                                          description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                          description: |-
+                                            Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                            or `..`, and not starting with `..`.
                                           minLength: 1
                                           nullable: true
+                                          pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                           type: string
                                         name:
                                           description: Secret name in the target gateway namespace.
@@ -319,14 +322,15 @@ spec:
                             type: string
                           deriveTopology:
                             description: |-
-                              Derive the endpoint topology from the declarations of named providers,
-                              instead of requiring a `clusterEndpoints` entry per candidate.
+                              Settings for the endpoint topology the operator derives for each candidate
+                              with no `clusterEndpoints` entry. Absent still derives.
                             nullable: true
                             properties:
                               fromProviders:
                                 default: []
                                 description: |-
-                                  Routing identities whose declarations this gateway derives from.
+                                  Remote routing identities this gateway derives a hop for without a member catalog,
+                                  as under SWIM membership.
 
                                   Each entry is a provider's `clusterName`, or its `metadata.name`
                                   when that is unset. At most 64 entries, each named once.
@@ -353,9 +357,12 @@ spec:
                                     nullable: true
                                     properties:
                                       key:
-                                        description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                        description: |-
+                                          Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                          or `..`, and not starting with `..`.
                                         minLength: 1
                                         nullable: true
+                                        pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                         type: string
                                       name:
                                         description: Secret name in the target gateway namespace.
@@ -559,6 +566,16 @@ spec:
                           [`GridNetwork`]: crate::crd::grid_network::GridNetwork
                         nullable: true
                         type: string
+                      modelDiscoveryContractVersion:
+                        description: |-
+                          Model-discovery contract version supported by the running gateway.
+
+                          Set this only after the gateway is running an image that understands
+                          the `expires_at` routing-candidate field and enforces its deadline.
+                          The operator includes discovered model candidates only when this is
+                          exactly `v1`; absent or other values keep dynamic candidates withheld.
+                        nullable: true
+                        type: string
                       name:
                         description: Gateway name.
                         type: string
@@ -642,9 +659,12 @@ spec:
                                       nullable: true
                                       properties:
                                         key:
-                                          description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                          description: |-
+                                            Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                            or `..`, and not starting with `..`.
                                           minLength: 1
                                           nullable: true
+                                          pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                           type: string
                                         name:
                                           description: Secret name in the target gateway namespace.
@@ -708,14 +728,15 @@ spec:
                             type: string
                           deriveTopology:
                             description: |-
-                              Derive the endpoint topology from the declarations of named providers,
-                              instead of requiring a `clusterEndpoints` entry per candidate.
+                              Settings for the endpoint topology the operator derives for each candidate
+                              with no `clusterEndpoints` entry. Absent still derives.
                             nullable: true
                             properties:
                               fromProviders:
                                 default: []
                                 description: |-
-                                  Routing identities whose declarations this gateway derives from.
+                                  Remote routing identities this gateway derives a hop for without a member catalog,
+                                  as under SWIM membership.
 
                                   Each entry is a provider's `clusterName`, or its `metadata.name`
                                   when that is unset. At most 64 entries, each named once.
@@ -742,9 +763,12 @@ spec:
                                     nullable: true
                                     properties:
                                       key:
-                                        description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                        description: |-
+                                          Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                          or `..`, and not starting with `..`.
                                         minLength: 1
                                         nullable: true
+                                        pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                         type: string
                                       name:
                                         description: Secret name in the target gateway namespace.
@@ -977,9 +1001,12 @@ spec:
                                   nullable: true
                                   properties:
                                     key:
-                                      description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                      description: |-
+                                        Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                        or `..`, and not starting with `..`.
                                       minLength: 1
                                       nullable: true
+                                      pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                       type: string
                                     name:
                                       description: Secret name in the target gateway namespace.
@@ -1121,9 +1148,12 @@ spec:
                                       nullable: true
                                       properties:
                                         key:
-                                          description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                          description: |-
+                                            Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                            or `..`, and not starting with `..`.
                                           minLength: 1
                                           nullable: true
+                                          pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                           type: string
                                         name:
                                           description: Secret name in the target gateway namespace.
@@ -1182,14 +1212,15 @@ spec:
                             type: string
                           deriveTopology:
                             description: |-
-                              Derive the endpoint topology from the declarations of named providers,
-                              instead of requiring a `clusterEndpoints` entry per candidate.
+                              Settings for the endpoint topology the operator derives for each candidate
+                              with no `clusterEndpoints` entry. Absent still derives.
                             nullable: true
                             properties:
                               fromProviders:
                                 default: []
                                 description: |-
-                                  Routing identities whose declarations this gateway derives from.
+                                  Remote routing identities this gateway derives a hop for without a member catalog,
+                                  as under SWIM membership.
 
                                   Each entry is a provider's `clusterName`, or its `metadata.name`
                                   when that is unset. At most 64 entries, each named once.
@@ -1216,9 +1247,12 @@ spec:
                                     nullable: true
                                     properties:
                                       key:
-                                        description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                        description: |-
+                                          Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                          or `..`, and not starting with `..`.
                                         minLength: 1
                                         nullable: true
+                                        pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                         type: string
                                       name:
                                         description: Secret name in the target gateway namespace.
@@ -1422,6 +1456,16 @@ spec:
                           [`GridNetwork`]: crate::crd::grid_network::GridNetwork
                         nullable: true
                         type: string
+                      modelDiscoveryContractVersion:
+                        description: |-
+                          Model-discovery contract version supported by the running gateway.
+
+                          Set this only after the gateway is running an image that understands
+                          the `expires_at` routing-candidate field and enforces its deadline.
+                          The operator includes discovered model candidates only when this is
+                          exactly `v1`; absent or other values keep dynamic candidates withheld.
+                        nullable: true
+                        type: string
                       name:
                         description: Gateway name.
                         type: string
@@ -1505,9 +1549,12 @@ spec:
                                       nullable: true
                                       properties:
                                         key:
-                                          description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                          description: |-
+                                            Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                            or `..`, and not starting with `..`.
                                           minLength: 1
                                           nullable: true
+                                          pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                           type: string
                                         name:
                                           description: Secret name in the target gateway namespace.
@@ -1566,14 +1613,15 @@ spec:
                             type: string
                           deriveTopology:
                             description: |-
-                              Derive the endpoint topology from the declarations of named providers,
-                              instead of requiring a `clusterEndpoints` entry per candidate.
+                              Settings for the endpoint topology the operator derives for each candidate
+                              with no `clusterEndpoints` entry. Absent still derives.
                             nullable: true
                             properties:
                               fromProviders:
                                 default: []
                                 description: |-
-                                  Routing identities whose declarations this gateway derives from.
+                                  Remote routing identities this gateway derives a hop for without a member catalog,
+                                  as under SWIM membership.
 
                                   Each entry is a provider's `clusterName`, or its `metadata.name`
                                   when that is unset. At most 64 entries, each named once.
@@ -1600,9 +1648,12 @@ spec:
                                     nullable: true
                                     properties:
                                       key:
-                                        description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                        description: |-
+                                          Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                          or `..`, and not starting with `..`.
                                         minLength: 1
                                         nullable: true
+                                        pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                         type: string
                                       name:
                                         description: Secret name in the target gateway namespace.
@@ -1824,9 +1875,12 @@ spec:
                                   nullable: true
                                   properties:
                                     key:
-                                      description: Optional key containing the CA bundle. Defaults to `ca.crt`.
+                                      description: |-
+                                        Optional key containing the CA bundle. Defaults to `ca.crt`. A Secret key: no `/`, not `.`
+                                        or `..`, and not starting with `..`.
                                       minLength: 1
                                       nullable: true
+                                      pattern: ^\.?[-_A-Za-z0-9][-._A-Za-z0-9]*$
                                       type: string
                                     name:
                                       description: Secret name in the target gateway namespace.
@@ -1886,6 +1940,7 @@ spec:
                   description: |-
                     The grid this network belongs to, set once by bootstrap or its delivery automation.
                     The operator waits until this is declared and never generates a grid ID.
+                    A grid ID that operators before #474 kept only in status is copied here once, and status then mirrors spec.
                     Moving to another grid means recreating the network.
                   maxLength: 63
                   pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
@@ -1918,7 +1973,9 @@ spec:
                   pattern: ^([1-9][0-9]*s|[1-9][0-9]{3,}ms)$
                   type: string
                 peerTrust:
-                  description: Grid-wide peer trust on the signals path, `pin` when absent, read at operator start.
+                  description: |-
+                    Grid-wide peer trust: signals-path mode, `pin` when absent, read at operator start; signed state, read each
+                    reconcile.
                   nullable: true
                   properties:
                     mode:
@@ -1926,6 +1983,13 @@ spec:
                       enum:
                         - pin
                         - spiffe
+                      type: string
+                    signedState:
+                      default: "off"
+                      description: 'Signed state, `off` when absent. Switch every site together: an enforcing site refuses unsigned peers.'
+                      enum:
+                        - "off"
+                        - enforce
                       type: string
                   required:
                     - mode
@@ -2285,6 +2349,10 @@ spec:
                         type: string
                       status:
                         description: '`True`, `False`, or `Unknown`.'
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
                         type: string
                       type:
                         description: Condition type, such as `Ready`.

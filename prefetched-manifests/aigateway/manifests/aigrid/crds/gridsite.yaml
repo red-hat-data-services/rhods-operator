@@ -274,6 +274,10 @@ spec:
                         type: string
                       status:
                         description: '`True`, `False`, or `Unknown`.'
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
                         type: string
                       type:
                         description: Condition type, such as `Ready`.
