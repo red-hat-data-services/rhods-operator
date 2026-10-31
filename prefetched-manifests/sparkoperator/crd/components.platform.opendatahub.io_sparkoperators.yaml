@@ -61,6 +61,70 @@ spec:
                   Spark configures Spark Operator runtime settings under platform management
                   (webhook job namespaces, controller resources, etc.).
                 properties:
+                  controllerConfiguration:
+                    description: |-
+                      ControllerConfiguration overrides selected runtime settings on the
+                      spark-operator-controller Deployment. Unset fields keep the rendered
+                      manifest defaults.
+                    properties:
+                      kubeAPIBurst:
+                        description: |-
+                          KubeAPIBurst is the maximum burst used by the controller's Kubernetes API
+                          client.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      kubeAPIQPS:
+                        description: |-
+                          KubeAPIQPS is the maximum sustained request rate used by the controller's
+                          Kubernetes API client.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      workers:
+                        description: Workers is the number of concurrent controller
+                          reconciliation workers.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      workqueueRateLimiter:
+                        description: WorkqueueRateLimiter configures the controller
+                          workqueue rate limiter.
+                        properties:
+                          bucketQPS:
+                            description: BucketQPS is the average rate at which workqueue
+                              items are processed.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          bucketSize:
+                            description: BucketSize is the maximum token-bucket burst
+                              size.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          maxDelay:
+                            description: MaxDelay controls the maximum per-item retry
+                              delay.
+                            properties:
+                              duration:
+                                description: |-
+                                  Duration is the maximum retry delay, expressed as a Go duration such as
+                                  "6h" or "30m".
+                                minLength: 1
+                                pattern: ^([0-9]+([.][0-9]+)?)(ns|us|µs|μs|ms|s|m|h)([0-9]+([.][0-9]+)?(ns|us|µs|μs|ms|s|m|h))*$
+                                type: string
+                              enabled:
+                                description: |-
+                                  Enabled controls whether the controller sets a finite maximum retry
+                                  delay. False removes the rendered max-delay argument.
+                                type: boolean
+                            type: object
+                            x-kubernetes-validations:
+                            - message: duration is required when maxDelay is enabled
+                              rule: '!has(self.enabled) || !self.enabled || has(self.duration)'
+                        type: object
+                    type: object
                   controllerResources:
                     description: |-
                       ControllerResources overrides container resources on the
