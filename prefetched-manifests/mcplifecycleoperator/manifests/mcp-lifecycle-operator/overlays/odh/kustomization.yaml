@@ -1,0 +1,82 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../default
+- ../../prometheus
+
+patches:
+- target:
+    kind: Namespace
+  patch: |-
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: system
+    $patch: delete
+# The base prometheus ServiceMonitor is pulled into this overlay directly (not via
+# ../../default), so it keeps the scaffold 'namespace: system' instead of the
+# transformed 'mcp-lifecycle-operator-system' that the metrics Service lands in.
+# Pin the monitor to the operator namespace so it can discover and scrape that
+# Service; without this the monitor sits in a different namespace and never scrapes.
+- target:
+    kind: ServiceMonitor
+    name: controller-manager-metrics-monitor
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: mcp-lifecycle-operator-controller-manager-metrics-monitor
+    - op: replace
+      path: /metadata/namespace
+      value: mcp-lifecycle-operator-system
+# Pin the operator metrics (8443) ingress to the concrete OpenShift monitoring
+# namespaces instead of the base policy's generic 'metrics: enabled' label, which
+# the real monitoring namespaces do not carry. Admit both platform monitoring and
+# user-workload monitoring, matching the opendatahub-operator convention.
+#
+# Only the 8443 rule's source is touched so this overlay does not duplicate the
+# base 8081/9443 rules (which would drift and cause merge conflicts on resync).
+# The base allow-metrics-traffic.yaml is resynced from upstream, so the replace is
+# guarded by a 'test' op asserting index 2 is still the 8443 rule: if upstream
+# reorders the ingress, the build fails loudly instead of silently patching the
+# wrong rule.
+#
+# Also add allow-all egress so the operand controller-manager keeps working under
+# a namespace deny-all policy (platform NetworkPolicy contract / ODH-ADR-Operator-0016;
+# allow-all egress is permitted by the amendment in architecture-decision-records 173).
+# STOPGAP: when the upstream least-privilege egress (DNS + apiserver + mcp-server) lands
+# and is vendored, remove this allow-all egress, otherwise it additively overrides and
+# negates that restriction.
+- target:
+    kind: NetworkPolicy
+    name: allow-metrics-traffic
+  patch: |-
+    - op: test
+      path: /spec/ingress/2/ports/0/port
+      value: 8443
+    - op: replace
+      path: /spec/ingress/2/from
+      value:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+    # Guard the stopgap: assert the base still declares ingress-only egress posture
+    # before we add allow-all egress. If a future resync pulls an upstream egress
+    # policy into the base (e.g. the least-privilege DNS + apiserver + mcp-server
+    # rules), policyTypes will no longer equal [Ingress] and the build fails here,
+    # loudly signalling that this allow-all stopgap must be removed rather than
+    # silently overriding and negating the upstream restriction.
+    - op: test
+      path: /spec/policyTypes
+      value:
+        - Ingress
+    - op: add
+      path: /spec/policyTypes/-
+      value: Egress
+    - op: add
+      path: /spec/egress
+      value:
+        - {}

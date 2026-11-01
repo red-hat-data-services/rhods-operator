@@ -1,0 +1,89 @@
+# XKS Gateway Onboarding Chart
+# Creates the gateway namespace, GatewayConfig CRD, and GatewayConfig CR for non-OpenShift Kubernetes.
+#
+# Helm manages the GatewayConfig CRD as a template and retains it as a cluster resource
+# when the chart is disabled or uninstalled. A post-install/post-upgrade hook waits for the CRD to
+# become Established before applying the GatewayConfig CR.
+
+# -- Enable or disable the xks-gateway subchart. When used as a dependency of rhai-on-xks-chart,
+# this controls whether the GatewayConfig CRD is installed or updated, and whether the
+# gateway namespace, GatewayConfig CR, and OIDC resources are created. Helm retains an
+# installed CRD as a cluster resource when this chart is disabled or uninstalled.
+enabled: true
+
+# -- Delete the release-owned GatewayConfig on upgrade when the gateway is disabled or unconfigured.
+cleanupOnDisable: true
+
+# Hook configuration for the GatewayConfig lifecycle. The hook is owned by this
+# chart so standalone and parent-chart installs use the same bootstrap path.
+hooks:
+  # -- Image containing kubectl and bash for lifecycle hooks.
+  cliImage: registry.redhat.io/openshift4/ose-cli-rhel9:v4.20@sha256:d876c1d98b39d65c00c4261431bb84b90284699f3aef84d8701a25c786fb79a1
+  # -- Resources for the lifecycle hook Job.
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  # -- Optional pull Secret for the GatewayConfig lifecycle Jobs.
+  imagePullSecretName: ""
+
+gateway:
+  # -- (required) Base DNS domain (e.g., example.com). The operator prefixes gateway.subdomain (default rh-ai); wildcards are not supported.
+  domain: ""
+
+  # -- Subdomain prefix for the gateway
+  subdomain: ""
+
+  # -- How the gateway is exposed externally on XKS (LoadBalancer only)
+  ingressMode: LoadBalancer
+
+  # -- Namespace created by this chart. Must be rh-ai-gateway; the operator hardcodes that name.
+  namespace: rh-ai-gateway
+
+  # TLS certificate configuration
+  certificate:
+    # -- TLS strategy: SelfSigned (auto-generated) or Provided (BYO secret in gateway namespace)
+    type: SelfSigned
+    # -- Name of TLS Secret (required when type is Provided)
+    secretName: ""
+
+  # OIDC authentication configuration
+  oidc:
+    # -- (required) OIDC provider URL (e.g., https://keycloak.example.com/realms/rhai)
+    issuerURL: ""
+    # -- (required) OIDC client ID
+    clientID: ""
+    # -- OIDC client secret value; when set, the chart creates the Secret in gateway.namespace.
+    # Prefer referencing an existing Secret via clientSecretRef (BYO) for production; use --set-file
+    # with oidcClientSecret only for dev/test (the value is stored in the Helm release Secret).
+    oidcClientSecret: ""
+    # -- Reference to the OIDC client secret (name required for BYO mode; optional when oidcClientSecret is set, defaults to oidc-client-secret)
+    clientSecretRef:
+      # -- Name of the Kubernetes Secret (existing or chart-created)
+      name: ""
+      # -- Key within the Secret that holds the client secret value
+      key: client-secret
+    # -- Namespace where the client secret is located (defaults to gateway.namespace if empty)
+    secretNamespace: ""
+
+  # Cookie configuration for OAuth2 proxy sessions
+  cookie:
+    # -- Session cookie expiry duration (e.g., "24h", "8h")
+    expire: "24h"
+    # -- Access token refresh interval — must be less than the OIDC provider's Access Token Lifespan
+    refresh: "1h"
+
+  # Provider CA certificate (for self-signed OIDC provider certs)
+  # -- Name of Secret containing CA cert for the auth provider (must have ca.crt key, in gateway namespace)
+  providerCASecretName: ""
+  # -- Verify auth provider TLS certificate (set to false only for development)
+  verifyProviderCertificate: true
+
+  # Network policy configuration
+  networkPolicy:
+    ingress:
+      # -- Enable ingress NetworkPolicy for kube-auth-proxy
+      enabled: true

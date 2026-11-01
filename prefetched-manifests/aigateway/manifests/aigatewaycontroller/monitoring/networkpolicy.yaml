@@ -1,0 +1,42 @@
+# NetworkPolicy for ai-gateway-controller pods.
+#
+# Restricts ingress on the HTTPS metrics endpoint (TCP 8443) to supported
+# monitoring namespaces, and allows kubelet health probes on TCP 8081.
+#
+# Component-controller policy (ODH/RHOAI overlay-delivered), separate from
+# the OLM ai-gateway-operator pod NetworkPolicy in config/network-policy/.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ai-gateway-controller-allow-metrics-traffic
+  labels:
+    app.kubernetes.io/name: ai-gateway-controller
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: aigateway
+spec:
+  podSelector:
+    matchLabels:
+      control-plane: ai-gateway-controller
+  policyTypes:
+    - Ingress
+  ingress:
+    # HTTPS metrics scraping from supported monitoring namespaces.
+    # RHOAI: redhat-ods-monitoring; OpenShift cluster monitoring: openshift-monitoring.
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - redhat-ods-monitoring
+                  - openshift-monitoring
+      ports:
+        - protocol: TCP
+          port: 8443
+    # Kubelet liveness/readiness probes (port 8081). No from selector: kubelet
+    # is not a namespaced peer, and node-to-pod exemptions are CNI-dependent.
+    # Restricting only the port keeps probes working once this Ingress policy
+    # selects the pod. Endpoints are healthz.Ping only (no metrics/control).
+    - ports:
+        - protocol: TCP
+          port: 8081

@@ -1,0 +1,37 @@
+{{/*
+Validate values at template-render time (runs before other templates).
+This file produces no output — it only triggers fail() when values are invalid.
+Validation is skipped when gateway.domain is empty (subchart installed but not configured).
+*/}}
+{{- if (include "xks-gateway.configured" .) -}}
+{{- $gw := .Values.gateway -}}
+{{- $gatewayNs := include "xks-gateway.namespace" . -}}
+{{- if ne $gatewayNs "rh-ai-gateway" -}}
+{{- fail "gateway.namespace must be rh-ai-gateway. The operator hardcodes this namespace; custom values are not supported." -}}
+{{- end -}}
+{{- $_ := required "gateway.domain is required. Set it to your base DNS domain (e.g., example.com).\nUsage: --set gateway.domain=example.com" $gw.domain }}
+{{- if contains "*" $gw.domain -}}
+{{- fail "gateway.domain must be a base DNS domain without a wildcard (e.g., example.com). The operator prefixes gateway.subdomain (default rh-ai) to form the hostname." -}}
+{{- end -}}
+{{- $_ := required "gateway.oidc.issuerURL is required. Set it to your OIDC provider URL.\nUsage: --set gateway.oidc.issuerURL=https://keycloak.example.com/realms/rhai" $gw.oidc.issuerURL }}
+{{- $_ := required "gateway.oidc.clientID is required. Set it to your OIDC client ID.\nUsage: --set gateway.oidc.clientID=rhai-client" $gw.oidc.clientID }}
+{{- if $gw.oidc.oidcClientSecret }}
+{{- $secretNs := include "xks-gateway.oidcSecretNamespace" . }}
+{{- if ne $secretNs $gatewayNs }}
+{{- fail "gateway.oidc.oidcClientSecret can only be used when the secret is stored in gateway.namespace (leave secretNamespace empty or set it to the same value). For secrets in another namespace, omit oidcClientSecret and reference an existing secret via clientSecretRef.name." }}
+{{- end }}
+{{- else }}
+{{- $_ := required "gateway.oidc.clientSecretRef.name is required when gateway.oidc.oidcClientSecret is not set.\nProvide gateway.oidc.oidcClientSecret to create the secret, or gateway.oidc.clientSecretRef.name to reference an existing secret.\nUsage: --set gateway.oidc.oidcClientSecret=... --set gateway.oidc.clientSecretRef.name=my-oidc-secret" $gw.oidc.clientSecretRef.name }}
+{{- end }}
+{{- $certType := $gw.certificate.type | default "SelfSigned" -}}
+{{- if eq $certType "Provided" }}
+{{- $_ := required "gateway.certificate.secretName is required when certificate.type is Provided.\nUsage: --set gateway.certificate.secretName=my-tls-cert" $gw.certificate.secretName }}
+{{- end }}
+{{- if eq $certType "OpenshiftDefaultIngress" }}
+{{- fail "gateway.certificate.type OpenshiftDefaultIngress is not supported on XKS. Use SelfSigned or Provided." }}
+{{- end }}
+{{- $ingressMode := $gw.ingressMode | default "LoadBalancer" -}}
+{{- if eq $ingressMode "OcpRoute" }}
+{{- fail "gateway.ingressMode OcpRoute is not supported on XKS. Use LoadBalancer." }}
+{{- end }}
+{{- end -}}

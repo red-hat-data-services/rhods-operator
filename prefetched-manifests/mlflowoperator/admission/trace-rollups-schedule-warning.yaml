@@ -1,0 +1,56 @@
+# Production overlays include this policy and require admissionregistration.k8s.io/v1 VAP.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: mlflow-trace-rollups-schedule-warning
+spec:
+  failurePolicy: Ignore
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [mlflow.opendatahub.io]
+      apiVersions: [v1]
+      operations: [CREATE, UPDATE]
+      resources: [mlflows]
+      scope: Cluster
+  matchConditions:
+  - name: sql-backend
+    expression: >-
+      has(object.spec.env) && object.spec.env.exists(e, e.name == 'MLFLOW_BACKEND_STORE_URI') ?
+        (has(object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI')[object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI').size()-1].valueFrom) ||
+         !has(object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI')[object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI').size()-1].value) ||
+         object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI')[object.spec.env.filter(e, e.name == 'MLFLOW_BACKEND_STORE_URI').size()-1].value.matches('^(postgresql|mysql)([+][^:]*)?:')) :
+        (has(object.spec.backendStoreUriFrom) ||
+         (has(object.spec.backendStoreUri) &&
+          object.spec.backendStoreUri.matches('^(postgresql|mysql)([+][^:]*)?:')))
+  - name: scheduling-enabled
+    expression: >-
+      !has(object.spec.traceRollups) || !has(object.spec.traceRollups.schedulingEnabled) ||
+      object.spec.traceRollups.schedulingEnabled
+  - name: runtime-enabled
+    expression: >-
+      has(object.spec.env) && object.spec.env.exists(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED') ?
+        (has(object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED')[object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED').size()-1].valueFrom) ||
+         !has(object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED')[object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED').size()-1].value) ||
+         !object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED')[object.spec.env.filter(e, e.name == 'MLFLOW_SQL_TRACE_ROLLUPS_ENABLED').size()-1].value.matches('(?i)^(false|0)$')) :
+        (!has(object.spec.traceRollups) || !has(object.spec.traceRollups.enabled) ||
+         object.spec.traceRollups.enabled)
+  validations:
+  - expression: >-
+      has(object.spec.traceRollups) && has(object.spec.traceRollups.schedule) &&
+      has(object.spec.traceRollups.timeZone)
+    messageExpression: >-
+      'SQL trace rollup schedule or timezone omitted. Effective cron: ' +
+      ((has(object.spec.traceRollups) && has(object.spec.traceRollups.schedule)) ?
+        object.spec.traceRollups.schedule : '0 2 * * * (nightly at 02:00)') +
+      '; timezone: ' +
+      ((has(object.spec.traceRollups) && has(object.spec.traceRollups.timeZone)) ?
+        object.spec.traceRollups.timeZone : 'Etc/UTC') +
+      '. Set spec.traceRollups.schedule and spec.traceRollups.timeZone explicitly to confirm local timing. Referenced backend and runtime values are checked by the operator.'
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: mlflow-trace-rollups-schedule-warning
+spec:
+  policyName: mlflow-trace-rollups-schedule-warning
+  validationActions: [Warn]

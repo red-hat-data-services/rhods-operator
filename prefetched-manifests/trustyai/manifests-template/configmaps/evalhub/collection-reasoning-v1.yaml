@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evalhub-collection-reasoning-v1
+  labels:
+    trustyai.opendatahub.io/evalhub-collection-type: system
+    trustyai.opendatahub.io/evalhub-collection-name: reasoning-v1
+data:
+  reasoning-v1.yaml: |
+    id: reasoning-v1
+    name: Reasoning v1
+    category: reasoning
+    domains: [knowledge_and_reasoning]
+    tasks: [reasoning]
+    modalities: [text]
+    evaluation_targets: [model]
+    curation_order: 0
+    description: >
+      Evaluates multi-step and chain-of-thought reasoning for instruction-tuned chat LLMs
+      across advanced multidomain Q&A, competition mathematics, and expert-level science.
+      All benchmarks use 0-shot evaluation to probe raw reasoning without in-context
+      demonstrations. Math 500, AIME 25, and GPQA Diamond configure pass_at_k=1 and
+      num_samples=3, 8, and 3 respectively. These settings do not establish independently
+      seeded repeated runs or seed averaging; actual sampling behavior must be verified
+      against the configured adapter.
+      All benchmarks require --apply_chat_template and a vLLM OpenAI-compatible endpoint.
+      Part of the Standard LLM Evaluation Suite (standard-llm-evals-v1).
+    tags:
+      - reasoning
+      - math
+      - science
+      - chain_of_thought
+      - chat
+      - lm_eval
+      - lighteval
+      - vllm
+      - standard
+    pass_criteria:
+      # Equal-weight mean of the four row targets: (0.40 + 0.30 + 0.15 + 0.35) / 4.
+      threshold: 0.30
+    benchmarks:
+      - id: leaderboard_mmlu_pro
+        provider_id: lm_evaluation_harness
+        weight: 1
+        primary_score:
+          metric: acc_norm
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.40   # 0-shot is harder than 5-shot
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+
+      - id: math_500
+        provider_id: lighteval
+        weight: 1
+        primary_score:
+          metric: math_500.pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.30
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          pass_at_k: 1
+          num_samples: 3
+
+      - id: aime25
+        provider_id: lighteval
+        weight: 1   # Competition math — lower absolute scores expected even for strong models
+        primary_score:
+          metric: aime25.pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.15
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          pass_at_k: 1
+          num_samples: 8   # 8-seed average per standard protocol
+
+      - id: gpqa:diamond
+        provider_id: lighteval
+        weight: 1
+        primary_score:
+          metric: gpqa:diamond.gpqa_pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.35
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          pass_at_k: 1
+          num_samples: 3
