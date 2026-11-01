@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: opendatahub
+
+resources:
+- ../crd
+- ../manager
+- ../rbac
+
+patches:
+- target:
+    kind: ClusterRoleBinding
+    name: spark-operator-module-manager-rolebinding
+  patch: |-
+    - op: replace
+      path: /subjects/0/namespace
+      value: opendatahub
+
+images:
+- name: spark-operator-module-controller
+  newName: quay.io/opendatahub/spark-operator-module-controller
+  newTag: latest

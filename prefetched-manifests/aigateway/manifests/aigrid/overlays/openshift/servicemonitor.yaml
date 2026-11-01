@@ -1,0 +1,27 @@
+# Source: grid-operator/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: grid-operator
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  namespaceSelector:
+    matchNames:
+      - grid-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grid-operator
+      app.kubernetes.io/instance: grid-operator
+  endpoints:
+    - port: metrics
+      interval: "30s"
+      scrapeTimeout: "10s"
+      scheme: https
+      tlsConfig:
+        ca:
+          configMap:
+            name: openshift-service-ca.crt
+            key: service-ca.crt
+        serverName: grid-operator-metrics.grid-system.svc

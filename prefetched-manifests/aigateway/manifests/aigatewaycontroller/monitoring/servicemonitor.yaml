@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-gateway-controller-metrics
+  labels:
+    app: ai-gateway-controller
+    monitoring.opendatahub.io/scrape: "true"
+spec:
+  selector:
+    matchLabels:
+      control-plane: ai-gateway-controller
+      app: ai-gateway-controller
+  endpoints:
+    - path: /metrics
+      port: metrics
+      scheme: https
+      interval: 30s
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        ca:
+          configMap:
+            name: openshift-service-ca.crt
+            key: service-ca.crt
+        # name.namespace.svc — filled by kustomize replacements in default/
+        serverName: ai-gateway-controller-metrics.opendatahub.svc

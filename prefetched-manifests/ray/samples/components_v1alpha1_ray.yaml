@@ -1,0 +1,9 @@
+apiVersion: components.platform.opendatahub.io/v1alpha1
+kind: Ray
+metadata:
+  labels:
+    app.kubernetes.io/name: ray-module-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: default-ray
+spec:
+  managementState: Managed

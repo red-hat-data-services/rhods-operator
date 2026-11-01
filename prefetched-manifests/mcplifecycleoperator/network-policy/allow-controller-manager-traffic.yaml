@@ -1,0 +1,36 @@
+# NetworkPolicy for the module operator's own controller-manager pod.
+#
+# Under the platform NetworkPolicy contract (ODH-ADR-Operator-0016) the module is
+# an operand of the opendatahub-operator and must ship its own NetworkPolicy so it
+# keeps working when a deny-all policy is applied in its namespace. This mirrors
+# the operand rule: deny-by-default ingress (only the probe port is admitted) and
+# allow-all egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-controller-manager-traffic
+  namespace: system
+  labels:
+    app.kubernetes.io/name: mcp-lifecycle-module-operator
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  podSelector:
+    matchLabels:
+      control-plane: controller-manager
+      app.kubernetes.io/name: mcp-lifecycle-module-operator
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Health/readiness probes (8081) originate from the kubelet (node), off the pod
+    # network, so they cannot be reliably constrained by NetworkPolicy peer
+    # selectors; admit the port from any source. All other ingress is denied.
+    - ports:
+        - port: 8081
+          protocol: TCP
+  egress:
+    # Allow-all egress, matching the operand rule and permitted by the platform
+    # contract (ODH-ADR-Operator-0016). The controller-manager needs DNS and
+    # kube-apiserver access for leader election and reconciliation; an allow-all
+    # egress rule keeps it functional even under a namespace deny-all policy.
+    - {}

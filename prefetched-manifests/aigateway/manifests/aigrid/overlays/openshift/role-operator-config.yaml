@@ -1,0 +1,15 @@
+# Source: grid-operator/templates/role-operator-config.yaml
+# The operator config is watched, so an edit applies without a restart. Read only: the
+# watch names the ConfigMap, so list and watch are confined to it too.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grid-operator-operator-config
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["grid-operator-config"]
+    verbs: ["get", "list", "watch"]

@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: catalog-controller-manager
+  labels:
+    app.kubernetes.io/name: catalog-controller-manager
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: model-catalog
+spec:
+  podSelector:
+    matchLabels:
+      control-plane: catalog-controller-manager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Admission webhooks are called by the API server, which runs on the host
+  # network on OpenShift.
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          policy-group.network.openshift.io/host-network: ""
+    ports:
+    - protocol: TCP
+      port: 9443
+  # Health probes (8081) need no rule: NetworkPolicy always allows traffic from
+  # the pod's own node, which is where kubelet probes originate. Metrics are not
+  # scraped (no metrics Service), so they are not exposed.
+  #
+  # Egress is unrestricted. The operator only calls the Kubernetes API, but on
+  # OpenShift its endpoints are per-cluster control-plane host IPs that cannot be
+  # expressed in a static manifest, and no platform-standard API-server peer
+  # exists yet (RHOAIENG-90747).
+  egress:
+  - {}
