@@ -5,23 +5,11 @@ metadata:
     build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: "false"
-    pipelinesascode.tekton.dev/max-keep-runs: "3"
-    # No build-nudge-files: this image is deleted with its branch. Block 2 takes
-    # the digest from the gate's results.
-    #
-    # eg-* branches exist only during a gate run, so this is inert today.
-    #
-    # Two pushes land on one and only the second should build - the branch
-    # creation, and the processor's commit. pathChanged() catches the normal
-    # case (pinning rewrites operands-map.yaml; branch creation changes nothing);
-    # event_title catches the --allow-empty no-op. The subject is set in
-    # .github/workflows/operator-processor.yaml - change the two together.
-    pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push"
-      && target_branch.startsWith("eg-")
-      && ("build/operands-map.yaml".pathChanged()
-          || event_title.startsWith("early-gate:"))
+    pipelinesascode.tekton.dev/cancel-in-progress: 'false'
+    pipelinesascode.tekton.dev/max-keep-runs: '3'
+    pipelinesascode.tekton.dev/on-cel-expression: "event == \"push\"\n&& target_branch.startsWith(\"\
+      eg-\")\n&& (\"build/operands-map.yaml\".pathChanged()\n    || event_title.startsWith(\"\
+      early-gate:\"))\n"
   labels:
     appstudio.openshift.io/application: rhoai-early-gate
     appstudio.openshift.io/component: rhods-operator-eg
@@ -29,8 +17,6 @@ metadata:
   name: rhods-operator-eg-on-push
   namespace: rhoai-tenant
 spec:
-  # 4h, as the release push files - a 4-arch build that queues needs it, and the
-  # gate's build-timeout-minutes outlasts it.
   timeouts:
     pipeline: 4h
   params:
@@ -38,11 +24,8 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  # Publish to the downstream repository under an early-gate tag.
-  # The gate pins this fallback on its ephemeral branch; keep its destination
-  # aligned with the EG Component and the matching monitor's output-image.
   - name: output-image
-    value: quay.io/rhoai/odh-rhel9-operator:odh-operator-{{target_branch}}-{{revision}}
+    value: quay.io/rhoai/odh-rhel9-operator:odh-operator-eg-51
   - name: image-expires-after
     value: 30d
   - name: dockerfile
@@ -57,30 +40,23 @@ spec:
     value: true
   - name: build-image-index
     value: true
-  # Full matrix, as odh-operator-pull-request.yaml. The POC built x86_64 only for
-  # speed; a gate that builds one arch cannot stand in for a release build.
   - name: build-platforms
     value:
     - linux/x86_64
     - linux/ppc64le
     - linux/s390x
     - linux-m2xlarge/arm64
-  # A failed gate build is a signal to the gate, not to the release team.
-  - name: enable-slack-failure-notification
-    value: "false"
-  # No rhoai-version: konflux-central main does not declare it (rhoai-3.6 does),
-  # and an eg-* branch always resolves main via the expression below.
-  # skip-checks left at its default so all eight scanners run.
+  - name: rhoai-version
+    value: 3.6.0
+  - name: disable-slack-notifications
+    value: 'true'
   pipelineRef:
     resolver: git
     params:
     - name: url
       value: https://github.com/red-hat-data-services/konflux-central.git
-    # As odh-operator-pull-request.yaml: a release branch resolves itself, else
-    # main. The fallback is load-bearing - eg-* branches exist only here, so
-    # '{{ target_branch }}' would not resolve and no build would start.
     - name: revision
-      value: '{{ cel: pac.target_branch.matches("^rhoai-\\d+\\.\\d+(-ea\\.\\d+)?$") ? pac.target_branch : "main" }}'
+      value: rhoai-3.6
     - name: pathInRepo
       value: pipelines/multi-arch-container-build.yaml
   taskRunTemplate:
