@@ -1,0 +1,274 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "internal-provider-writer")
+    }}'
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - persistentvolumeclaims
+  - secrets
+  - services
+  - serviceaccounts
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  - issuers
+  verbs:
+  - create
+  - get
+  - patch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "manager-role")
+    }}'
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - serviceaccounts
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  - issuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseclaims
+  - schemaclaims
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseclaims/finalizers
+  - databaseproviders/finalizers
+  - schemaclaims/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseclaims/status
+  - databaseproviders/status
+  - schemaclaims/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.opendatahub.io
+  resources:
+  - databaseproviders
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - odh-db-internal-postgres
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - use
+- apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - databaseservices
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - databaseservices/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - services.platform.opendatahub.io
+  resources:
+  - databaseservices/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-auth-role")
+    }}'
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "metrics-reader")
+    }}'
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: internal-postgres-scc
+    app.kubernetes.io/name: odh-db-internal-postgres
+    app.kubernetes.io/part-of: opendatahub-db-operator
+    db.infrastructure.opendatahub.io/internal-postgres-scc: owned
+  name: odh-db-internal-postgres
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - odh-db-internal-postgres
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
