@@ -24,7 +24,7 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: cc618edd4262a94bebd33502e007cd5b2de93e06
+    git.commit: 46cb33d69ead6aa08ab6dc70c0ad47831b464589
   odh-codeflare-operator:
     src: config
     dest: codeflare
@@ -34,7 +34,7 @@ map:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: 3339eccd2777995bcb36dac5976c2d3836fdd776
+    git.commit: 99c4e0173a03b0765c4e14459e947a12bc61b042
   odh-kueue-controller:
     src: config
     dest: kueue
@@ -64,7 +64,7 @@ map:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 9a82b60a7a986e0c705be62993af06b623ed1aac
+    git.commit: 6e29539d0f7a926eecb851225ccff627008bc8eb
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -74,12 +74,12 @@ map:
     src: infra/feast-operator/config
     dest: feastoperator
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: 83f71e0f4267c0590cb5e12e0724f703c6078b01
+    git.commit: a0ef7cfd498645b513029c95a3e12fabd8d7fd76
   odh-llama-stack-k8s-operator:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 04269352ea7524cae06f7baa94ff63377e40dd31
+    git.commit: 06cb9278d5bbc96f22d26aa1230bbc5a64933806
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
