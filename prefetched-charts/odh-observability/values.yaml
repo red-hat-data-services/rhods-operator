@@ -27,13 +27,19 @@ image:
 
 replicaCount: 1
 
+# The controller caches cluster-scoped informers for Secrets, ConfigMaps,
+# Namespaces, CRDs, EndpointSlices, Routes, Deployments, Jobs, Services,
+# ServiceAccounts and ClusterRole/Bindings, so its footprint scales with the
+# size of the cluster rather than with the number of Monitoring CRs. Measured
+# steady state on a small ROSA HCP cluster is ~1.7Gi, which OOMKilled the
+# container roughly ten seconds after start at the previous 512Mi limit.
 resources:
   limits:
     cpu: 500m
-    memory: 512Mi
+    memory: 3Gi
   requests:
     cpu: 100m
-    memory: 128Mi
+    memory: 2Gi
 
 # Leader election - enable when running multiple replicas.
 leaderElect: false
