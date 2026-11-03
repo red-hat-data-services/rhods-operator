@@ -1,0 +1,43 @@
+# Source: grid-operator/templates/role-leader-election.yaml
+# The operator lease and the holder's EndpointSlices. Create cannot be limited to a name.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grid-operator-leader-election
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    resourceNames: ["grid-operator"]
+    verbs: ["get", "update"]
+  # A candidate reads its own replicas, so it never contends beside one that runs unelected.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["services"]
+    resourceNames:
+      - "grid-operator-signals"
+      - "grid-operator-swim"
+    verbs: ["get"]
+  # create, and list and delete for the slices the controller leaves when a Service loses its
+  # selector, whose names it generates. The holder deletes only those on its own Services.
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["create", "list", "delete"]
+  # OpenShift admits an EndpointSlice naming a pod or service address only from a writer
+  # that can create this virtual subresource; elsewhere the rule is inert.
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices/restricted"]
+    verbs: ["create"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    resourceNames:
+      - "grid-operator-signals-holder"
+      - "grid-operator-swim-holder"
+    verbs: ["get", "update"]

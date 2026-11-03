@@ -1,0 +1,8 @@
+{{- if .Values.enabled }}
+{{- /* The source CRD is synced from the operator; add the chart-only retention policy at render time. */}}
+{{- $crd := .Files.Get "files/gatewayconfig-crd.yaml" | replace "metadata:\n  annotations:" "metadata:\n  annotations:\n    helm.sh/resource-policy: keep" -}}
+{{- if not (contains "helm.sh/resource-policy: keep" $crd) }}
+{{- fail "gatewayconfig-crd.yaml: failed to inject resource-policy: keep; update the CRD template injection" }}
+{{- end }}
+{{ $crd | trim }}
+{{- end }}
