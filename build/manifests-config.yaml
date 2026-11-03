@@ -14,7 +14,7 @@ map:
     src: components/notebook-controller/config
     dest: workbenches/kf-notebook-controller
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: ba2ae6dde79855c7ed64e56eff47a1132bf2add0
+    git.commit: 0cac09a002a41bdaf1e64563dbeafbc3a39daa37
   odh-notebook-controller:
     src: components/odh-notebook-controller/config
     dest: workbenches/odh-notebook-controller
@@ -59,12 +59,12 @@ map:
     src: config
     dest: modelmeshserving
     git.url: https://github.com/red-hat-data-services/modelmesh-serving
-    git.commit: 85f052b32e0784766ed07858d8b0869ed637dfdc
+    git.commit: 687011559ddd4af35e6117236004230734fe00d6
   odh-dashboard:
     src: manifests
     dest: dashboard
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: eb95362516351e8557dba49c1e451c319f9a4f91
+    git.commit: 8fa7eaa1c19ffff33a5742236dba363acf8be79e
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -79,7 +79,7 @@ map:
     src: config
     dest: llamastackoperator
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: e65852a4cbce372036706baf6ac9160cf21cfeff
+    git.commit: 4d1461ce91dae583d36e761e20476ea870e319a0
 additional_meta:
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
@@ -98,7 +98,7 @@ additional_meta:
     git.commit: 8681f37a9ecf8d91d72df01bf43dea7950cdc213
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: 4c8475be8caca7654d8b6c3af5269ad74b6fe78f
+    git.commit: 302b30e33c349243f73bf207ee7f60584cad690b
   odh-fms-guardrails-orchestrator:
     git.url: https://github.com/red-hat-data-services/fms-guardrails-orchestrator
     git.commit: 31a979828238ae9d8807b5b0b985eb5c2c0d58c7
@@ -164,7 +164,7 @@ additional_meta:
     git.commit: 7a0ba186a9d7db0e2ba924ab099af6c6dcb07307
   odh-mod-arch-model-registry:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: a74b18322d771f65d3e4752202fd7853cca2e21b
+    git.commit: 8a0784413e32169a81c5626b451346e83d42b0e9
   odh-must-gather:
     git.url: https://github.com/red-hat-data-services/must-gather
     git.commit: 1e585f83e2158b91a5967cb643c391ccbf8c78f4
@@ -206,7 +206,7 @@ additional_meta:
     git.commit: dfcd6ae1f3ef84842883166d4ffc75cda68b401c
   odh-vllm-cpu:
     git.url: https://github.com/red-hat-data-services/vllm-cpu
-    git.commit: a1fb134c72ae30bf99ee0adaf63afba9e1b9c887
+    git.commit: aaf9629a190de5e667415ebe9fec0d9f04d8dd4a
   odh-vllm-cuda:
     git.url: https://github.com/red-hat-data-services/vllm
     git.commit: 505b57c6182d16494d2bc69678e019055f453b6e
