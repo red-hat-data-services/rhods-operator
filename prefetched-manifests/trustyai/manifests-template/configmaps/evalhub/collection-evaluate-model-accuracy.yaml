@@ -152,22 +152,6 @@ data:
       pass_criteria:
         threshold: 0.6
       parameters:
-        task: inspect_evals/ifeval
-        model_args:
-          responses_api: false
-          client_timeout: 5400
-        task_args:
-          presence_penalty: 1.0
-
-    - id: inspect/custom
-      provider_id: inspect
-      weight: 1
-      primary_score:
-        metric: accuracy
-        lower_is_better: false
-      pass_criteria:
-        threshold: 0.6
-      parameters:
         task: inspect_evals/bfcl
         model_args:
           responses_api: false
