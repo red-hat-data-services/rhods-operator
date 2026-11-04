@@ -1,0 +1,25 @@
+{{- if and .Values.monitoring.serviceMonitor.enabled (or .Values.openshift.serviceCA (.Capabilities.APIVersions.Has "security.openshift.io/v1")) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: opendatahub-db-operator
+    monitoring.opendatahub.io/scrape: "true"
+  name: odh-db-operator-metrics-monitor
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      ca:
+        configMap:
+          key: service-ca.crt
+          name: odh-db-operator-metrics-server-ca
+      serverName: odh-db-operator-metrics-service.{{ .Release.Namespace }}.svc
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opendatahub-db-operator
+{{- end }}
