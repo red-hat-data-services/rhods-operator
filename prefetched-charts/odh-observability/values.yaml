@@ -1,0 +1,51 @@
+nameOverride: ""
+fullnameOverride: ""
+
+operatorNamespace: opendatahub-operator-system
+
+# Namespace of the Red Hat build of OpenTelemetry Operator. The supplemental
+# ClusterRoleBinding grants it cert-manager access for TargetAllocator mTLS.
+otelOperatorNamespace: openshift-opentelemetry-operator
+
+# Namespace where Monitoring operands (Tempo, collector) are deployed.
+# Tempo write ACL treats this namespace name as the RBAC resource.
+# Defaults to operatorNamespace when empty. On RHOAI this is
+# spec.monitoring.namespace (e.g. redhat-ods-monitoring).
+monitoringNamespace: ""
+
+# Namespace containing the external router or gateway that reaches the
+# monitoring proxies. Empty retains the OpenShift ingress policy-group
+# selector, while deployment overlays may provide a namespace-specific source.
+gatewayNamespace: ""
+
+image:
+  repository: quay.io/opendatahub/odh-observability
+  tag: odh-stable
+  pullPolicy: Always
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Leader election - enable when running multiple replicas.
+leaderElect: false
+
+# Image pull secrets for private registries.
+imagePullSecrets: []
+
+# Node selector, tolerations, and affinity for the controller pod.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Extra environment variables injected into the controller container.
+# Use for RELATED_IMAGE_* overrides.
+env: []
+# - name: RELATED_IMAGE_PERSES_IMAGE
+#   value: "registry.redhat.io/cluster-observability-operator/perses-rhel9:1.5.0-1781116652"
