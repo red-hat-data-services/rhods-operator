@@ -79,6 +79,17 @@ rules:
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["clusterroles", "clusterrolebindings"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# A Role and RoleBinding in the infra namespace, where ODH and RHOAI run the
+# NemoGuardrails workload, let the tenant post-auth ServiceAccount get the
+# NeMo Service, which is what kube-rbac-proxy checks. Trust boundary: the
+# write verbs are cluster-wide because the infra namespace
+# (MaasTenantConfig status.infraNamespace) is only known at runtime. The
+# controller only writes Roles granting get on that one Service, only in that
+# namespace, and only deletes Roles and RoleBindings carrying its
+# nemo-caller-tenant label. It reads them live, never through a watch.
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
 # Escalation-check mirror: ai-gateway-controller must hold every permission it
 # grants via payload-processing-reader.
 - apiGroups: [""]
