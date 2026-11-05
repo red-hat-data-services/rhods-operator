@@ -71,8 +71,10 @@ spec:
               instancesNamespace:
                 description: |-
                   InstancesNamespace is the namespace where model registry instances, the catalog
-                  service, and the Catalog CR are deployed. It is sourced from the DSC field
-                  spec.components.modelregistry.registriesNamespace and MAY equal ApplicationNamespace.
+                  service, and the Catalog CR are deployed. The platform projects it from DSC v3
+                  spec.components.aiHub.instancesNamespace; DSC v2
+                  spec.components.modelregistry.registriesNamespace maps to that field through
+                  conversion. It MAY equal ApplicationNamespace.
                 maxLength: 63
                 minLength: 1
                 pattern: ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$
