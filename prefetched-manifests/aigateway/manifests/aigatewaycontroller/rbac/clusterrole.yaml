@@ -31,6 +31,11 @@ rules:
 - apiGroups: ["maas.opendatahub.io"]
   resources: ["aitenants"]
   verbs: ["get", "list", "watch"]
+# Read and watch subscriptions and model refs so a guardrail list change
+# updates the tenant. This controller does not write them.
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["maassubscriptions", "maasmodelrefs"]
+  verbs: ["get", "list", "watch"]
 # Resources rendered from the vendored overlay, one set per praxis tenant.
 - apiGroups: [""]
   resources: ["services", "serviceaccounts", "configmaps"]
@@ -38,6 +43,25 @@ rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Provider withdrawal uses live ReplicaSet and Pod state, plus EndpointSlices,
+# to prove that no old ExtProc revision can still select a withdrawn provider.
+# These are live API reads and need no watch or write access. Pod log access
+# proves which overlay revision the ExtProc process is serving. Tenant
+# namespaces are discovered at runtime; creating narrower RoleBindings would
+# require RBAC delegation privileges, so the controller restricts log reads
+# to the tenant's selected ExtProc pods in code.
+- apiGroups: ["apps"]
+  resources: ["replicasets"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get"]
+- apiGroups: ["discovery.k8s.io"]
+  resources: ["endpointslices"]
+  verbs: ["get", "list"]
 # HPAs for Praxis IPP Deployments when MaasTenantConfig.spec.payloadProcessing
 # / payloadPreProcessing.autoscaling is set (parity with maas-controller).
 - apiGroups: ["autoscaling"]
@@ -126,7 +150,11 @@ rules:
 # A cross-namespace ExternalProvider reference must be authorized by a
 # ReferenceGrant in the provider namespace. ExternalModel Gateway attachment
 # uses HTTPRoute parent status, so no Namespace read is granted. The consumer
-# portal also creates a ReferenceGrant for the dashboard Service backend.
+# portal also creates a ReferenceGrant in the dashboard namespace for the
+# maas-portal Service backend. Trust boundary: the write verbs are
+# cluster-wide because the dashboard namespace (DSCI applicationsNamespace)
+# and the provider namespaces are only known at runtime, so a static
+# namespaced Role cannot target them.
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["referencegrants"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -135,11 +163,22 @@ rules:
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: ["gateways"]
   verbs: ["get", "list", "watch"]
+# The consumer portal resolves the external gateway hostname for its OIDC
+# callback from the OpenShift Route that fronts the Gateway in the ClusterIP +
+# Route gateway pattern. Routes are discovered by listing the Gateway
+# namespace and matching backend identity, not by name; read-only.
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list"]
 - apiGroups: ["networking.istio.io"]
   resources: ["serviceentries"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # The consumer portal enforces OIDC sessions with route-level Kuadrant
 # AuthPolicies (anonymous /oauth2 route plus the protected portal route).
+# Trust boundary: the write verbs are cluster-wide because the target
+# namespace is the per-tenant infra namespace, only known at runtime, so a
+# static namespaced Role cannot target it. All other routes' AuthPolicies
+# stay owned by maas-controller.
 - apiGroups: ["kuadrant.io"]
   resources: ["authpolicies"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

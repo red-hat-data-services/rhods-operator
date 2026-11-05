@@ -24,11 +24,24 @@ spec:
       containers:
       - command:
         - /manager
+        # Only flags whose value differs from this binary's own default belong
+        # here. The operator vendors this manifest at a pinned commit but
+        # resolves the image from a separate build, so any arg that restates a
+        # default becomes a crash on upgrade whenever the image is older than
+        # the manifest (RHAI-15815). --metrics-secure, --metrics-bind-address
+        # and --health-probe-bind-address are therefore omitted deliberately —
+        # do not re-add them.
+        #
+        # A build from this tree is unaffected: the probes below use 8081 and
+        # the metrics Service/ServiceMonitor use 8443 over https with the cert
+        # at /tmp/k8s-metrics-server/metrics-certs, which are exactly this
+        # binary's defaults. An image older than 9030c29 has no --metrics-secure
+        # flag at all and binds metrics on :8080 over plain http, so on that
+        # pairing nothing answers on 8443 and scraping silently stops until the
+        # image is rebuilt. That is the deliberate trade: no metrics beats no
+        # control plane.
         args:
           - --leader-elect
-          - --health-probe-bind-address=:8081
-          - --metrics-bind-address=:8443
-          - --metrics-secure=true
           - --image=$(RELATED_IMAGE_ODH_PRAXIS_EXTPROC_IMAGE)
         env:
           - name: LOG_DEVELOPMENT
@@ -41,6 +54,13 @@ spec:
             valueFrom:
               configMapKeyRef:
                 key: praxis-extproc-image
+                name: ai-gateway-controller-parameters
+                optional: true
+          # Consumer portal OIDC auth proxy image, supplied the same way.
+          - name: RELATED_IMAGE_ODH_KUBE_AUTH_PROXY_IMAGE
+            valueFrom:
+              configMapKeyRef:
+                key: kube-auth-proxy-image
                 name: ai-gateway-controller-parameters
                 optional: true
         image: ai-gateway-controller

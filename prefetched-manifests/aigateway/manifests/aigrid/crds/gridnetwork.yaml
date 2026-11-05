@@ -463,6 +463,37 @@ spec:
                               - intelligentRoute
                               - gridSiteRoute
                             type: string
+                          sovereignty:
+                            description: |-
+                              The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
+                              may be served in, and whether it refuses or only audits. Under any other router the
+                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+
+                              Default: unset, no fence.
+                            nullable: true
+                            properties:
+                              header:
+                                description: |-
+                                  Request header naming the zones a request may be served in: one zone, or a
+                                  comma-separated list in a single header line, matched against each `GridSite`
+                                  `sovereigntyZone`. The upstream that sets it must replace, never append to, a
+                                  caller's copy.
+                                maxLength: 63
+                                pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                                type: string
+                              mode:
+                                default: enforce
+                                description: |-
+                                  What the fence does with a request it does not admit.
+
+                                  Default: `enforce`.
+                                enum:
+                                  - enforce
+                                  - audit
+                                type: string
+                            required:
+                              - header
+                            type: object
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -880,6 +911,37 @@ spec:
                               - intelligentRoute
                               - gridSiteRoute
                             type: string
+                          sovereignty:
+                            description: |-
+                              The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
+                              may be served in, and whether it refuses or only audits. Under any other router the
+                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+
+                              Default: unset, no fence.
+                            nullable: true
+                            properties:
+                              header:
+                                description: |-
+                                  Request header naming the zones a request may be served in: one zone, or a
+                                  comma-separated list in a single header line, matched against each `GridSite`
+                                  `sovereigntyZone`. The upstream that sets it must replace, never append to, a
+                                  caller's copy.
+                                maxLength: 63
+                                pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                                type: string
+                              mode:
+                                default: enforce
+                                description: |-
+                                  What the fence does with a request it does not admit.
+
+                                  Default: `enforce`.
+                                enum:
+                                  - enforce
+                                  - audit
+                                type: string
+                            required:
+                              - header
+                            type: object
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -962,6 +1024,8 @@ spec:
                             type: string
                         type: object
                         x-kubernetes-validations:
+                          - message: sovereignty is applied only by siteRouter gridSiteRoute
+                            rule: '!has(self.sovereignty) || (has(self.siteRouter) && self.siteRouter == ''gridSiteRoute'')'
                           - message: set only `enabled` or `generate`, not both
                             rule: '!(has(self.enabled) && has(self.generate))'
                           - message: set only `credentialMountBase` or `credentialMountPath`, not both
@@ -1353,6 +1417,37 @@ spec:
                               - intelligentRoute
                               - gridSiteRoute
                             type: string
+                          sovereignty:
+                            description: |-
+                              The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
+                              may be served in, and whether it refuses or only audits. Under any other router the
+                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+
+                              Default: unset, no fence.
+                            nullable: true
+                            properties:
+                              header:
+                                description: |-
+                                  Request header naming the zones a request may be served in: one zone, or a
+                                  comma-separated list in a single header line, matched against each `GridSite`
+                                  `sovereigntyZone`. The upstream that sets it must replace, never append to, a
+                                  caller's copy.
+                                maxLength: 63
+                                pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                                type: string
+                              mode:
+                                default: enforce
+                                description: |-
+                                  What the fence does with a request it does not admit.
+
+                                  Default: `enforce`.
+                                enum:
+                                  - enforce
+                                  - audit
+                                type: string
+                            required:
+                              - header
+                            type: object
                           supportsProjectedCredentials:
                             default: false
                             description: |-
@@ -1754,6 +1849,37 @@ spec:
                               - intelligentRoute
                               - gridSiteRoute
                             type: string
+                          sovereignty:
+                            description: |-
+                              The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
+                              may be served in, and whether it refuses or only audits. Under any other router the
+                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+
+                              Default: unset, no fence.
+                            nullable: true
+                            properties:
+                              header:
+                                description: |-
+                                  Request header naming the zones a request may be served in: one zone, or a
+                                  comma-separated list in a single header line, matched against each `GridSite`
+                                  `sovereigntyZone`. The upstream that sets it must replace, never append to, a
+                                  caller's copy.
+                                maxLength: 63
+                                pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                                type: string
+                              mode:
+                                default: enforce
+                                description: |-
+                                  What the fence does with a request it does not admit.
+
+                                  Default: `enforce`.
+                                enum:
+                                  - enforce
+                                  - audit
+                                type: string
+                            required:
+                              - header
+                            type: object
                           supportsProjectedCredentials:
                             default: false
                             description: |-

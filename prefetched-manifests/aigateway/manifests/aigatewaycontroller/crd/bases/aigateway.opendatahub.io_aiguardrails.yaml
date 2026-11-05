@@ -139,6 +139,8 @@ spec:
                     x-kubernetes-validations:
                     - message: timeout must be a valid positive duration
                       rule: duration(self) > duration('0s')
+                    - message: timeout must be at least 1ms
+                      rule: duration(self) >= duration('1ms')
                 required:
                 - nemo
                 - timeout

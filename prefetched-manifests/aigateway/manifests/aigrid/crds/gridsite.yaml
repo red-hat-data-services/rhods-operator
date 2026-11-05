@@ -160,8 +160,11 @@ spec:
                       type: string
                   type: object
                 sovereigntyZone:
-                  description: Sovereignty zone for data residency constraints.
+                  description: |-
+                    Sovereignty zone for data residency constraints, matched case-insensitively by a
+                    `grid_site_route` fence. Every provider on the site is in it.
                   nullable: true
+                  pattern: ^[A-Za-z0-9._-]{1,63}$
                   type: string
                 trust:
                   description: |-
