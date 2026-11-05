@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-manager
+  namespace: {{ .Values.operatorNamespace }}
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "odh-observability.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  ingress:
+  # Metrics (8443/HTTPS) — ingress only from supported monitoring namespaces
+  # The metrics server enforces authentication and authorization via FilterProvider
+  # (WithAuthenticationAndAuthorization), requiring a valid bearer token and SubjectAccessReview.
+  # This NetworkPolicy provides defense-in-depth at the network layer.
+  - ports:
+    - protocol: TCP
+      port: 8443
+    from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ include "odh-observability.monitoringNamespace" . }}
+  # Health-probe (8081) — ingress from all sources
+  # Rationale: kubelet/node-originated probes are not reliably constrainable via
+  # NetworkPolicy peer selectors since they originate from the node's host network.
+  # Restricting this port would break liveness/readiness checks during operator restarts.
+  - ports:
+    - protocol: TCP
+      port: 8081
+  # Webhook (9443) — ingress from .Values.webhookIngressCIDRs.
+  # kube-apiserver runs on the host network, so packets come from a node IP in
+  # the cluster machine CIDR. Defaults match the OpenShift and ROSA install
+  # defaults; replace the machine CIDR when the cluster was created with another.
+  - ports:
+    - protocol: TCP
+      port: 9443
+    {{- if .Values.webhookIngressCIDRs }}
+    from:
+    {{- range .Values.webhookIngressCIDRs }}
+    - ipBlock:
+        cidr: {{ . }}
+    {{- end }}
+    {{- else }}
+    {{- fail "webhookIngressCIDRs must not be empty. Set explicit CIDRs for API server access or use the default OpenShift values." }}
+    {{- end }}

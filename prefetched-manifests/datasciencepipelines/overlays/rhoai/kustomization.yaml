@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- dspo/applications
+- ../../argo
+- ../../prometheus
+- ../../prometheus/rhoai
+namespace: redhat-ods-applications
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: dspo-parameters
+    fieldPath: metadata.namespace
+  targets:
+  - select:
+      kind: PrometheusRule
+      name: datasciencepipelines-prometheusrules
+    fieldPaths:
+    - spec.groups.*.rules.*.labels.namespace
