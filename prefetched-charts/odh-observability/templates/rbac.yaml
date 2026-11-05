@@ -1,0 +1,240 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-manager
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+rules:
+  # Monitoring CR
+  - apiGroups: ["services.platform.opendatahub.io"]
+    resources: ["monitorings"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["services.platform.opendatahub.io"]
+    resources: ["monitorings/status", "monitorings/finalizers"]
+    verbs: ["get", "update", "patch"]
+  # COO / Prometheus (RHOBS API group)
+  - apiGroups: ["monitoring.rhobs"]
+    resources: ["monitoringstacks", "thanosqueriers", "servicemonitors", "podmonitors", "prometheusrules"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Upstream Prometheus Operator (granted via cluster-monitoring-view binding)
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["prometheuses/api"]
+    verbs: ["get", "create", "update"]
+  # Read-only: granted to the collector via collector-rbac (operator must hold what it grants)
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["podmonitors", "servicemonitors"]
+    verbs: ["*"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["scrapeconfigs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["probes"]
+    verbs: ["get", "list", "watch"]
+  # OpenShift infrastructure (SNO detection + granted via generate-processors-role)
+  - apiGroups: ["config.openshift.io"]
+    resources: ["apiservers", "infrastructures", "infrastructures/status", "endpoints", "pods", "namespaces", "services"]
+    verbs: ["get", "list", "watch"]
+  # Tempo
+  - apiGroups: ["tempo.grafana.com"]
+    resources: ["tempomonolithics", "tempostacks"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Tempo trace-write (operator must hold this to grant it via collector-tempo-rbac ClusterRole).
+  # Tempo's write ACL uses the monitoring namespace name as the RBAC resource, which
+  # differs from operatorNamespace on RHOAI (applications vs monitoring namespaces).
+  - apiGroups: ["tempo.grafana.com"]
+    resources: ["{{ include "odh-observability.monitoringNamespace" . }}"]
+    resourceNames: ["traces"]
+    verbs: ["create", "get"]
+  # OpenTelemetry
+  - apiGroups: ["opentelemetry.io"]
+    resources: ["opentelemetrycollectors", "instrumentations"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # LokiStack (required to manage LokiStack instances)
+  - apiGroups: ["loki.grafana.com"]
+    resources: ["lokistacks"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Loki (required to grant usage logs collector permissions to write to LokiStack)
+  - apiGroups: ["loki.grafana.com"]
+    resources: ["application"]
+    verbs: ["create"]
+  # Log-collection
+  - apiGroups: ["logging.openshift.io", "observability.openshift.io"]
+    resources: ["logs"]
+    resourceNames: ["application"]
+    verbs: ["collect"]
+  # ClusterLogForwarder (CLO v6)
+  - apiGroups: ["observability.openshift.io"]
+    resources: ["clusterlogforwarders"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Inference namespace discovery
+  - apiGroups: ["serving.kserve.io"]
+    resources: ["inferenceservices", "llminferenceservices"]
+    verbs: ["get", "list", "watch"]
+  # Perses
+  - apiGroups: ["perses.dev"]
+    resources: ["perses", "persesdatasources", "persesdashboards"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Admission policies (ValidatingAdmissionPolicy deployed by reconciler)
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingadmissionpolicies", "validatingadmissionpolicybindings"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # RBAC
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs: ["get", "list", "watch", "create"]
+  # The controller applies and removes only its own named RBAC objects.
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    resourceNames: ["data-science-collector-targetallocator-secrets"]
+    verbs: ["update", "patch", "delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles"]
+    resourceNames:
+      - data-science-collector-mlflow-trace-export
+      - data-science-collector-tempo-trace-export
+      - data-science-metrics-view
+      - data-science-usage-logs-processor
+      - generate-processors-role
+      - generate-processors-targetallocator-role
+      - korrel8r-query
+    verbs: ["update", "patch", "delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    resourceNames:
+      - data-science-cluster-log-forwarder-collector-collect-app-logs
+      - data-science-cluster-log-forwarder-collector-loki-writer
+      - data-science-collector-mlflow-trace-export
+      - data-science-collector-tempo-trace-export
+      - data-science-monitoringstack-alertmanager-prometheus-metrics-reader
+      - data-science-prometheus-cluster-proxy
+      - data-science-prometheus-cluster-proxy-auth-delegator
+      - data-science-prometheus-namespace-proxy
+      - data-science-prometheus-namespace-proxy-auth-delegator
+      - data-science-thanos-querier-proxy
+      - data-science-thanos-querier-proxy-auth-delegator
+      - data-science-usage-logs-processor
+      - generate-processors-collector-rolebinding
+      - generate-processors-targetallocator-discovery-rolebinding
+      - generate-processors-targetallocator-rolebinding
+      - korrel8r-auth-delegator
+      - korrel8r-query
+    verbs: ["update", "patch", "delete"]
+  # Older usage-logs objects can still be present during an upgrade.
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles"]
+    resourceNames: ["usage-logs-processor"]
+    verbs: ["delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    resourceNames: ["usage-logs-processor", "usage-logs-loki-writer", "data-science-usage-logs-loki-writer"]
+    verbs: ["delete"]
+  # Networking
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # TargetAllocator discovery RBAC delegation (required by the OTel webhook).
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  # Workloads (deployments for direct use; replicasets granted via generate-processors-role)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Read-only permissions delegated to the Korrel8r query ServiceAccount.
+  - apiGroups: [""]
+    resources: ["pods/log", "events", "replicationcontrollers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["cronjobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["loki.grafana.com"]
+    resources: ["application"]
+    resourceNames: ["logs"]
+    verbs: ["get"]
+  # Core resources
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "services", "serviceaccounts"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Read-only: granted via generate-processors-role for collector RBAC
+  - apiGroups: [""]
+    resources: ["endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes", "nodes/metrics", "infrastructures", "infrastructures/status"]
+    verbs: ["get", "list", "watch"]
+  # Endpoint discovery (granted via generate-processors-role)
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  # OpenShift routes
+  - apiGroups: ["route.openshift.io"]
+    resources: ["routes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # OpenShift requires this subresource permission to update a Route's TLS certificate fields.
+  - apiGroups: ["route.openshift.io"]
+    resources: ["routes/custom-host"]
+    verbs: ["create"]
+  # OLMv0 operator conditions (read-only, for precondition checks)
+  - apiGroups: ["operators.coreos.com"]
+    resources: ["operatorconditions"]
+    verbs: ["get", "list", "watch"]
+  # OLMv0 installed CSV version lookup
+  - apiGroups: ["operators.coreos.com"]
+    resources: ["clusterserviceversions"]
+    verbs: ["list"]
+  # OLMv1 operator installation status (read-only, for precondition checks)
+  - apiGroups: ["olm.operatorframework.io"]
+    resources: ["clusterextensions"]
+    verbs: ["get", "list", "watch"]
+  # CRD watch
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+  # Leader election
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Auth delegation (needed to grant RBAC for auth-delegator bindings)
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["tokenreviews"]
+    verbs: ["create"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]
+  # Metrics API (read-only; POST/"create" is intentionally not granted so the
+  # namespace proxy rejects POST and cannot be bypassed via a POST-body namespace)
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # MLflow (operator must hold this to grant it via collector-mlflow-trace-export ClusterRole)
+  - apiGroups: ["mlflow.kubeflow.org"]
+    resources: ["experiments"]
+    verbs: ["update"]
+  # Non-resource URLs (granted via collector RBAC for k8s API discovery)
+  - nonResourceURLs: ["/metrics", "/api", "/api/*", "/apis", "/apis/*"]
+    verbs: ["get"]
+  # Events
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-manager
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "odh-observability.fullname" . }}-manager
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "odh-observability.fullname" . }}
+    namespace: {{ .Values.operatorNamespace }}

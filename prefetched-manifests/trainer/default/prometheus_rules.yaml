@@ -1,0 +1,73 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubeflow-trainer-telemetry
+  namespace: system
+spec:
+  groups:
+    - name: rhoai.trainer.telemetry
+      rules:
+        - record: cluster:rhoai_kubeflow_trainer_trainjob_created:increase24hr
+          expr: |
+            sum(increase(kubeflow_trainer_trainjob_created_total[24h]))
+
+        - record: runtime:rhoai_kubeflow_trainer_trainjob_requested_training_nodes:increase24hr
+          expr: |
+            label_replace(
+              sum by (le) (
+                label_replace(
+                  increase(
+                    kubeflow_trainer_trainjob_requested_training_nodes_per_job_bucket{
+                      runtime_ref=~"^trainer[.]kubeflow[.]org/ClusterTrainingRuntime//(torch-distributed|torch-distributed-with-cache|torch-distributed-cpu|torch-distributed-rocm|torch-distributed-cuda130-torch211-py312|torch-distributed-rocm714-torch211-py312|torch-distributed-cpu-torch211-py312)$",
+                      le=~"^(4(\\.0)?|[+]Inf)$"
+                    }[24h]
+                  ),
+                  "le", "4.0", "le", "^4(\\.0)?$"
+                )
+              ),
+              "runtime_ref", "torch-distributed", "le", ".*"
+            )
+            or label_replace(
+              sum by (le) (
+                label_replace(
+                  increase(
+                    kubeflow_trainer_trainjob_requested_training_nodes_per_job_bucket{
+                      runtime_ref=~"^trainer[.]kubeflow[.]org/ClusterTrainingRuntime//(training-hub|training-hub-cpu|training-hub-rocm|training-hub-th09-cpu-torch211-py312|training-hub-th09-cuda130-torch211-py312|training-hub-th09-rocm714-torch211-py312)$",
+                      le=~"^(4(\\.0)?|[+]Inf)$"
+                    }[24h]
+                  ),
+                  "le", "4.0", "le", "^4(\\.0)?$"
+                )
+              ),
+              "runtime_ref", "training-hub", "le", ".*"
+            )
+            or label_replace(
+              sum by (le) (
+                label_replace(
+                  increase(
+                    kubeflow_trainer_trainjob_requested_training_nodes_per_job_bucket{
+                      runtime_ref=~"^trainer[.]kubeflow[.]org/ClusterTrainingRuntime//(openmpi-cpu|openmpi-cuda)$",
+                      le=~"^(4(\\.0)?|[+]Inf)$"
+                    }[24h]
+                  ),
+                  "le", "4.0", "le", "^4(\\.0)?$"
+                )
+              ),
+              "runtime_ref", "openmpi", "le", ".*"
+            )
+
+        - record: cluster:rhoai_kubeflow_trainer_trainjob_lifetime_seconds:increase24hr
+          expr: |
+            sum by (le) (
+              label_replace(
+                label_replace(
+                  increase(
+                    kubeflow_trainer_trainjob_lifetime_seconds_bucket{
+                      le=~"^(43200(\\.0)?|345600(\\.0)?|[+]Inf)$"
+                    }[24h]
+                  ),
+                  "le", "43200.0", "le", "^43200(\\.0)?$"
+                ),
+                "le", "345600.0", "le", "^345600(\\.0)?$"
+              )
+            )
