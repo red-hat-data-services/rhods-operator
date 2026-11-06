@@ -94,16 +94,18 @@ spec:
                   Enables OpenShift Developer Console dashboards for LLMInferenceService.
                   Enabled by default.
                 type: boolean
+              enableLLMInferenceServiceStrictNetworkPolicy:
+                description: |-
+                  EnableLLMInferenceServiceStrictNetworkPolicy enables the restrictive
+                  (least-privilege) per-LLMInferenceService NetworkPolicies that isolate
+                  workload, scheduler and tokenizer Pods. Disabled by default: a single
+                  per-service allow-all NetworkPolicy is created instead, for seamless
+                  upgrades from releases that did not restrict pod traffic.
+                type: boolean
               enableLLMInferenceServiceTLS:
                 description: |-
                   Enables TLS for LLMInferenceService deployments.
                   When unset, the KServe default (TLS enabled) is preserved.
-                type: boolean
-              enableLLMMonitoringIngressNetworkPolicy:
-                description: |-
-                  EnableLLMMonitoringIngressNetworkPolicy enables per-LLMInferenceService ingress
-                  NetworkPolicies that restrict Prometheus and gateway traffic (same rules as the
-                  3.6 restricted defaults). Disabled by default for seamless upgrades.
                 type: boolean
               managementState:
                 default: Managed
