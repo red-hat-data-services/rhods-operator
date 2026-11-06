@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: opendatahub-db-operator
+  name: odh-db-operator-controller-manager
+  namespace: {{ .Release.Namespace }}
+spec:
+  egress:
+  - {}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+          - openshift-monitoring
+          - openshift-user-workload-monitoring
+          - redhat-ods-monitoring
+          - opendatahub-monitoring
+    ports:
+    - port: 8443
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          policy-group.network.openshift.io/host-network: ""
+    ports:
+    - port: {{ default 9443 (int (index .Values.config "controller.webhook.port")) }}
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: opendatahub-db-operator
+  policyTypes:
+  - Ingress
+  - Egress
