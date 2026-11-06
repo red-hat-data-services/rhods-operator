@@ -33,6 +33,10 @@ spec:
         args:
         - --leader-elect
         - --health-probe-bind-address=:8081
+        ports:
+        - containerPort: 8443
+          name: metrics
+          protocol: TCP
         env:
         - name: SYSTEM_NAMESPACE
           valueFrom:

@@ -28,6 +28,20 @@ spec:
     - ports:
         - port: 8081
           protocol: TCP
+    # Allow the OpenShift monitoring namespaces to scrape secure metrics.
+    # Admit both platform monitoring and user-workload monitoring, matching the
+    # opendatahub-operator convention: the concrete namespaces do not carry the
+    # metrics: enabled label, so select them by kubernetes.io/metadata.name.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+      ports:
+        - port: 8443
+          protocol: TCP
   egress:
     # Allow-all egress, matching the operand rule and permitted by the platform
     # contract (ODH-ADR-Operator-0016). The controller-manager needs DNS and
