@@ -239,7 +239,10 @@ spec:
               providerEndpoint:
                 description: |-
                   ProviderEndpoint is the in-cluster base URL of the NeMo Guardrails
-                  server, read verbatim from NemoGuardrails.status.endpoint.
+                  server: the Service TrustyAI creates in
+                  NemoGuardrails.status.workloadNamespace, https when the NemoGuardrails
+                  enables auth and http otherwise. NemoGuardrails.status.endpoint is not
+                  read.
 
                   It is published so a consumer compiles against the same endpoint this
                   controller accepted, rather than re-deriving one from the provider's
