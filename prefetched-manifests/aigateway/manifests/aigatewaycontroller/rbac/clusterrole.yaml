@@ -73,11 +73,28 @@ rules:
 - apiGroups: ["networking.istio.io"]
   resources: ["envoyfilters", "destinationrules"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-# Manage the shared payload-processing-reader ClusterRole plus one
-# payload-processing-reader-{tenantID} ClusterRoleBinding per tenant. Names
-# are dynamic per tenant, so this can't be scoped down with resourceNames.
+# ClusterRoleBindings for the vendored ExtProc metrics path
+# (payload-processing-metrics-auth / -metrics-reader) plus delete of leftover
+# payload-processing-reader bindings from older installs. Names are dynamic
+# per tenant, so this can't be scoped down with resourceNames. SSA needs
+# create/update/patch; cleanup of reader leftovers and tenant teardown needs
+# delete; get/list/watch for ownership checks and retries.
 - apiGroups: ["rbac.authorization.k8s.io"]
-  resources: ["clusterroles", "clusterrolebindings"]
+  resources: ["clusterrolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Shared ExtProc metrics ClusterRoles (TokenReview / SubjectAccessReview for
+# authenticated scrapes, plus the metrics-reader role Prometheus binds).
+# Applied from the vendored overlay; not tenant-suffixed. Creating the
+# metrics-reader ClusterRole also requires holding the granted privilege
+# (Kubernetes privilege-escalation check): get on nonResourceURL /metrics.
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+# ServiceMonitor for ExtProc /metrics scrape wiring (monitoring.coreos.com).
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # A Role and RoleBinding in the infra namespace, where ODH and RHOAI run the
 # NemoGuardrails workload, let the tenant post-auth ServiceAccount get the
@@ -90,23 +107,15 @@ rules:
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["roles", "rolebindings"]
   verbs: ["get", "list", "create", "update", "patch", "delete"]
-# Escalation-check mirror: ai-gateway-controller must hold every permission it
-# grants via payload-processing-reader.
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list", "watch"]
 # Controller-owned credential copies (agc-cred-<hash12>) in tenant namespaces.
-# The tenant ExtProc can mount Secrets only from its own namespace, so a
-# credential Secret from elsewhere is copied there: server-side apply needs
-# create and patch, and unreferenced copies are deleted. Trust boundary: the
-# ClusterRoleBinding grants these verbs on every Secret in every namespace.
-# RBAC cannot scope verbs by label, and hashed names rule out resourceNames,
-# so the agc-cred- name and ownership labels are controller safeguards, not
-# RBAC restrictions: the controller itself must only patch or delete Secrets
-# carrying its ownership labels.
+# The tenant ExtProc mounts Secrets from its own namespace only; a credential
+# Secret from elsewhere is copied there. Server-side apply needs get/list/
+# watch/create/patch, and unreferenced copies are deleted. RBAC cannot scope
+# verbs by label, and hashed names rule out resourceNames, so the agc-cred-
+# name and ownership labels are controller safeguards, not RBAC restrictions.
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["create", "patch", "delete"]
+  verbs: ["get", "list", "watch", "create", "patch", "delete"]
 - apiGroups: ["maas.opendatahub.io"]
   resources: ["externalmodels"]
   verbs: ["get", "list", "watch"]
