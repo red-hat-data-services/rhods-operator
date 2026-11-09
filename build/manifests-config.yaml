@@ -66,7 +66,7 @@ map:
     dest: data
     type: chart
     git.url: https://github.com/red-hat-data-services/feast-module-operator
-    git.commit: ddf32660083d3ce3dedd3ed7da95a5c5ded4085c
+    git.commit: 510ef1feab7cdbe148a68abaa7192134359f77f4
   odh-ogx-module-operator:
     src: ogx-module/config
     dest: ogx
@@ -77,7 +77,7 @@ map:
     dest: odh-observability
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-observability
-    git.commit: d976e882d73a0cbc191866b61f8ede125a7358a2
+    git.commit: 634a86d93fddbac9cba813d7ef4cd96e8fd3f781
   odh-db-operator:
     src: config/chart
     dest: databaseservice
@@ -138,9 +138,6 @@ additional_meta:
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 5b545df1d1ad676941d923fba50248433c38647f
-  odh-fms-guardrails-orchestrator:
-    git.url: https://github.com/red-hat-data-services/fms-guardrails-orchestrator
-    git.commit: e0afd513eb236f2921de8e4a1bf319ca2c48fbbe
   odh-guardrails-detector-huggingface-runtime:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
     git.commit: 7643158b26154ae6f1b25b7e8c9be20436ce2ba3
@@ -206,13 +203,13 @@ additional_meta:
     git.commit: 7bb4dd3e7b6dfbdb7c54f6c28aa17546b0fd6c1a
   odh-maas-api:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 23cb7cb8f350b9258f5c0bcea3bffd6d04358df7
+    git.commit: 7b203b3d55c109073173797cb04263e1b98a5720
   odh-maas-controller:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 23cb7cb8f350b9258f5c0bcea3bffd6d04358df7
+    git.commit: 7b203b3d55c109073173797cb04263e1b98a5720
   odh-maas-discovery:
     git.url: https://github.com/red-hat-data-services/models-as-a-service
-    git.commit: 23cb7cb8f350b9258f5c0bcea3bffd6d04358df7
+    git.commit: 6a1e62904af971073503eb442d3d15e1efa9308e
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
     git.commit: 27bab1f8dee2ec9ebe409a36e37a09db494bf8b0
