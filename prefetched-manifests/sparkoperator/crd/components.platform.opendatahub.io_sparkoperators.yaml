@@ -1,0 +1,307 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: sparkoperators.components.platform.opendatahub.io
+spec:
+  group: components.platform.opendatahub.io
+  names:
+    kind: SparkOperator
+    listKind: SparkOperatorList
+    plural: sparkoperators
+    singular: sparkoperator
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: Ready
+      jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - description: Reason
+      jsonPath: .status.conditions[?(@.type=="Ready")].reason
+      name: Reason
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: SparkOperatorSpec defines the desired state of SparkOperator.
+            properties:
+              managementState:
+                default: Managed
+                description: |-
+                  ManagementState controls whether the operator actively manages the
+                  component (Managed) or removes it (Removed).
+                enum:
+                - Managed
+                - Removed
+                type: string
+              spark:
+                description: |-
+                  Spark configures Spark Operator runtime settings under platform management
+                  (webhook job namespaces, controller resources, etc.).
+                properties:
+                  controllerConfiguration:
+                    description: |-
+                      ControllerConfiguration overrides selected runtime settings on the
+                      spark-operator-controller Deployment. Unset fields keep the rendered
+                      manifest defaults.
+                    properties:
+                      kubeAPIBurst:
+                        description: |-
+                          KubeAPIBurst is the maximum burst used by the controller's Kubernetes API
+                          client.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      kubeAPIQPS:
+                        description: |-
+                          KubeAPIQPS is the maximum sustained request rate used by the controller's
+                          Kubernetes API client.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      workers:
+                        description: Workers is the number of concurrent controller
+                          reconciliation workers.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      workqueueRateLimiter:
+                        description: WorkqueueRateLimiter configures the controller
+                          workqueue rate limiter.
+                        properties:
+                          bucketQPS:
+                            description: BucketQPS is the average rate at which workqueue
+                              items are processed.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          bucketSize:
+                            description: BucketSize is the maximum token-bucket burst
+                              size.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          maxDelay:
+                            description: MaxDelay controls the maximum per-item retry
+                              delay.
+                            properties:
+                              duration:
+                                description: |-
+                                  Duration is the maximum retry delay, expressed as a Go duration such as
+                                  "6h" or "30m".
+                                minLength: 1
+                                pattern: ^([0-9]+([.][0-9]+)?)(ns|us|µs|μs|ms|s|m|h)([0-9]+([.][0-9]+)?(ns|us|µs|μs|ms|s|m|h))*$
+                                type: string
+                              enabled:
+                                description: |-
+                                  Enabled controls whether the controller sets a finite maximum retry
+                                  delay. False removes the rendered max-delay argument.
+                                type: boolean
+                            type: object
+                            x-kubernetes-validations:
+                            - message: duration is required when maxDelay is enabled
+                              rule: '!has(self.enabled) || !self.enabled || has(self.duration)'
+                        type: object
+                    type: object
+                  controllerResources:
+                    description: |-
+                      ControllerResources overrides container resources on the
+                      spark-operator-controller Deployment. When nil or omitted (or both
+                      requests and limits are empty), the module keeps the rendered manifest
+                      defaults so a bare Managed CR does not change stock sizing.
+
+                      This is the platform-CR equivalent of Helm's controller.resources.
+                    properties:
+                      claims:
+                        description: |-
+                          Claims lists the names of resources, defined in spec.resourceClaims,
+                          that are used by this container.
+
+                          This field depends on the
+                          DynamicResourceAllocation feature gate.
+
+                          This field is immutable. It can only be set for containers.
+                        items:
+                          description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                          properties:
+                            name:
+                              description: |-
+                                Name must match the name of one entry in pod.spec.resourceClaims of
+                                the Pod where this field is used. It makes that resource available
+                                inside a container.
+                              type: string
+                            request:
+                              description: |-
+                                Request is the name chosen for a request in the referenced claim.
+                                If empty, everything from the claim is made available, otherwise
+                                only the result of this request.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                        x-kubernetes-list-map-keys:
+                        - name
+                        x-kubernetes-list-type: map
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits describes the maximum amount of compute resources allowed.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests describes the minimum amount of compute resources required.
+                          If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                          otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                        type: object
+                    type: object
+                  jobNamespaces:
+                    description: |-
+                      JobNamespaces is the list of namespaces whose SparkApplications (and
+                      Spark-launched pods) are admitted by the Spark Operator webhooks.
+                      When empty or omitted, the module defaults to ["default"] to match the
+                      upstream Helm / Kustomize factory setting.
+
+                      Unlike Helm's spark.jobNamespaces empty-string sentinel (all namespaces),
+                      an empty list here means the safe default, not cluster-wide admission.
+                    items:
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
+                type: object
+            type: object
+          status:
+            description: SparkOperatorStatus defines the observed state of SparkOperator.
+            properties:
+              conditions:
+                description: Conditions is the set of condition observations for this
+                  module.
+                items:
+                  description: |-
+                    Condition represents an observation of a module's state at a point in time.
+                    Module controllers set conditions to communicate health signals to the
+                    orchestrator and to human operators.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the last time the condition transitioned from one
+                        status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        Message is a human-readable description providing details about the
+                        condition's last transition.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        ObservedGeneration is the .metadata.generation of the resource that
+                        the condition was set based upon. If this does not match the resource's
+                        current generation, the condition is likely stale.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        Reason is a programmatic, one-word CamelCase identifier for the
+                        condition's last transition, suitable for machine consumption.
+                      type: string
+                    severity:
+                      description: |-
+                        Severity indicates whether this condition represents an error or is
+                        purely informational. Empty string (default) indicates error severity.
+                      type: string
+                    status:
+                      description: Status is the status of the condition (True, False,
+                        Unknown).
+                      type: string
+                    type:
+                      description: Type is the condition type, e.g. ConditionTypeReady,
+                        ConditionTypeDegraded.
+                      minLength: 1
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-type: atomic
+              observedGeneration:
+                description: |-
+                  ObservedGeneration is the most recent .metadata.generation observed
+                  by the controller. It allows consumers to determine whether the
+                  controller has processed the latest spec changes.
+                format: int64
+                type: integer
+              phase:
+                description: Phase is the top-level lifecycle phase of the module.
+                type: string
+              releases:
+                description: Releases is the list of deployed component releases.
+                items:
+                  description: ComponentRelease describes a single software component's
+                    release metadata.
+                  properties:
+                    name:
+                      description: Name is the component name, used as the merge key
+                        in lists.
+                      type: string
+                    repoUrl:
+                      description: RepoURL is the source repository URL for this component
+                        release.
+                      type: string
+                    version:
+                      description: Version is the semantic version of the component.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
+            type: object
+        type: object
+        x-kubernetes-validations:
+        - message: SparkOperator name must be 'default-sparkoperator'
+          rule: self.metadata.name == 'default-sparkoperator'
+    served: true
+    storage: true
+    subresources:
+      status: {}

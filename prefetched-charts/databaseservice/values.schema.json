@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/opendatahub-io/opendatahub-db-operator/cmd/chartgen/values",
+  "$ref": "#/$defs/Values",
+  "$defs": {
+    "CollectorServiceAccountSpec": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": "data-science-collector-collector"
+        },
+        "namespace": {
+          "type": "string",
+          "default": "opendatahub"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "namespace"
+      ]
+    },
+    "CollectorSpec": {
+      "properties": {
+        "serviceAccount": {
+          "$ref": "#/$defs/CollectorServiceAccountSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "serviceAccount"
+      ]
+    },
+    "ImagePullSecretRef": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
+    },
+    "ImageSpec": {
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ref",
+        "pullPolicy"
+      ]
+    },
+    "MonitoringSpec": {
+      "properties": {
+        "serviceMonitor": {
+          "$ref": "#/$defs/ServiceMonitorSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "serviceMonitor"
+      ]
+    },
+    "OpenShiftSpec": {
+      "properties": {
+        "securityContextConstraints": {
+          "type": "boolean"
+        },
+        "serviceCA": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "securityContextConstraints",
+        "serviceCA"
+      ]
+    },
+    "OperatorSpec": {
+      "properties": {
+        "image": {
+          "$ref": "#/$defs/ImageSpec"
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "resources": {
+          "$ref": "#/$defs/ResourceSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "image",
+        "replicas",
+        "resources"
+      ]
+    },
+    "PlatformSpec": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "OpenDataHub"
+        },
+        "version": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type",
+        "version"
+      ]
+    },
+    "ResourceSpec": {
+      "properties": {
+        "limits": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "requests": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ServiceAccountSpec": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "annotations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "annotations"
+      ]
+    },
+    "ServiceMonitorSpec": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "collector": {
+          "$ref": "#/$defs/CollectorSpec"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "enabled",
+        "collector"
+      ]
+    },
+    "Values": {
+      "properties": {
+        "nameOverride": {
+          "type": "string"
+        },
+        "fullnameOverride": {
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/$defs/OperatorSpec"
+        },
+        "serviceAccount": {
+          "$ref": "#/$defs/ServiceAccountSpec"
+        },
+        "imagePullSecrets": {
+          "items": {
+            "$ref": "#/$defs/ImagePullSecretRef"
+          },
+          "type": "array"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/MonitoringSpec"
+        },
+        "platform": {
+          "$ref": "#/$defs/PlatformSpec"
+        },
+        "openshift": {
+          "$ref": "#/$defs/OpenShiftSpec"
+        },
+        "config": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "nameOverride",
+        "fullnameOverride",
+        "operator",
+        "serviceAccount",
+        "imagePullSecrets",
+        "monitoring",
+        "platform",
+        "openshift",
+        "config"
+      ]
+    }
+  }
+}
