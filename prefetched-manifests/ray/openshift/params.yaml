@@ -1,0 +1,7 @@
+varReference:
+  - path: users[]
+    kind: SecurityContextConstraints
+  - path: spec/template/spec/containers[]/image
+    kind: Deployment
+  - path: spec/template/spec/containers[]/env[]/value
+    kind: Deployment
