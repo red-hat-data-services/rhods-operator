@@ -1,3 +1,23 @@
+# =============================================================================
+# EARLY-GATE OVERLAY of red-hat-data-services/rhods-operator
+#   .github/workflows/operator-processor.yaml
+#
+# The early-gate build pipeline copies this file onto the ephemeral operator
+# branch (.github/workflows/operator-processor.yaml) before dispatching, when
+# the pipeline param `eg-overlay-operator-processor` is "true". Because the gate
+# dispatches with ref=<eg-branch>, GitHub runs THIS version - so the snapshot-
+# pinning behaviour is exercised without changing rhods-operator@main or
+# RHOAI-Konflux-Automation@main.
+#
+# Differences from the upstream workflow (keep in sync otherwise):
+#   1. the `utils` (RHOAI-Konflux-Automation) checkout ref -> eg-snapshot-pinning
+#   2. the Execute step passes --snapshot-path build/eg-snapshot.json in EG mode
+#
+# Once both changes merge to their respective main branches, set
+# `eg-overlay-operator-processor` to "false"; the gate then stops overlaying and
+# the ephemeral branch's own (forked-from-main) workflow runs instead. This file
+# can then be deleted.
+# =============================================================================
 name: Operator Processor
 
 on:
@@ -111,7 +131,10 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Konflux-Automation
-          ref: main
+          # early-gate overlay: the snapshot-pinning logic lives on this branch
+          # until it merges to main. When it does, revert this to 'main' (and set
+          # eg-overlay-operator-processor=false so this overlay stops being applied).
+          ref: eg-snapshot-pinning
           path: utils
           token: ${{ steps.app-token.outputs.token }}
           sparse-checkout: |
@@ -163,8 +186,25 @@ jobs:
           OPERANDS_MAP_PATH=rhods-operator/build/operands-map.yaml
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
-          
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+
+          # early-gate overlay: in EG mode the gate commits the group snapshot to
+          # the ephemeral branch so the operator is pinned to the PR builds under
+          # test (release fallback for components absent from the snapshot). The
+          # file is required in EG mode - its absence means the gate did not stage
+          # it, which would silently build released operands.
+          SNAPSHOT_ARG=""
+          if [[ "${EG_MODE}" == "true" ]]; then
+            EG_SNAPSHOT_PATH=rhods-operator/build/eg-snapshot.json
+            if [[ -f "${EG_SNAPSHOT_PATH}" ]]; then
+              SNAPSHOT_ARG="--snapshot-path ${EG_SNAPSHOT_PATH}"
+              echo "early-gate: pinning operands from ${EG_SNAPSHOT_PATH}"
+            else
+              echo "::error::eg-mode is true but ${EG_SNAPSHOT_PATH} is missing; the gate must commit the group snapshot before dispatch."
+              exit 1
+            fi
+          fi
+
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable ${SNAPSHOT_ARG}
           
       - name: Print debug logs
         if: always()
