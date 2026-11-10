@@ -96,9 +96,20 @@ rules:
   resources:
   - customresourcedefinitions
   verbs:
+  - create
   - get
   - list
   - watch
+- apiGroups:
+  - apiextensions.k8s.io
+  resourceNames:
+  - databaseclaims.infrastructure.opendatahub.io
+  - databaseproviders.infrastructure.opendatahub.io
+  - schemaclaims.infrastructure.opendatahub.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - patch
 - apiGroups:
   - apps
   resources:
