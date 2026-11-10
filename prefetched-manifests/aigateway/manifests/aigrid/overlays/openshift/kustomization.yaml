@@ -1,0 +1,76 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Generated from charts/grid-operator by scripts/generate-deployment-operator.sh.
+# Set the namespace in params.env: the replacements below carry it to every object,
+# its ServiceAccount subjects, and the ServiceMonitor. This line is only the default.
+namespace: grid-system
+
+resources:
+  - clusterrole-crd.yaml
+  - clusterrole-metrics-scraper.yaml
+  - clusterrole-resources.yaml
+  - clusterrolebinding-crd.yaml
+  - clusterrolebinding-metrics-scraper.yaml
+  - deployment.yaml
+  - networkpolicy.yaml
+  - role-leader-election.yaml
+  - role-metrics-scraper-token.yaml
+  - role-operator-config.yaml
+  - rolebinding-leader-election.yaml
+  - rolebinding-metrics-scraper-token.yaml
+  - rolebinding-operator-config.yaml
+  - rolebinding-resources.yaml
+  - service-metrics.yaml
+  - service-signals.yaml
+  - service-swim.yaml
+  - serviceaccount-metrics-scraper.yaml
+  - serviceaccount.yaml
+  - servicemonitor.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: grid-operator
+      app.kubernetes.io/managed-by: kustomize
+
+configMapGenerator:
+  - name: grid-operator-parameters
+    envs:
+      - params.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: grid-operator-parameters
+      fieldPath: data.grid-operator-image
+    targets:
+      - select:
+          kind: Deployment
+          name: grid-operator
+        fieldPaths:
+          - spec.template.spec.containers.[name=operator].image
+  - source:
+      kind: ConfigMap
+      name: grid-operator-parameters
+      fieldPath: data.namespace
+    targets:
+      - select:
+          namespace: grid-system
+        fieldPaths:
+          - metadata.namespace
+      - select:
+          kind: ServiceMonitor
+          name: grid-operator
+        fieldPaths:
+          - spec.namespaceSelector.matchNames.0
+      - select:
+          kind: ServiceMonitor
+          name: grid-operator
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 1
