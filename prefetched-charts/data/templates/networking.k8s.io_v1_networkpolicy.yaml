@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: opendatahub-feast-operator
+  name: opendatahub-feast-allow-egress
+  namespace: {{ .Values.namespace }}
+spec:
+  egress:
+  - {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: opendatahub-feast-operator
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: opendatahub-feast-operator
+  name: opendatahub-feast-allow-metrics-traffic
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          network.openshift.io/policy-group: monitoring
+    ports:
+    - port: 8443
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: opendatahub-feast-operator
+  policyTypes:
+  - Ingress
