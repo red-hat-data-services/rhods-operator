@@ -1,0 +1,20 @@
+# Source: grid-operator/templates/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grid-operator-metrics
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: grid-operator-metrics-tls
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator

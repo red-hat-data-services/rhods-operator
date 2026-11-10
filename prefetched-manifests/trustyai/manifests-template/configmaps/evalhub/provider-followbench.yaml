@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evalhub-provider-followbench
+  labels:
+    trustyai.opendatahub.io/evalhub-provider-type: system
+    trustyai.opendatahub.io/evalhub-provider-name: followbench
+data:
+  followbench.yaml: |
+    # FollowBench provider definition for EvalHub.
+    #
+    # Upstream:
+    # https://github.com/YJiangcm/FollowBench
+    #
+    # Revision:
+    # 6278f4c1377b4eafab737267b8b21acd52ea0e52
+
+    id: followbench
+    name: FollowBench
+    description: >
+      FollowBench evaluates multi-level, fine-grained constraint following across
+      content, situation, style, format, mixed, and example constraints. It reports
+      Hard Satisfaction Rate (HSR), Soft Satisfaction Rate (SSR), and Consistent
+      Satisfaction Levels (CSL) using rule-based checks and a configurable
+      external judge.
+    type: community
+
+    runtime:
+      k8s:
+        image: $(evalhub-provider-followbench-image)
+        image_pull_policy: always
+        entrypoint:
+          - python
+          - main.py
+        cpu_request: 500m
+        memory_request: 1Gi
+        cpu_limit: 2000m
+        memory_limit: 4Gi
+      local: null
+
+    benchmarks:
+      - id: followbench
+        name: FollowBench
+        description: >
+          Multi-level instruction-following evaluation with HSR and SSR normalized
+          to 0.0–1.0 and CSL reported on a 0–5 scale. When using the bundled
+          collection, set judge_model per job. Optional judge credentials and endpoint
+          are selected by judge_api-key and judge_url in model.auth.secret_ref.
+        category: instruction_following
+        domains:
+          - instruction_and_output_reliability
+        tasks:
+          - constraint_following
+        modalities:
+          - text
+        evaluation_targets:
+          - model
+        metrics:
+          - hsr
+          - ssr
+          - csl
+          - n_evaluated
+        primary_score:
+          metric: hsr
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.20
+        tags:
+          - instruction-following
+          - constraints
+          - hsr
+          - ssr
+          - csl
+          - followbench
+          - curated
+
+    parameters:
+      - name: judge_model
+        type: string
+        description: Judge model identifier. Required for the bundled collection.
+
+      - name: judge_url
+        type: string
+        description: >
+          Legacy endpoint override for standalone jobs. For bundled collection jobs,
+          use judge_url in model.auth.secret_ref together with judge_api-key instead.
+
+      - name: num_examples
+        type: integer
+        description: >
+          Optional number of complete FollowBench example groups to evaluate.
+
+      - name: max_tokens
+        type: integer
+        default: 2048
+        description: Maximum tokens for model and judge responses.
+
+      - name: temperature
+        type: number
+        default: 0.0
+        description: Model and judge sampling temperature.
+
+      - name: request_timeout
+        type: integer
+        default: 120
+        description: API request timeout in seconds.
