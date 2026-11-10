@@ -1,0 +1,65 @@
+# Split deployment with a tracking server and a metadata-aware artifact server.
+# The operator must have MLFLOW_URL configured to the external gateway base URL,
+# and the cluster must provide the Gateway API HTTPRoute resource.
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+spec:
+  image:
+    image: quay.io/opendatahub/mlflow:odh-stable
+    imagePullPolicy: Always
+
+  replicas: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+  # Both deployments use this remote SQL URI; SQLite is unsupported in split mode.
+  backendStoreUriFrom:
+    name: mlflow-db-credentials
+    key: backend-store-uri
+
+  # Required for the dedicated server; both artifact pods use this remote destination.
+  artifactsDestination: s3://my-mlflow-bucket/artifacts
+  # Omit defaultArtifactRoot; the operator generates it from MLFLOW_URL.
+  serveArtifacts: false
+  # Writable /tmp capacity shared by the tracking and artifact-server pods.
+  temporaryStorage:
+    sizeLimit: 2Gi
+  artifactsServer:
+    enabled: true
+    # Artifact pods use --serve-artifacts and disable server-side job execution.
+    replicas: 2
+    # Number of uvicorn workers in each artifacts-server pod.
+    workers: 2
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+      # claims:
+      #   - name: artifact-gpu
+      #     request: gpu
+    # Artifact pods use workload-specific claims and never inherit spec.resourceClaims.
+    # resourceClaims:
+    #   - name: artifact-gpu
+    #     resourceClaimTemplateName: artifact-gpu-template
+
+  workspaceLabelSelector:
+    matchLabels:
+      opendatahub.io/mlflow-workspace: "true"
+
+  envFrom:
+    - secretRef:
+        name: aws-credentials
+  env:
+    - name: AWS_DEFAULT_REGION
+      value: us-east-1
+
