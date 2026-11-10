@@ -1,0 +1,65 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: opendatahub
+
+resources:
+  - ../crd
+  - ../rbac
+  - ../manager
+  - ../monitoring
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: ai-gateway-controller
+      app.kubernetes.io/component: ai-gateway-controller
+      app.kubernetes.io/part-of: aigateway
+
+configMapGenerator:
+  # Keep a stable name because manager.yaml references this ConfigMap directly
+  # through configMapKeyRef.
+  - name: ai-gateway-controller-parameters
+    envs:
+      - params.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: ai-gateway-controller-parameters
+      fieldPath: data.ai-gateway-controller-image
+    targets:
+      - select:
+          kind: Deployment
+          name: ai-gateway-controller
+        fieldPaths:
+          - spec.template.spec.containers.[name=manager].image
+  # Derive ServiceMonitor tlsConfig.serverName as <service-name>.<namespace>.svc
+  - source:
+      kind: Service
+      name: ai-gateway-controller-metrics
+      fieldPath: metadata.name
+    targets:
+      - select:
+          kind: ServiceMonitor
+          name: ai-gateway-controller-metrics
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 0
+  - source:
+      kind: ConfigMap
+      name: ai-gateway-controller-parameters
+      fieldPath: data.namespace
+    targets:
+      - select:
+          kind: ServiceMonitor
+          name: ai-gateway-controller-metrics
+        fieldPaths:
+          - spec.endpoints.0.tlsConfig.serverName
+        options:
+          delimiter: "."
+          index: 1
