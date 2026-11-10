@@ -54,7 +54,7 @@ map:
     src: manifests
     dest: trainingoperator
     git.url: https://github.com/red-hat-data-services/training-operator
-    git.commit: d8800a9e258dc2d3074c265f6ef621a0eb298850
+    git.commit: 419f77350caf06bc4f180dabfd5dd68060f05075
   odh-feast-operator:
     src: infra/feast-operator/config
     dest: feastoperator
@@ -89,7 +89,7 @@ map:
     src: config
     dest: wva
     git.url: https://github.com/red-hat-data-services/workload-variant-autoscaler
-    git.commit: 30e01ab6b051f4d8619b7e39a3594ba8c1bca400
+    git.commit: 75171d344708e37ac331fd3a2e4fcf4b24b8abc5
 additional_meta:
   odh-ai-gateway-payload-processing:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -183,7 +183,7 @@ additional_meta:
     git.commit: 94933323bcec444286d8e70a612ec683cc01bb82
   odh-ml-pipelines-launcher:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
-    git.commit: 3755aa37be2311e96026b9b98d2ee8c912cad47f
+    git.commit: 94933323bcec444286d8e70a612ec683cc01bb82
   odh-ml-pipelines-persistenceagent-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
     git.commit: 94933323bcec444286d8e70a612ec683cc01bb82
@@ -270,13 +270,13 @@ additional_meta:
     git.commit: 3ac85a6e0b1c82e7e64e51c72e618a2562802d52
   odh-th06-cpu-torch210-py312:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: 07e043c6f25b5c9ed8b3b2586edd3d70246fb2a6
+    git.commit: 91697a4d22114bfe96f3c5cca4bc4ce61cbc2fc7
   odh-th06-cuda130-torch210-py312:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: ec068d343c3db9e9646cee378262b5d74ecdfacd
+    git.commit: c66cdcc3e968bdf0e355e2baf77bfdf55fc2de6d
   odh-th06-rocm64-torch291-py312:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
-    git.commit: a2a2c56631785794da75152771e95c2e9fcbe8b5
+    git.commit: 423fa0304ee685e1a9dab0a2b3712cd8c8394414
   odh-training-cuda121-torch24-py311:
     git.url: https://github.com/red-hat-data-services/distributed-workloads
     git.commit: e85a20855bad01b38f0c2aff7a55f847b984638f
@@ -321,7 +321,7 @@ additional_meta:
     git.commit: 034d3e8f3cdace1ec05e8bc886345ac5381fc9fc
   odh-workbench-jupyter-datascience-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: e06abc8a868ba29c23d60e260fbcc867ff640a3f
+    git.commit: 0207acdf0e503fbc596080f7c0e18c47e26e4bb2
   odh-workbench-jupyter-minimal-cpu-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 0207acdf0e503fbc596080f7c0e18c47e26e4bb2
@@ -339,7 +339,7 @@ additional_meta:
     git.commit: 40fb9503c266b70770866a660a302e393b3a007e
   odh-workbench-jupyter-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: e06abc8a868ba29c23d60e260fbcc867ff640a3f
+    git.commit: 0207acdf0e503fbc596080f7c0e18c47e26e4bb2
   odh-workbench-jupyter-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 88b7a58a8169e879814047d50ff000848361e78f
