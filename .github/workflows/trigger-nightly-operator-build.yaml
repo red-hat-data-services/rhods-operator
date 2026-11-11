@@ -57,6 +57,10 @@ jobs:
           ref: ${{ github.ref_name }}
           path: rhods-operator
           token: ${{ steps.app-token.outputs.token }}
+          # Full history (blobs fetched on demand) so the push step can rebase
+          # onto the branch tip when a concurrent writer lands mid-run.
+          fetch-depth: 0
+          filter: blob:none
           sparse-checkout: |
             build
             prefetched-manifests
@@ -286,11 +290,47 @@ jobs:
 
       - name: Commit and push the changes to release branch
         working-directory: rhods-operator
+        env:
+          TARGET_REF: ${{ github.ref_name }}
+          PUSH_RETRIES: '5'
         run: |
+          set -euo pipefail
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin ${{ github.ref_name }})
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Updating the operator repo with latest images and manifests"
+
+          # The release branch has several concurrent writers: Konflux
+          # component-update merges, the push-triggered Operator Processor, and
+          # this job. This job takes several minutes between checkout and push,
+          # so a plain push loses the race whenever one of them lands in that
+          # window and the whole nightly build fails on a non-fast-forward.
+          #
+          # Rebase onto the new tip and retry. "-X theirs" keeps this job's
+          # freshly generated output on conflicting hunks, which is correct
+          # because the processor regenerates these files wholesale from the
+          # digests it just resolved; anything it transiently reverts is
+          # restored by the next run.
+          for attempt in $(seq 1 "${PUSH_RETRIES}"); do
+            if git push origin "HEAD:${TARGET_REF}"; then
+              echo "Pushed to ${TARGET_REF} on attempt ${attempt}"
+              exit 0
+            fi
+            echo "Push rejected, rebasing onto origin/${TARGET_REF} (attempt ${attempt}/${PUSH_RETRIES})"
+            git fetch origin "${TARGET_REF}"
+            if ! git rebase -X theirs "origin/${TARGET_REF}"; then
+              git rebase --abort || true
+              echo "::error::Could not rebase onto origin/${TARGET_REF}"
+              exit 1
+            fi
+            sleep $(( attempt * 5 ))
+          done
+          echo "::error::Failed to push to ${TARGET_REF} after ${PUSH_RETRIES} attempts"
+          exit 1
 
       - name: Upload debug logs
         if: always()

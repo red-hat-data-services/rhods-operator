@@ -47,6 +47,9 @@ jobs:
           path: target_repo
           ref: ${{ github.ref_name }}  # Use the same branch name as in the event
           token: ${{ steps.app-token.outputs.token }}
+          # Full history so the push step can rebase onto the branch tip when a
+          # concurrent writer lands mid-run.
+          fetch-depth: 0
 
       - name: Generate bundle files
         run: |
@@ -81,8 +84,39 @@ jobs:
       - name: Commit and push the changes to release branch
         if: ${{ steps.bundle-change-check.outputs.bundle_changes == 'present' }}
         working-directory: target_repo
+        env:
+          TARGET_REF: ${{ github.ref_name }}
+          PUSH_RETRIES: '5'
         run: |
+          set -euo pipefail
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
           git add -A
-          git diff --staged --quiet || (git commit -m "Sync changes from source repo" && git push origin ${{ github.ref_name }})
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Sync changes from source repo"
+
+          # RHOAI-Build-Config has several concurrent writers, so a plain push
+          # fails with a non-fast-forward whenever another one lands while this
+          # job is generating the bundle. Rebase onto the new tip and retry;
+          # "-X theirs" keeps this job's freshly generated bundle on conflicting
+          # hunks, which is correct because it is regenerated wholesale from the
+          # source repo.
+          for attempt in $(seq 1 "${PUSH_RETRIES}"); do
+            if git push origin "HEAD:${TARGET_REF}"; then
+              echo "Pushed to ${TARGET_REF} on attempt ${attempt}"
+              exit 0
+            fi
+            echo "Push rejected, rebasing onto origin/${TARGET_REF} (attempt ${attempt}/${PUSH_RETRIES})"
+            git fetch origin "${TARGET_REF}"
+            if ! git rebase -X theirs "origin/${TARGET_REF}"; then
+              git rebase --abort || true
+              echo "::error::Could not rebase onto origin/${TARGET_REF}"
+              exit 1
+            fi
+            sleep $(( attempt * 5 ))
+          done
+          echo "::error::Failed to push to ${TARGET_REF} after ${PUSH_RETRIES} attempts"
+          exit 1
