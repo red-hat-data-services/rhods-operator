@@ -1,58 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "internal-provider-writer")
-    }}'
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - persistentvolumeclaims
-  - secrets
-  - services
-  - serviceaccounts
-  verbs:
-  - create
-  - get
-  - patch
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - create
-  - get
-  - patch
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - rolebindings
-  verbs:
-  - create
-  - get
-  - patch
-- apiGroups:
-  - cert-manager.io
-  resources:
-  - certificates
-  - issuers
-  verbs:
-  - create
-  - get
-  - patch
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - networkpolicies
-  verbs:
-  - create
-  - get
-  - patch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
   name: '{{ include "chart.clusterResourceName" (dict "root" . "suffix" "manager-role")
     }}'
 rules:
@@ -67,14 +15,18 @@ rules:
   - serviceaccounts
   - services
   verbs:
+  - create
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - ""
   resources:
   - persistentvolumeclaims
   verbs:
+  - create
+  - delete
   - get
   - list
   - patch
@@ -109,14 +61,17 @@ rules:
   resources:
   - customresourcedefinitions
   verbs:
+  - delete
   - patch
 - apiGroups:
   - apps
   resources:
   - statefulsets
   verbs:
+  - create
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - authentication.k8s.io
@@ -136,8 +91,10 @@ rules:
   - certificates
   - issuers
   verbs:
+  - create
   - get
   - list
+  - patch
   - watch
 - apiGroups:
   - events.k8s.io
@@ -191,17 +148,40 @@ rules:
   resources:
   - networkpolicies
   verbs:
+  - create
   - get
   - list
+  - patch
   - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - internal-provider-writer
+  resources:
+  - clusterroles
+  verbs:
+  - create
+  - delete
+  - get
+  - patch
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
   verbs:
+  - create
   - get
   - list
+  - patch
   - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resourceNames:
+  - internal-provider-writer
+  resources:
+  - rolebindings
+  verbs:
+  - delete
 - apiGroups:
   - security.openshift.io
   resourceNames:
