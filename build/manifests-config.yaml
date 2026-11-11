@@ -82,6 +82,8 @@ map:
   odh-trainer-operator:
     src: rhoai/operator/config
     dest: trainer
+    git.url: https://github.com/red-hat-data-services/trainer-operator
+    git.commit: 9e70a239588417d5a5e444bb07f1332cd9fdb665
 additional_meta:
   odh-ai-gateway-controller:
     git.url: https://github.com/red-hat-data-services/ai-gateway-controller
@@ -386,9 +388,6 @@ additional_meta:
   odh-trainer:
     git.url: https://github.com/red-hat-data-services/trainer
     git.commit: 4a9421c6f5d6b6fa3e8610182a2402a7d07ee9c2
-  odh-trainer-operator:
-    git.url: https://github.com/red-hat-data-services/trainer-operator
-    git.commit: 9e70a239588417d5a5e444bb07f1332cd9fdb665
   odh-trustyai-garak-lls-provider-dsp:
     git.url: https://github.com/red-hat-data-services/llama-stack-provider-trustyai-garak
     git.commit: fb329137388175733e352ef2f2ecd57b24ffdca5
