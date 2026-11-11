@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: opendatahub
+resources:
+  - ../../base
+  - ../../argo
+  - ../../prometheus
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: dspo-parameters
+    behavior: merge
+    literals:
+      - kube-rbac-proxy=registry.k8s.io/kubebuilder/kube-rbac-proxy:v0.16.0
+patchesStrategicMerge:
+  - img_patch.yaml
+  - res_patch.yaml
+  - user_patch.yaml
+  - env_patch.yaml
+  - prometheusrule_patch.yaml
+images:
+  - name: controller
+    newName: quay.io/opendatahub/data-science-pipelines-operator
+    newTag: main
