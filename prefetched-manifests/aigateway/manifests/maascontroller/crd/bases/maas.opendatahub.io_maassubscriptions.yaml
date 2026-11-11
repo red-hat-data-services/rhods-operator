@@ -1,0 +1,603 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: maassubscriptions.maas.opendatahub.io
+spec:
+  group: maas.opendatahub.io
+  names:
+    kind: MaaSSubscription
+    listKind: MaaSSubscriptionList
+    plural: maassubscriptions
+    singular: maassubscription
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .spec.priority
+      name: Priority
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MaaSSubscription is the Schema for the maassubscriptions API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MaaSSubscriptionSpec defines the desired state of MaaSSubscription
+            properties:
+              guardrails:
+                description: |-
+                  Guardrails attaches reusable AIGuardrail policies for every model accessed
+                  through this subscription. References resolve in the AITenant target
+                  namespace; a namespace must not be specified on the reference. Selections
+                  are additive with the tenant baseline and cannot remove checks contributed
+                  by another scope.
+                items:
+                  description: |-
+                    GuardrailAttachment attaches an AIGuardrail policy to a MaaS resource and
+                    selects which of the policy's checks apply.
+
+                    Attachments are additive across scopes (tenant, subscription): the effective
+                    set of checks is the union of every scope's selection, and one scope cannot
+                    remove checks contributed by another. Multiple entries referencing the same
+                    policy contribute a union of their selected checks.
+                  properties:
+                    checks:
+                      description: |-
+                        Checks selects check names from the referenced AIGuardrail's spec.checks.
+                        An omitted or empty list selects every check in the policy, including
+                        checks added to the policy later. A non-empty list selects only the named
+                        checks. Names must be unique and must exist in the referenced policy.
+                      items:
+                        maxLength: 63
+                        minLength: 1
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        type: string
+                      maxItems: 64
+                      type: array
+                      x-kubernetes-list-type: set
+                    ref:
+                      description: Ref identifies the AIGuardrail policy to attach.
+                      properties:
+                        name:
+                          description: Name is the name of the AIGuardrail policy
+                            to attach.
+                          maxLength: 253
+                          minLength: 1
+                          pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                      required:
+                      - name
+                      type: object
+                  required:
+                  - ref
+                  type: object
+                maxItems: 64
+                type: array
+                x-kubernetes-list-type: atomic
+              inferencePriority:
+                description: |-
+                  InferencePriority is the scheduling priority applied to inference requests made under
+                  this subscription, published as InferenceObjective.spec.priority.
+                  Higher values are scheduled ahead of lower ones; negative values are scheduled below
+                  the scheduler default. Distinct from Priority, which selects among a user's
+                  subscriptions and has no effect on inference scheduling.
+                  When unset, no InferenceObjective is created and the scheduler applies priority 0.
+                  An explicit 0 creates an InferenceObjective with priority 0.
+                format: int32
+                maximum: 2147483647
+                minimum: -2147483648
+                type: integer
+              modelRefs:
+                description: ModelRefs defines which models are included with per-model
+                  token rate limits
+                items:
+                  description: ModelSubscriptionRef defines a model reference with
+                    rate limits
+                  properties:
+                    billingRate:
+                      description: BillingRate defines the cost per token
+                      properties:
+                        perToken:
+                          description: PerToken is the cost per token
+                          type: string
+                      required:
+                      - perToken
+                      type: object
+                    guardrails:
+                      description: |-
+                        Guardrails attaches reusable AIGuardrail policies for this specific model
+                        within the subscription. References resolve in the AITenant target
+                        namespace; a namespace must not be specified on the reference. Selections
+                        are additive with the subscription-wide guardrails and every other scope
+                        and cannot remove checks contributed elsewhere.
+                      items:
+                        description: |-
+                          GuardrailAttachment attaches an AIGuardrail policy to a MaaS resource and
+                          selects which of the policy's checks apply.
+
+                          Attachments are additive across scopes (tenant, subscription): the effective
+                          set of checks is the union of every scope's selection, and one scope cannot
+                          remove checks contributed by another. Multiple entries referencing the same
+                          policy contribute a union of their selected checks.
+                        properties:
+                          checks:
+                            description: |-
+                              Checks selects check names from the referenced AIGuardrail's spec.checks.
+                              An omitted or empty list selects every check in the policy, including
+                              checks added to the policy later. A non-empty list selects only the named
+                              checks. Names must be unique and must exist in the referenced policy.
+                            items:
+                              maxLength: 63
+                              minLength: 1
+                              pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                              type: string
+                            maxItems: 64
+                            type: array
+                            x-kubernetes-list-type: set
+                          ref:
+                            description: Ref identifies the AIGuardrail policy to
+                              attach.
+                            properties:
+                              name:
+                                description: Name is the name of the AIGuardrail policy
+                                  to attach.
+                                maxLength: 253
+                                minLength: 1
+                                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                                type: string
+                            required:
+                            - name
+                            type: object
+                        required:
+                        - ref
+                        type: object
+                      maxItems: 64
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    name:
+                      description: Name is the name of the MaaSModelRef
+                      maxLength: 63
+                      minLength: 1
+                      type: string
+                    namespace:
+                      description: Namespace is the namespace where the MaaSModelRef
+                        lives
+                      maxLength: 63
+                      minLength: 1
+                      type: string
+                    tokenRateLimits:
+                      description: |-
+                        TokenRateLimits defines token-based rate limits for this model.
+                        Required unless Unlimited is true.
+                      items:
+                        description: TokenRateLimit defines a token rate limit
+                        properties:
+                          limit:
+                            description: |-
+                              Limit is the maximum number of tokens allowed within the window.
+                              Must be between 1 and 1,000,000,000 (1 billion).
+                            format: int64
+                            maximum: 1000000000
+                            minimum: 1
+                            type: integer
+                          window:
+                            description: |-
+                              Window is the time window for rate limiting (e.g., "1m", "1h", "24h").
+                              Allowed units: s (seconds), m (minutes), h (hours). Days (d) are not
+                              supported; use hours instead (e.g., "24h" for one day).
+                              The numeric part must be between 1 and 9999.
+                            maxLength: 5
+                            minLength: 2
+                            pattern: ^[1-9]\d{0,3}(s|m|h)$
+                            type: string
+                        required:
+                        - limit
+                        - window
+                        type: object
+                      minItems: 1
+                      type: array
+                    unlimited:
+                      description: |-
+                        Unlimited grants access to this model without a token budget.
+                        Token usage is still metered. Mutually exclusive with TokenRateLimits.
+                      type: boolean
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                  x-kubernetes-validations:
+                  - message: tokenRateLimits is required unless unlimited is true
+                    rule: has(self.tokenRateLimits) || (has(self.unlimited) && self.unlimited)
+                  - message: tokenRateLimits must not be set when unlimited is true
+                    rule: '!(has(self.unlimited) && self.unlimited && has(self.tokenRateLimits))'
+                minItems: 1
+                type: array
+              organization:
+                description: |-
+                  Organization associates this subscription with exactly one organization.
+                  The identifier is stable for the subscription's lifetime and is not used
+                  as billing metadata or as an inference grant.
+                properties:
+                  id:
+                    description: |-
+                      ID is the organization identifier. It may be set once for a legacy subscription
+                      after its key and history association has been verified.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                required:
+                - id
+                type: object
+              owner:
+                description: |-
+                  Owner defines the users and groups entitled to select this subscription.
+                  It does not represent Kubernetes ownership or grant RBAC permissions.
+                properties:
+                  groups:
+                    description: |-
+                      Groups is a list of identity group names entitled to select this
+                      subscription. Names are matched exactly and are not Kubernetes object names.
+                    items:
+                      description: GroupReference references an identity group by
+                        its opaque name.
+                      properties:
+                        name:
+                          description: Name is the opaque group name used for exact-match
+                            authorization.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  users:
+                    description: |-
+                      Users is a list of identity user names entitled to select this subscription.
+                      Names are matched exactly.
+                    items:
+                      type: string
+                    type: array
+                type: object
+              priority:
+                default: 0
+                description: |-
+                  Priority determines subscription priority when user has multiple subscriptions
+                  Higher numbers have higher priority. Defaults to 0.
+                format: int32
+                type: integer
+              rateLimitIdentity:
+                description: |-
+                  RateLimitIdentity selects the TokenRateLimitPolicy identity scheme.
+                  Unset lets the controller choose (short for new CRs, legacy for upgrade
+                  survivors) and persist the result on status.rateLimitIdentity.
+                  Explicit short or legacy is an operator escape hatch; changing it resets
+                  that subscription's in-window Limitador quota.
+                enum:
+                - short
+                - legacy
+                type: string
+              tokenMetadata:
+                description: TokenMetadata contains metadata for token attribution
+                  and metering
+                properties:
+                  costCenter:
+                    description: CostCenter is the cost center for usage attribution
+                    type: string
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels are additional labels for tracking and metrics
+                    type: object
+                  organizationId:
+                    description: OrganizationID is the organization identifier for
+                      metering and billing
+                    type: string
+                type: object
+            required:
+            - modelRefs
+            - owner
+            type: object
+            x-kubernetes-validations:
+            - message: organization.id is immutable
+              rule: '!has(oldSelf.organization) || (has(self.organization) && oldSelf.organization.id
+                == self.organization.id)'
+          status:
+            description: MaaSSubscriptionStatus defines the observed state of MaaSSubscription
+            properties:
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the subscription's state
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              flowControlStatuses:
+                description: |-
+                  FlowControlStatuses reports, for each referenced model, the InferencePool and
+                  InferenceObjective used for request priority, and their reconciliation state
+                items:
+                  description: ModelFlowControlStatus maps a referenced model to its
+                    InferencePool and InferenceObjective.
+                  properties:
+                    inferencePool:
+                      description: InferencePool is the pool observed in the model's
+                        LLMInferenceService status
+                      properties:
+                        group:
+                          description: |-
+                            Group is the group of the referent. For example, "gateway.networking.k8s.io".
+                            When unspecified or empty string, core API group is inferred.
+                          maxLength: 253
+                          pattern: ^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                          type: string
+                        kind:
+                          description: Kind is kind of the referent. For example "HTTPRoute"
+                            or "Service".
+                          maxLength: 63
+                          minLength: 1
+                          pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                          type: string
+                        name:
+                          description: Name is the name of the referent.
+                          maxLength: 253
+                          minLength: 1
+                          type: string
+                      required:
+                      - group
+                      - kind
+                      - name
+                      type: object
+                    message:
+                      description: Message is a human-readable description of the
+                        reason
+                      maxLength: 1024
+                      type: string
+                    name:
+                      description: Name of the MaaSModelRef
+                      maxLength: 253
+                      type: string
+                    namespace:
+                      description: |-
+                        Namespace of the MaaSModelRef. The InferencePool and InferenceObjective live in this
+                        namespace, alongside the model's LLMInferenceService.
+                      maxLength: 63
+                      type: string
+                    objectiveName:
+                      description: |-
+                        ObjectiveName is the InferenceObjective name for this subscription and pool, in the pool's
+                        namespace. It is set whenever the pool is known, including when spec.inferencePriority is unset
+                        and no InferenceObjective is created.
+                      maxLength: 63
+                      type: string
+                    ready:
+                      description: |-
+                        Ready is true when no request-priority reconciliation is left for this model: its
+                        InferenceObjective matches spec.inferencePriority, spec.inferencePriority is unset, request
+                        priority does not apply, or the InferenceObjective opted out of management. It does not
+                        report backend readiness; see ModelRefStatuses.
+                      type: boolean
+                    reason:
+                      description: Reason is a machine-readable reason for Ready
+                      maxLength: 64
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - ready
+                  type: object
+                type: array
+              modelRefStatuses:
+                description: ModelRefStatuses reports the status of each referenced
+                  MaaSModelRef
+                items:
+                  description: ModelRefStatus reports the status of a referenced MaaSModelRef.
+                  properties:
+                    message:
+                      description: Message is a human-readable description of the
+                        status
+                      maxLength: 1024
+                      type: string
+                    name:
+                      description: Name of the referenced resource
+                      maxLength: 253
+                      type: string
+                    namespace:
+                      description: Namespace of the referenced resource
+                      maxLength: 63
+                      type: string
+                    ready:
+                      description: Ready indicates whether the resource is valid and
+                        healthy
+                      type: boolean
+                    reason:
+                      description: Reason is a machine-readable reason code
+                      enum:
+                      - Reconciled
+                      - ReconcileFailed
+                      - PartialFailure
+                      - Valid
+                      - NotFound
+                      - GetFailed
+                      - Accepted
+                      - AcceptedEnforced
+                      - NotAccepted
+                      - Enforced
+                      - NotEnforced
+                      - BackendNotReady
+                      - ConditionsNotFound
+                      - InvalidSpec
+                      - Unknown
+                      - NoPairingFound
+                      - GovernancePaired
+                      - GovernanceGap
+                      - RuntimeHealthy
+                      - RuntimeHealthFailure
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - ready
+                  type: object
+                type: array
+              phase:
+                description: Phase represents the current phase of the subscription
+                enum:
+                - Pending
+                - Active
+                - Degraded
+                - Failed
+                - Invalid
+                type: string
+              rateLimitIdentity:
+                description: |-
+                  RateLimitIdentity is the sticky effective TRLP identity scheme (short or
+                  legacy). Owned by the controller so GitOps tools that ignore status do
+                  not flap OutOfSync when the value is first chosen.
+                enum:
+                - short
+                - legacy
+                type: string
+              tokenRateLimitStatuses:
+                description: TokenRateLimitStatuses reports the status of each generated
+                  TokenRateLimitPolicy
+                items:
+                  description: TokenRateLimitStatus reports the status of a generated
+                    TokenRateLimitPolicy.
+                  properties:
+                    message:
+                      description: Message is a human-readable description of the
+                        status
+                      maxLength: 1024
+                      type: string
+                    model:
+                      description: Model is the MaaSModelRef name this TokenRateLimitPolicy
+                        targets
+                      maxLength: 63
+                      minLength: 1
+                      type: string
+                    name:
+                      description: Name of the referenced resource
+                      maxLength: 253
+                      type: string
+                    namespace:
+                      description: Namespace of the referenced resource
+                      maxLength: 63
+                      type: string
+                    ready:
+                      description: Ready indicates whether the resource is valid and
+                        healthy
+                      type: boolean
+                    reason:
+                      description: Reason is a machine-readable reason code
+                      enum:
+                      - Reconciled
+                      - ReconcileFailed
+                      - PartialFailure
+                      - Valid
+                      - NotFound
+                      - GetFailed
+                      - Accepted
+                      - AcceptedEnforced
+                      - NotAccepted
+                      - Enforced
+                      - NotEnforced
+                      - BackendNotReady
+                      - ConditionsNotFound
+                      - InvalidSpec
+                      - Unknown
+                      - NoPairingFound
+                      - GovernancePaired
+                      - GovernanceGap
+                      - RuntimeHealthy
+                      - RuntimeHealthFailure
+                      type: string
+                  required:
+                  - model
+                  - name
+                  - namespace
+                  - ready
+                  type: object
+                type: array
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
