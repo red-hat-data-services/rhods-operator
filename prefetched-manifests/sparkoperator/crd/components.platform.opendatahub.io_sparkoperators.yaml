@@ -81,6 +81,16 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      metricsJobStartLatencyBuckets:
+                        description: |-
+                          MetricsJobStartLatencyBuckets configures the finite buckets, in seconds,
+                          for the SparkApplication start-latency histogram.
+                        items:
+                          format: int32
+                          minimum: 1
+                          type: integer
+                        minItems: 1
+                        type: array
                       workers:
                         description: Workers is the number of concurrent controller
                           reconciliation workers.
