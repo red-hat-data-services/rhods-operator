@@ -1,0 +1,28 @@
+apiVersion: v1
+data:
+  platformType: {{ default "OpenDataHub" .Values.platform.type | quote }}
+  platformVersion: {{ default "" .Values.platform.version | quote }}
+  operator-service-account: {{ default (include "chart.fullname" .) .Values.serviceAccount.name | quote }}
+  {{- range $key, $val := .Values.config }}
+  {{- if and (ne $key "platformType") (ne $key "platformVersion") (ne $key "operator-service-account") }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  {{- end }}
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: opendatahub-db-operator
+  name: odh-databaseservice-config
+  namespace: {{ .Release.Namespace }}
+---
+{{- if or .Values.openshift.serviceCA (.Capabilities.APIVersions.Has "security.openshift.io/v1") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+  labels:
+    app.kubernetes.io/name: opendatahub-db-operator
+  name: odh-db-operator-metrics-server-ca
+  namespace: {{ .Release.Namespace }}
+{{- end }}
