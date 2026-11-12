@@ -24,12 +24,12 @@ map:
     src: config
     dest: datasciencepipelines
     git.url: https://github.com/red-hat-data-services/data-science-pipelines-operator
-    git.commit: 98bde5e961555af6f6191f4b7440a8a9038a656a
+    git.commit: 4c0b9a1fa82ce2bc6142859842a583290bb5740f
   odh-kuberay-operator-controller:
     src: ray-operator/config
     dest: ray
     git.url: https://github.com/red-hat-data-services/kuberay
-    git.commit: bc5304df581b6b57f198cd2a5907751e80dc3dcf
+    git.commit: b3f4848ca7e00af25df104641eba6583ec25c061
   odh-trustyai-service-operator:
     src: config
     dest: trustyai
@@ -39,7 +39,7 @@ map:
     src: config
     dest: modelcontroller
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: a4e5dc5241a50928948f12231ce7eadc273cf79a
+    git.commit: bc72d38406d3e1247915654f429ff6ce13cf6599
   odh-model-registry-operator:
     src: config
     dest: modelregistry
@@ -89,7 +89,7 @@ map:
     src: config
     dest: wva
     git.url: https://github.com/red-hat-data-services/workload-variant-autoscaler
-    git.commit: 7bca09cabe824b7745cdd574fc878c57aadcdddf
+    git.commit: 746087c4136b807421fd6762ff0d3f3839f9b2e2
 additional_meta:
   odh-ai-gateway-payload-processing:
     git.url: https://github.com/red-hat-data-services/ai-gateway-payload-processing
@@ -102,7 +102,7 @@ additional_meta:
     git.commit: 7a6f3e052abd7752ff6ea9bc053d88456711123d
   odh-built-in-detector:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
-    git.commit: e5a486cf319c24fced3f56ddf2c642a4b920cc8b
+    git.commit: b2556134ebd4bb2de84c3e531e3a79738ba2f73a
   odh-cli:
     git.url: https://github.com/red-hat-data-services/odh-cli
     git.commit: cc7facb31961a8e68475ae1645248aed95974e99
@@ -123,7 +123,7 @@ additional_meta:
     git.commit: 739482c85606975790edcb296edc0a827bf6dc69
   odh-guardrails-detector-huggingface-runtime:
     git.url: https://github.com/red-hat-data-services/guardrails-detectors
-    git.commit: e5a486cf319c24fced3f56ddf2c642a4b920cc8b
+    git.commit: b2556134ebd4bb2de84c3e531e3a79738ba2f73a
   odh-kserve-agent:
     git.url: https://github.com/red-hat-data-services/kserve
     git.commit: 8452768fa242a2f9ef98949c106ff35d6f90adaa
@@ -171,7 +171,7 @@ additional_meta:
     git.commit: 629d752ea9293c83fa0d10cbd0110ef05dd92496
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: d2dec9244cba8ffa7f7278ee9dc0ebf3df462bfc
+    git.commit: 1e54b6142555b6799b34995aa58765a9a90ca4d7
   odh-mlserver:
     git.url: https://github.com/red-hat-data-services/MLServer
     git.commit: c1002c37705f3d603a73d16b97b09f49815084c2
@@ -204,16 +204,16 @@ additional_meta:
     git.commit: 5ba1efe3bbe33f295a7f007571a3bbaafa2dac55
   odh-model-serving-api:
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: a4e5dc5241a50928948f12231ce7eadc273cf79a
+    git.commit: bc72d38406d3e1247915654f429ff6ce13cf6599
   odh-mod-arch-automl:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: b03a0daf0329f562b50b6b06834fa3e29cfab792
   odh-mod-arch-autorag:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 4e7220ead2cea947a24d32965e167249606a5579
+    git.commit: b03a0daf0329f562b50b6b06834fa3e29cfab792
   odh-mod-arch-eval-hub:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 4e7220ead2cea947a24d32965e167249606a5579
+    git.commit: b03a0daf0329f562b50b6b06834fa3e29cfab792
   odh-mod-arch-gen-ai:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: b03a0daf0329f562b50b6b06834fa3e29cfab792
@@ -306,7 +306,7 @@ additional_meta:
     git.commit: dfe66bf45935a55b7537b5e8b97284a5e3ad3d74
   odh-trustyai-nemo-guardrails-server:
     git.url: https://github.com/red-hat-data-services/NeMo-Guardrails
-    git.commit: a3ea4cdffb54ddba5f19c44fb72da603dd057c0e
+    git.commit: cc824501d0f5c5409dbc1ad93979f74362cedaa9
   odh-trustyai-service:
     git.url: https://github.com/red-hat-data-services/trustyai-explainability
     git.commit: 79c70010e6c135d10e2457db733a8fc21ca9d593
