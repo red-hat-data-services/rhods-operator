@@ -1,0 +1,43 @@
+# NetworkPolicy for llm-d-batch-gateway-operator pods.
+#
+# Restricts ingress on the HTTPS metrics endpoint (TCP 8443) to supported
+# monitoring namespaces, and allows kubelet health probes on TCP 8081.
+#
+# This is operator-pod policy (bundle-delivered) and must remain separate from
+# LLMBatchGateway / LLMInferenceService operand policies.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metrics-traffic
+  labels:
+    app.kubernetes.io/name: llm-d-batch-gateway-operator
+    app.kubernetes.io/component: llm-d-batch-gateway
+    app.kubernetes.io/part-of: llm-d-batch-gateway
+spec:
+  podSelector:
+    matchLabels:
+      control-plane: llm-d-batch-gateway-controller-manager
+  policyTypes:
+    - Ingress
+  ingress:
+    # HTTPS metrics scraping from supported monitoring namespaces.
+    # RHOAI: redhat-ods-monitoring; OpenShift CMO: openshift-monitoring.
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - redhat-ods-monitoring
+                  - openshift-monitoring
+      ports:
+        - protocol: TCP
+          port: 8443
+    # Kubelet liveness/readiness probes (port 8081). No from selector: kubelet
+    # is not a namespaced peer, and node-to-pod exemptions are CNI-dependent.
+    # Restricting only the port keeps probes working once this Ingress policy
+    # selects the pod. Endpoints are healthz.Ping only (no metrics/control).
+    - ports:
+        - protocol: TCP
+          port: 8081
+
