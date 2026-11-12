@@ -94,6 +94,7 @@ rules:
       - data-science-collector-tempo-trace-export
       - data-science-metrics-view
       - data-science-usage-logs-processor
+      - generate-processors-cluster-prometheus-reader
       - generate-processors-role
       - generate-processors-targetallocator-role
       - korrel8r-query
@@ -101,6 +102,7 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterrolebindings"]
     resourceNames:
+      - data-science-alertmanager-proxy-auth-delegator
       - data-science-cluster-log-forwarder-collector-collect-app-logs
       - data-science-cluster-log-forwarder-collector-loki-writer
       - data-science-collector-mlflow-trace-export
@@ -113,6 +115,7 @@ rules:
       - data-science-thanos-querier-proxy
       - data-science-thanos-querier-proxy-auth-delegator
       - data-science-usage-logs-processor
+      - generate-processors-cluster-prometheus-reader
       - generate-processors-collector-rolebinding
       - generate-processors-targetallocator-discovery-rolebinding
       - generate-processors-targetallocator-rolebinding

@@ -146,9 +146,31 @@ spec:
                 properties:
                   builtinDCGMScrapeEnabled:
                     description: |-
-                      BuiltinDCGMScrapeEnabled controls the built-in HTTP scrape for DCGM exporter metrics.
+                      BuiltinDCGMScrapeEnabled controls the built-in scrape for DCGM exporter metrics.
                       It defaults to enabled; set false when collecting DCGM through a ServiceMonitor or PodMonitor instead.
                     type: boolean
+                  builtinDCGMTLS:
+                    description: BuiltinDCGMTLS enables certificate-verified HTTPS
+                      for the built-in DCGM scrape.
+                    properties:
+                      caSecretName:
+                        description: CASecretName is the name of the CA Secret in
+                          the monitoring namespace.
+                        maxLength: 253
+                        minLength: 1
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                        type: string
+                      serverName:
+                        description: ServerName is the DNS name verified against the
+                          exporter's certificate.
+                        maxLength: 253
+                        minLength: 1
+                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                        type: string
+                    required:
+                    - caSecretName
+                    - serverName
+                    type: object
                   exporters:
                     additionalProperties:
                       type: object
@@ -199,6 +221,9 @@ spec:
                 - message: Non-zero replicas require metrics.storage to be configured
                   rule: has(self.storage) || !has(self.replicas) || self.replicas
                     == 0
+                - message: builtinDCGMTLS requires the built-in DCGM scrape
+                  rule: '!has(self.builtinDCGMTLS) || !has(self.builtinDCGMScrapeEnabled)
+                    || self.builtinDCGMScrapeEnabled'
               namespace:
                 default: opendatahub
                 description: Namespace is the target namespace where monitoring resources
