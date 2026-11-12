@@ -1229,6 +1229,8 @@ func TestAddTracesTemplateData_ZeroValues(t *testing.T) {
 				endpoint, ok := templateData["TempoEndpoint"].(string)
 				g.Expect(ok).Should(BeTrue())
 				g.Expect(endpoint).Should(ContainSubstring("tempostack"))
+				g.Expect(endpoint).Should(HaveSuffix(":4317"),
+					"TempoEndpoint should use standard OTLP gRPC port 4317")
 				g.Expect(templateData).Should(HaveKey("Secret"))
 			}
 		})

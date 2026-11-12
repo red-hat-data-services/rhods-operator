@@ -30,6 +30,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	dscv2 "github.com/opendatahub-io/opendatahub-operator/v2/api/datasciencecluster/v2"
@@ -173,6 +174,14 @@ func (h *serviceHandler) NewReconciler(ctx context.Context, mgr ctrl.Manager) er
 		)).
 		// Sync CA from ConfigMap to Secret (handles initial creation and rotation updates)
 		WithAction(syncPrometheusWebTLSCA).
+		// Tempo Operator owns the TempoStack gateway Service and omits OTLP :4317;
+		// keep collector on :4317 and re-apply 4317→grpc-public when Tempo strips it.
+		WithAction(syncTempoStackGatewayOTLPPort).
+		Watches(
+			&corev1.Service{},
+			reconciler.WithEventHandler(enqueueTempoStackGatewayService(mgr.GetClient())),
+			reconciler.WithPredicates(predicate.NewPredicateFuncs(isTempoStackGatewayService)),
+		).
 		WithConditions(
 			status.ConditionMonitoringAvailable,
 			status.ConditionMonitoringStackAvailable,
