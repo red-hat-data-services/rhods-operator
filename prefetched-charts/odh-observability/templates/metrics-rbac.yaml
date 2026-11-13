@@ -1,0 +1,30 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-metrics-reader
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+rules:
+  # Grant permission to GET the /metrics endpoint of the manager pod.
+  # The controller-runtime metrics server enforces this via SubjectAccessReview
+  # when FilterProvider: WithAuthenticationAndAuthorization is enabled.
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "odh-observability.fullname" . }}-metrics-reader
+  labels:
+    {{- include "odh-observability.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "odh-observability.fullname" . }}-metrics-reader
+subjects:
+  # Prometheus ServiceAccount created by the MonitoringStack in the monitoring namespace.
+  # The MonitoringStack controller creates this ServiceAccount with the naming pattern:
+  # <monitoringstack-name>-prometheus
+  - kind: ServiceAccount
+    name: {{ .Values.metrics.prometheusServiceAccount }}
+    namespace: {{ include "odh-observability.monitoringNamespace" . }}

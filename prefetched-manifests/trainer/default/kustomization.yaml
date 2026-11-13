@@ -1,0 +1,35 @@
+namespace: trainer-operator-system
+
+namePrefix: trainer-operator-
+
+resources:
+- ../crd
+- ../rbac
+- ../manager
+- metrics_service.yaml
+- ../network-policy
+- prometheus_rules.yaml
+
+patches:
+- path: cert_metrics_manager_patch.yaml
+  target:
+    kind: Deployment
+
+configMapGenerator:
+  - name: params
+    envs:
+      - params.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: params
+      fieldPath: data.TRAINER_OPERATOR_IMAGE
+    targets:
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - spec.template.spec.containers.[name=manager].image

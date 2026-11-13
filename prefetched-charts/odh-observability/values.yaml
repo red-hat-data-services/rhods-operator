@@ -1,0 +1,99 @@
+nameOverride: ""
+fullnameOverride: ""
+
+operatorNamespace: opendatahub-operator-system
+
+# Namespace of the OpenTelemetry Operator's active Collector admission webhook.
+# The parent operator discovers and sets it. Standalone installs must set it
+# explicitly to grant the operator cert-manager access for TargetAllocator mTLS.
+otelOperatorNamespace: ""
+
+# Namespace where Monitoring operands (Tempo, collector) are deployed.
+# Tempo write ACL treats this namespace name as the RBAC resource.
+# Defaults to operatorNamespace when empty. On RHOAI this is
+# spec.monitoring.namespace (e.g. redhat-ods-monitoring).
+# Also used as the allowed source for operator metrics NetworkPolicy ingress.
+monitoringNamespace: ""
+
+# Namespace containing the external router or gateway that reaches the
+# monitoring proxies. Empty retains the OpenShift ingress policy-group
+# selector, while deployment overlays may provide a namespace-specific source.
+gatewayNamespace: ""
+
+image:
+  repository: quay.io/opendatahub/odh-observability
+  tag: odh-stable
+  pullPolicy: Always
+
+replicaCount: 1
+
+# The controller caches cluster-scoped informers for Secrets, ConfigMaps,
+# Namespaces, CRDs, EndpointSlices, Routes, Deployments, Jobs, Services,
+# ServiceAccounts and ClusterRole/Bindings, so its footprint scales with the
+# size of the cluster rather than with the number of Monitoring CRs. Measured
+# steady state on a small ROSA HCP cluster is ~1.7Gi, which OOMKilled the
+# container roughly ten seconds after start at the previous 512Mi limit.
+resources:
+  limits:
+    cpu: 500m
+    memory: 3Gi
+  requests:
+    cpu: 100m
+    memory: 2Gi
+
+# Leader election - enable when running multiple replicas.
+leaderElect: false
+
+# Webhook admission policy configuration.
+# failurePolicy controls what happens when the webhook is unavailable.
+# Fail is the secure default: admission timeouts reject PodMonitor and
+# ServiceMonitor updates rather than allowing them through unscraped. Set
+# Ignore for deployments that prefer availability during operator restarts.
+webhook:
+  failurePolicy: Fail
+  # The admission probe periodically writes a canary PodMonitor and checks that
+  # the webhook labels it. The canary lives in a dedicated namespace labeled
+  # monitoring.opendatahub.io/scrape=true, so the webhook namespaceSelector
+  # matches it without opting any real monitors into scraping.
+  probe:
+    # Defaults to <fullname>-webhook-probe when empty.
+    namespace: ""
+    # Set to false when the namespace is provisioned outside this chart. It must
+    # then carry the monitoring.opendatahub.io/scrape=true label.
+    createNamespace: true
+
+# Image pull secrets for private registries.
+imagePullSecrets: []
+
+# Node selector, tolerations, and affinity for the controller pod.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Extra environment variables injected into the controller container.
+# Use for RELATED_IMAGE_* overrides.
+env: []
+# - name: RELATED_IMAGE_PERSES_IMAGE
+#   value: "registry.redhat.io/cluster-observability-operator/perses-rhel9:1.5.0-1781116652"
+
+# CIDRs allowed to reach the admission webhook (TCP 9443).
+# kube-apiserver is host-networked, so the source is a node IP in the machine
+# CIDR. These three ranges are the OpenShift and ROSA install defaults.
+# Replace 10.0.0.0/16 when the cluster was created with another machine CIDR
+# (required when the VPC is not 10.0.0.0/16). That value is per cluster.
+# See the chart README for how to read it from the cluster.
+webhookIngressCIDRs:
+  - 172.30.0.0/16  # service network
+  - 10.128.0.0/14  # pod network
+  - 10.0.0.0/16    # machine network (node IPs; kube-apiserver source)
+
+metrics:
+  # ServiceAccount name that Prometheus uses (created by MonitoringStack).
+  # Granted read access to operator /metrics endpoint via ClusterRoleBinding.
+  prometheusServiceAccount: data-science-monitoringstack-prometheus
+  # Enable ServiceMonitor resource creation for Prometheus Operator.
+  serviceMonitor:
+    # Enable after the RHOBS ServiceMonitor CRD is available.
+    # Supported deployments must enable this explicitly to scrape metrics.
+    enabled: false
+    apiVersion: monitoring.rhobs/v1
