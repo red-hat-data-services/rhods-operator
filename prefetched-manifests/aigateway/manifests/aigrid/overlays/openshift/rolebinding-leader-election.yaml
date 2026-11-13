@@ -1,0 +1,15 @@
+# Source: grid-operator/templates/role-leader-election.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grid-operator-leader-election
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+subjects:
+  - kind: ServiceAccount
+    name: grid-operator
+roleRef:
+  kind: Role
+  name: grid-operator-leader-election
+  apiGroup: rbac.authorization.k8s.io

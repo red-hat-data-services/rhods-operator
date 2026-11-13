@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # namePrefix in config/default turns this into mcp-lifecycle-operator-config,
+  # which matches --logging-configmap-name and the operator flag default.
+  name: config
+  labels:
+    app.kubernetes.io/name: mcp-lifecycle-operator
+    app.kubernetes.io/managed-by: kustomize
+data:
+  # Valid values match --zap-log-level: debug, info, error, panic, or an integer > 0.
+  log-level: info
