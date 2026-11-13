@@ -45,6 +45,9 @@ jobs:
   operator-processor:
     if: ${{ github.ref_name != 'main' && (github.event_name == 'workflow_dispatch' || ( github.event_name == 'push' && github.event.commits[0].author.name == 'konflux-internal-p02[bot]' )) }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: operator-processor-${{ inputs.eg-branch || github.ref_name }}
+      cancel-in-progress: false
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -369,10 +372,45 @@ jobs:
           git add -A
           if [[ "$EG_MODE" == "true" ]]; then
             git commit --allow-empty -m "early-gate: pin component digests for ${TARGET_REF}"
-            git push origin "HEAD:${TARGET_REF}"
+          elif ! git diff --staged --quiet; then
+            git commit -m "Updating the operator repo with latest images and manifests"
           else
-            git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin "HEAD:${TARGET_REF}")
+            echo "No changes to commit."
+            exit 0
           fi
+
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${TARGET_REF}"; then
+              exit 0
+            fi
+
+            if [[ "$attempt" -eq 3 ]]; then
+              break
+            fi
+
+            echo "::warning::Push attempt ${attempt} failed; fetching ${TARGET_REF} and rebasing before retry."
+            shallow_file="$(git rev-parse --git-path shallow)"
+            if [[ -f "$shallow_file" ]]; then
+              if ! git fetch --unshallow origin "$TARGET_REF"; then
+                echo "::error::Could not fetch ${TARGET_REF} to recover from the push race."
+                exit 1
+              fi
+            elif ! git fetch origin "$TARGET_REF"; then
+              echo "::error::Could not fetch ${TARGET_REF} to recover from the push race."
+              exit 1
+            fi
+
+            if ! git rebase FETCH_HEAD; then
+              if git rebase --abort; then
+                :
+              fi
+              echo "::error::Could not rebase the generated changes onto ${TARGET_REF}; resolve the conflict and rerun."
+              exit 1
+            fi
+          done
+
+          echo "::error::Could not push generated changes to ${TARGET_REF} after 3 attempts."
+          exit 1
 
       - name: Upload debug logs
         if: always()
