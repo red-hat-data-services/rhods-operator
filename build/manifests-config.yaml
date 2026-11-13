@@ -24,7 +24,7 @@ map:
     src: config
     dest: trustyai
     git.url: https://github.com/red-hat-data-services/trustyai-service-operator
-    git.commit: 9c73d5be099e63f32a9c25a0a1523542042a4995
+    git.commit: 855048b60759f4795dcf546f4c2167d025fcd248
   odh-model-registry-operator:
     src: config
     dest: modelregistry
@@ -35,7 +35,7 @@ map:
     dest: dashboard-operator
     type: chart
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 0003c64cff8873980cca88a7390a7c90d9f3aac0
+    git.commit: 4727df0adbc14883d728a69716e483cef2326542
   odh-training-operator:
     src: manifests
     dest: trainingoperator
@@ -95,7 +95,7 @@ additional_meta:
     git.commit: 1a622b24f700aa4336b369788d93e97f59849e56
   odh-core-bff:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
-    git.commit: 3263e17ffd3cbd3247c7c903070f63f9b5c98fa3
+    git.commit: 4727df0adbc14883d728a69716e483cef2326542
   odh-dashboard:
     git.url: https://github.com/red-hat-data-services/odh-dashboard
     git.commit: 4b9d0f9dd90953351341ddc44c08372c5e6bf1c5
@@ -110,7 +110,7 @@ additional_meta:
     git.commit: ef9c1ef0616406813660615884f074e5b663f40b
   odh-feast-operator:
     git.url: https://github.com/red-hat-data-services/feast
-    git.commit: 3fe2bfdbf77ff9c5cabc2a81307629f50b4c407c
+    git.commit: de2175f9a2a1df9d71b3025ae160c8b68d2bec93
   odh-feature-server:
     git.url: https://github.com/red-hat-data-services/feast
     git.commit: 1a3cb0020d436495a72f966a1368a8b38dae416a
@@ -194,13 +194,13 @@ additional_meta:
     git.commit: f3525c1d79aeba64400b79c7e7ea5c6d5825b2f4
   odh-mlmd-grpc-server:
     git.url: https://github.com/red-hat-data-services/ml-metadata
-    git.commit: e82b11adc436a0db57f6a1228f3804f0017fd7bd
+    git.commit: 9bd494866d94a02a5e6d36178c26acb53ab3d432
   odh-mlserver-cuda:
     git.url: https://github.com/red-hat-data-services/MLServer
     git.commit: a5274d0b42912b63378afbaea2e70541ee769d40
   odh-mlserver:
     git.url: https://github.com/red-hat-data-services/MLServer
-    git.commit: 0f752491033bb3f9528c9458fab8fff0cc337cfa
+    git.commit: a5274d0b42912b63378afbaea2e70541ee769d40
   odh-ml-pipelines-api-server-v2:
     git.url: https://github.com/red-hat-data-services/data-science-pipelines
     git.commit: 477550c7d7ad654f1d6aba0527ef8b04f922a51c
@@ -218,7 +218,7 @@ additional_meta:
     git.commit: bb55dc5108e89157bc7e57ab1052d614cfd8c5fd
   odh-model-controller:
     git.url: https://github.com/red-hat-data-services/odh-model-controller
-    git.commit: a7baff362f83ad23798eb297f2b9f4cbe086d5d8
+    git.commit: 4339f2129870d6b469b72bf7fe4c1063737b07e5
   odh-model-metadata-collection:
     git.url: https://github.com/red-hat-data-services/model-metadata-collection
     git.commit: 9900796fcc4b38efeb542d91ca2ea210d561dce0
@@ -263,13 +263,13 @@ additional_meta:
     git.commit: 215dc892cc7000284539ec1fc57f98bea807236f
   odh-notebook-controller:
     git.url: https://github.com/red-hat-data-services/kubeflow
-    git.commit: 4feef86f4d709189e79421532da0e1d3df6d4292
+    git.commit: a4b6ae25ea06fa322b7a8a1b836e2620c59017aa
   odh-ogx-core:
     git.url: https://github.com/red-hat-data-services/ogx-distribution
     git.commit: 97dcaa65809b8f7610fa3d4cb6791f226e6947dc
   odh-ogx-k8s-operator:
     git.url: https://github.com/red-hat-data-services/ogx-k8s-operator
-    git.commit: 6a3905cf118aedbe14f7b6654bb0eba7062a8ddb
+    git.commit: 3df0fe0432ee944c9d725368ef4491cfdc1ad902
   odh-openvino-model-server:
     git.url: https://github.com/red-hat-data-services/openvino_model_server
     git.commit: b230fb5a89f1e8bca88c70664a8f1af5c579b3f6
@@ -368,7 +368,7 @@ additional_meta:
     git.commit: 404cf72dabc63a18a1d6acd15ff56881a720a5db
   odh-workbench-jupyter-pytorch-rocm-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
-    git.commit: 404cf72dabc63a18a1d6acd15ff56881a720a5db
+    git.commit: 655c956afc14728c123715b32e805ae5c339afd9
   odh-workbench-jupyter-tensorflow-cuda-py312:
     git.url: https://github.com/red-hat-data-services/notebooks
     git.commit: 655c956afc14728c123715b32e805ae5c339afd9
