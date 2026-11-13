@@ -23,6 +23,11 @@ on:
         required: false
         default: ''
         type: string
+      nightly:
+        description: 'Trigger the scheduled operator build instead of the push build.'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
@@ -148,6 +153,7 @@ jobs:
         env:
           BRANCH: ${{ steps.config.outputs.release_branch }}
           EG_MODE: ${{ inputs.eg-mode }}
+          NIGHTLY_BUILD: ${{ inputs.nightly }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -164,7 +170,12 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+          PUSH_PIPELINE_OPERATION=enable
+          if [[ "${NIGHTLY_BUILD}" == "true" ]]; then
+            PUSH_PIPELINE_OPERATION=disable
+          fi
+
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation ${PUSH_PIPELINE_OPERATION}
           
       - name: Print debug logs
         if: always()
@@ -361,11 +372,16 @@ jobs:
         working-directory: rhods-operator
         env:
           EG_MODE: ${{ inputs.eg-mode }}
+          NIGHTLY_BUILD: ${{ inputs.nightly }}
           TARGET_REF: ${{ steps.config.outputs.operator_ref }}
         run: |
           set -euo pipefail
           git config user.name "Openshift-AI DevOps"
           git config user.email "openshift-ai-devops@redhat.com"
+          if [[ "$NIGHTLY_BUILD" == "true" ]]; then
+            mkdir -p build/schedule
+            echo "$(date +'%d-%m-%Y %H:%M:%S:%3N')" > build/schedule/operator-tekton-trigger.txt
+          fi
           git add -A
           if [[ "$EG_MODE" == "true" ]]; then
             git commit --allow-empty -m "early-gate: pin component digests for ${TARGET_REF}"
