@@ -35,6 +35,11 @@ spec:
           - --zap-log-level=info
         image: REPLACED_BY_KUSTOMIZE
         name: manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         ports:
         - name: health-probe
           containerPort: 8081
