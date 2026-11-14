@@ -11,6 +11,7 @@ metadata:
     pipelinesascode.tekton.dev/on-cel-expression: |
       event == "push"
       && target_branch == "rhoai-3.6"
+      && !("build/schedule/operator-tekton-trigger.txt".pathChanged())
       && ( files.all.exists(p, !(
         p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
           || p.matches('^\\.github/workflows/')
