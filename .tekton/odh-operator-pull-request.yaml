@@ -9,17 +9,22 @@ metadata:
     pipelines.appstudio.openshift.io/type: build
   namespace: rhoai-tenant
   annotations:
+    pipelinesascode.tekton.dev/on-comment: "^/build-konflux"
     build.appstudio.openshift.io/repo: "https://github.com/red-hat-data-services/rhods-operator?rev={{revision}}"
     build.appstudio.redhat.com/commit_sha: "{{revision}}"
     build.appstudio.redhat.com/target_branch: "{{target_branch}}"
     build.appstudio.redhat.com/pull_request_number: "{{pull_request_number}}"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
-    pipelinesascode.tekton.dev/on-comment: "^/build-konflux"
-    pipelinesascode.tekton.dev/on-cel-expression: |-
+    pipelinesascode.tekton.dev/on-cel-expression: |
       event == "pull_request"
       && target_branch == "rhoai-3.7-ea.1"
-      && ((files.all.exists(p, ! (p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/') || p.matches('^\\.github/workflows/') || p.matches('^Dockerfiles/bundle\\.Dockerfile$')) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-pull-request.yaml".pathChanged())))
+      && konflux_cluster == "stone-prod-p02"
+      && ( files.all.exists(p, !(
+        p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
+          || p.matches('^\\.github/workflows/')
+          || p.matches('^Dockerfiles/bundle\\.Dockerfile$')
+      ) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-pull-request.yaml".pathChanged()) )
 spec:
   timeouts:
     pipeline: 4h
