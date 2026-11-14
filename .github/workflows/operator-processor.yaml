@@ -153,6 +153,7 @@ jobs:
         env:
           BRANCH: ${{ steps.config.outputs.release_branch }}
           EG_MODE: ${{ inputs.eg-mode }}
+          NIGHTLY_BUILD: ${{ inputs.nightly }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -172,6 +173,24 @@ jobs:
           PUSH_PIPELINE_OPERATION=enable
 
           python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation ${PUSH_PIPELINE_OPERATION}
+
+          if [[ "${NIGHTLY_BUILD}" == "true" ]]; then
+            python3 - "${PUSH_PIPELINE_PATH}" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          pipeline_path = Path(sys.argv[1])
+          pipeline = pipeline_path.read_text()
+          guard = '&& !("build/schedule/operator-tekton-trigger.txt".pathChanged())'
+          if guard not in pipeline:
+              pattern = re.compile(r'^(?P<indent>\s*&& target_branch == "[^"]+")$', re.MULTILINE)
+              pipeline, count = pattern.subn(lambda match: f'{match.group(0)}\n{match.group("indent").split("&&")[0]}{guard}', pipeline, count=1)
+              if count != 1:
+                  raise SystemExit(f"Could not add the nightly path guard to {pipeline_path}")
+              pipeline_path.write_text(pipeline)
+          PY
+          fi
           
       - name: Print debug logs
         if: always()
