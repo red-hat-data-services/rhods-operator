@@ -153,7 +153,6 @@ jobs:
         env:
           BRANCH: ${{ steps.config.outputs.release_branch }}
           EG_MODE: ${{ inputs.eg-mode }}
-          NIGHTLY_BUILD: ${{ inputs.nightly }}
           RHOAI_QUAY_API_TOKEN: ${{ secrets.RHOAI_QUAY_API_TOKEN }}
         run: |
           RHOAI_VERSION=v${BRANCH/rhoai-/}
@@ -171,9 +170,6 @@ jobs:
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
           PUSH_PIPELINE_OPERATION=enable
-          if [[ "${NIGHTLY_BUILD}" == "true" ]]; then
-            PUSH_PIPELINE_OPERATION=disable
-          fi
 
           python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation ${PUSH_PIPELINE_OPERATION}
           
