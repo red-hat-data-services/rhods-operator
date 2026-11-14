@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      target_release_branch:
+        description: 'Release branch to process when testing this workflow from another ref.'
+        required: false
+        default: ''
+        type: string
   push:
     branches:
       - 'rhoai-[23].[0-9]'  # e.g. rhoai-2.1, rhoai-3.1, rhoai-3.4
@@ -69,6 +74,7 @@ jobs:
           EG_MODE: ${{ inputs.eg-mode }}
           EG_BRANCH: ${{ inputs.eg-branch }}
           RHOAI_VERSION: ${{ inputs.rhoai-version }}
+          TARGET_RELEASE_BRANCH: ${{ inputs.target_release_branch }}
         run: |
           set -euo pipefail
 
@@ -89,7 +95,11 @@ jobs:
             RBC_REF="rhoai-${MAJOR_MINOR}"
             OPERATOR_REF="$EG_BRANCH"
           else
-            BRANCH="${GITHUB_REF_NAME}"
+            BRANCH="${TARGET_RELEASE_BRANCH:-${GITHUB_REF_NAME}}"
+            if [[ -n "$TARGET_RELEASE_BRANCH" && ! "$TARGET_RELEASE_BRANCH" =~ ^rhoai-[0-9]+\.[0-9]+(-ea\.[0-9]+)?$ ]]; then
+              echo "::error::Invalid target_release_branch '${TARGET_RELEASE_BRANCH}'; expected rhoai-X.Y or rhoai-X.Y-ea.N."
+              exit 1
+            fi
             RELEASE_BRANCH="$BRANCH"
             RBC_REF="$BRANCH"
             OPERATOR_REF="$BRANCH"
