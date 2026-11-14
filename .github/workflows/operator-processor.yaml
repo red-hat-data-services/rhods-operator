@@ -412,7 +412,37 @@ jobs:
             git commit --allow-empty -m "early-gate: pin component digests for ${TARGET_REF}"
             git push origin "HEAD:${TARGET_REF}"
           else
-            git diff --staged --quiet || (git commit -m "Updating the operator repo with latest images and manifests" && git push origin "HEAD:${TARGET_REF}")
+            if ! git diff --staged --quiet; then
+              git commit -m "Updating the operator repo with latest images and manifests"
+
+              # Other automation can update the release branch while this
+              # processor is gathering manifests and component images. Rebase
+              # our generated commit onto the latest branch and retry the push.
+              pushed=false
+              for attempt in 1 2 3; do
+                if git push origin "HEAD:${TARGET_REF}"; then
+                  pushed=true
+                  break
+                fi
+
+                if [[ "$attempt" -eq 3 ]]; then
+                  break
+                fi
+
+                echo "Push attempt ${attempt} failed; fetching ${TARGET_REF} and rebasing before retry."
+                git fetch origin "${TARGET_REF}"
+                if ! git rebase FETCH_HEAD; then
+                  git rebase --abort || true
+                  echo "::error::Could not rebase the processor changes onto the latest ${TARGET_REF}; rerun the processor."
+                  exit 1
+                fi
+              done
+
+              if [[ "$pushed" != "true" ]]; then
+                echo "::error::Could not push processor changes to ${TARGET_REF} after 3 attempts."
+                exit 1
+              fi
+            fi
           fi
 
       - name: Upload debug logs
