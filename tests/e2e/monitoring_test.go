@@ -1492,6 +1492,19 @@ func (tc *MonitoringTestCtx) validateTempoStackCreation(t *testing.T, backend, s
 		WithEventuallyTimeout(tc.TestTimeouts.monitoringStackTimeout),
 		WithCustomErrorMsg("TempoStack should be created by controller with %s backend, but was not found or has incorrect backend type", backend),
 	)
+
+	expectedOTLPEndpoint := fmt.Sprintf(
+		"tempo-data-science-tempostack-gateway.%s.svc.cluster.local:8090",
+		tc.MonitoringNamespace,
+	)
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.OpenTelemetryCollector, types.NamespacedName{
+			Name:      OpenTelemetryCollectorName,
+			Namespace: tc.MonitoringNamespace,
+		}),
+		WithCondition(jq.Match(`.spec.config.exporters."otlp/tempo".endpoint == "%s"`, expectedOTLPEndpoint)),
+		WithCustomErrorMsg("collector must export TempoStack traces to gateway :8090"),
+	)
 }
 
 // validatePersesDatasourceTLS enables TLS on the existing traces configuration and validates

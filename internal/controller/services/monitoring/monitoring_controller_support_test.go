@@ -1219,7 +1219,8 @@ func TestAddTracesTemplateData_ZeroValues(t *testing.T) {
 				g.Expect(templateData).Should(HaveKey("TempoQueryEndpoint"))
 				endpoint, ok := templateData["TempoEndpoint"].(string)
 				g.Expect(ok).Should(BeTrue())
-				g.Expect(endpoint).Should(ContainSubstring("tempomonolithic"))
+				g.Expect(endpoint).Should(Equal(
+					"tempo-data-science-tempomonolithic-gateway.test-ns.svc.cluster.local:4317"))
 			}
 
 			// Verify S3/GCS-specific template data
@@ -1228,7 +1229,8 @@ func TestAddTracesTemplateData_ZeroValues(t *testing.T) {
 				g.Expect(templateData).Should(HaveKey("TempoQueryEndpoint"))
 				endpoint, ok := templateData["TempoEndpoint"].(string)
 				g.Expect(ok).Should(BeTrue())
-				g.Expect(endpoint).Should(ContainSubstring("tempostack"))
+				g.Expect(endpoint).Should(Equal(
+					"tempo-data-science-tempostack-gateway.test-ns.svc.cluster.local:8090"))
 				g.Expect(templateData).Should(HaveKey("Secret"))
 			}
 		})
