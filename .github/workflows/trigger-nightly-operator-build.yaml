@@ -92,7 +92,23 @@ jobs:
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
           
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation disable
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+
+          python3 - "${PUSH_PIPELINE_PATH}" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          pipeline_path = Path(sys.argv[1])
+          pipeline = pipeline_path.read_text()
+          guard = '&& !("build/schedule/operator-tekton-trigger.txt".pathChanged())'
+          if guard not in pipeline:
+              pattern = re.compile(r'^(?P<indent>\s*&& target_branch == "[^"]+")$', re.MULTILINE)
+              pipeline, count = pattern.subn(lambda match: f'{match.group(0)}\n{match.group("indent").split("&&")[0]}{guard}', pipeline, count=1)
+              if count != 1:
+                  raise SystemExit(f"Could not add the nightly path guard to {pipeline_path}")
+              pipeline_path.write_text(pipeline)
+          PY
           
       - name: Print debug logs
         if: always()
