@@ -63,6 +63,9 @@ const (
 	defaultTempoMemoryLimit   = "256Mi"
 	defaultTempoCPURequest    = "100m"
 	defaultTempoMemoryRequest = "256Mi"
+
+	tempoStackGatewayServiceName = "tempo-data-science-tempostack-gateway"
+	tempoStackGatewayOTLPPort    = 8090
 )
 
 var componentIDRE = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*(?:/[A-Za-z0-9][A-Za-z0-9_-]*)?$`)
@@ -257,11 +260,13 @@ func addTracesTemplateData(templateData map[string]any, traces *serviceApi.Trace
 		templateData["TempoQueryEndpoint"] = fmt.Sprintf("https://tempo-data-science-tempomonolithic-gateway.%s.svc.cluster.local:8080/api/traces/v1/%s/tempo", namespace, namespace)
 		templateData["Size"] = traces.Storage.Size
 	case serviceApi.StorageBackendS3, serviceApi.StorageBackendGCS:
-		templateData["TempoEndpoint"] = fmt.Sprintf("tempo-data-science-tempostack-gateway.%s.svc.cluster.local:4317", namespace)
+		templateData["TempoEndpoint"] = fmt.Sprintf("%s.%s.svc.cluster.local:%d",
+			tempoStackGatewayServiceName, namespace, tempoStackGatewayOTLPPort)
 		// Perses datasource query endpoint via gateway (port 8080) - always uses HTTPS (gateway is HTTPS-only).
 		// The gateway path prefix includes the tenant name and "tempo" path segment:
 		//   /api/traces/v1/{tenant}/tempo  ->  Perses appends /api/search etc.
-		templateData["TempoQueryEndpoint"] = fmt.Sprintf("https://tempo-data-science-tempostack-gateway.%s.svc.cluster.local:8080/api/traces/v1/%s/tempo", namespace, namespace)
+		templateData["TempoQueryEndpoint"] = fmt.Sprintf("https://%s.%s.svc.cluster.local:8080/api/traces/v1/%s/tempo",
+			tempoStackGatewayServiceName, namespace, namespace)
 		templateData["Secret"] = traces.Storage.Secret
 	}
 
