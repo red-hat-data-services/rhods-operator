@@ -111,7 +111,10 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Konflux-Automation
-          ref: main
+          # TEMPORARY (3.7 EA1 only): pinned to the early-gate snapshot-pinning
+          # branch so EG changes stay off main and cannot reach the 3.6 release.
+          # Revert to `main` once eg-snapshot-pinning merges to Konflux-Automation main.
+          ref: eg-snapshot-pinning
           path: utils
           token: ${{ steps.app-token.outputs.token }}
           sparse-checkout: |
