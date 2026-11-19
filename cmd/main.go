@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 
@@ -48,6 +49,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/fields"
+	klabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -578,4 +580,17 @@ func CreateServiceReconcilers(ctx context.Context, mgr manager.Manager) error {
 		}
 		return nil
 	})
+}
+
+// withModelRegistryNamespaces retains existing namespace watches and includes
+// Model Registry resources in its isolated controller and custom workload namespaces.
+// The fallback watches only resources labeled by the Model Registry renderer.
+func withModelRegistryNamespaces(namespaces map[string]cache.Config) map[string]cache.Config {
+	result := maps.Clone(namespaces)
+	result[cache.AllNamespaces] = cache.Config{
+		LabelSelector: klabels.SelectorFromSet(map[string]string{
+			labels.ODH.Component(modelregistryctrl.LegacyComponentName): labels.True,
+		}),
+	}
+	return result
 }
