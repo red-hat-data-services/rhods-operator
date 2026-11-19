@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: model-registry-operator-system
+resources:
+- resources.yaml
+configMapGenerator:
+- name: parameters
+  envs:
+  - params.env
+replacements:
+- source:
+    kind: ConfigMap
+    name: parameters
+    fieldPath: data.REGISTRIES_NAMESPACE
+  targets:
+  - select:
+      kind: Role
+    fieldPaths:
+    - metadata.namespace
+  - select:
+      kind: RoleBinding
+    fieldPaths:
+    - metadata.namespace
+  - select:
+      kind: Deployment
+    fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=REGISTRIES_NAMESPACE].value
+- source:
+    kind: ConfigMap
+    name: parameters
+    fieldPath: data.APPLICATIONS_NAMESPACE
+  targets:
+  - select:
+      kind: Template
+    fieldPaths:
+    - metadata.namespace

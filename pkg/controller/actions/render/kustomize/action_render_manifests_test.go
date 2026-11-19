@@ -258,3 +258,35 @@ func TestRenderResourcesWithCacheAction(t *testing.T) {
 		}
 	}
 }
+
+func TestNamespaceOverride(t *testing.T) {
+	for _, preserve := range []bool{false, true} {
+		name := "applications namespace by default"
+		want := "applications"
+		if preserve {
+			name = "preserve component namespaces"
+			want = "component"
+		}
+		t.Run(name, func(t *testing.T) {
+			g := NewWithT(t)
+			fs := filesys.MakeFsInMemory()
+			g.Expect(fs.MkdirAll("manifests")).To(Succeed())
+			g.Expect(fs.WriteFile("manifests/kustomization.yaml", []byte("resources: [configmap.yaml]\nnamespace: component\n"))).To(Succeed())
+			g.Expect(fs.WriteFile("manifests/configmap.yaml", []byte(testRenderResourcesConfigMap))).To(Succeed())
+			opts := []kustomize.ActionOpts{kustomize.WithEngineFS(fs), kustomize.WithCache(false)}
+			if preserve {
+				opts = append(opts, kustomize.WithPreservedNamespaces())
+			}
+			rr := types.ReconciliationRequest{
+				Instance: &componentApi.Dashboard{},
+				DSCI: &dsciv1.DSCInitialization{Spec: dsciv1.DSCInitializationSpec{
+					ApplicationsNamespace: "applications",
+				}},
+				Manifests: []types.ManifestInfo{{Path: "manifests"}},
+			}
+			g.Expect(kustomize.NewAction(opts...)(t.Context(), &rr)).To(Succeed())
+			g.Expect(rr.Resources).To(HaveLen(1))
+			g.Expect(rr.Resources[0].GetNamespace()).To(Equal(want))
+		})
+	}
+}
