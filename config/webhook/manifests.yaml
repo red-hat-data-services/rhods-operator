@@ -10,46 +10,6 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /platform-connection-isvc
-  failurePolicy: Fail
-  name: connection-isvc.opendatahub.io
-  rules:
-  - apiGroups:
-    - serving.kserve.io
-    apiVersions:
-    - v1beta1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - inferenceservices
-  sideEffects: NoneOnDryRun
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
-      path: /platform-connection-notebook
-  failurePolicy: Fail
-  name: connection-notebook.opendatahub.io
-  rules:
-  - apiGroups:
-    - kubeflow.org
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - notebooks
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
       path: /mutate-datasciencecluster
   failurePolicy: Fail
   name: datasciencecluster-defaulter.opendatahub.io
@@ -93,6 +53,46 @@ webhooks:
       path: /mutate-hardware-profile
   failurePolicy: Fail
   name: hardwareprofile-notebook-injector.opendatahub.io
+  rules:
+  - apiGroups:
+    - kubeflow.org
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - notebooks
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /platform-connection-isvc
+  failurePolicy: Fail
+  name: connection-isvc.opendatahub.io
+  rules:
+  - apiGroups:
+    - serving.kserve.io
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - inferenceservices
+  sideEffects: NoneOnDryRun
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /platform-connection-notebook
+  failurePolicy: Fail
+  name: connection-notebook.opendatahub.io
   rules:
   - apiGroups:
     - kubeflow.org
