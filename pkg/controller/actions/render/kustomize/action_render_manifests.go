@@ -21,6 +21,8 @@ type Action struct {
 	cacher resourcecacher.ResourceCacher
 	cache  bool
 
+	preserveNamespaces bool
+
 	keOpts []kustomize.EngineOptsFn
 	ke     *kustomize.Engine
 }
@@ -63,6 +65,14 @@ func WithManifestsOptions(values ...kustomize.EngineOptsFn) ActionOpts {
 	}
 }
 
+// WithPreservedNamespaces keeps the namespaces and namespace references rendered by
+// the component manifests instead of moving them to the applications namespace.
+func WithPreservedNamespaces() ActionOpts {
+	return func(action *Action) {
+		action.preserveNamespaces = true
+	}
+}
+
 func WithCache(enabled bool) ActionOpts {
 	return func(action *Action) {
 		action.cache = enabled
@@ -75,11 +85,15 @@ func (a *Action) run(ctx context.Context, rr *types.ReconciliationRequest) error
 
 func (a *Action) render(_ context.Context, rr *types.ReconciliationRequest) (resources.UnstructuredList, error) {
 	result := make(resources.UnstructuredList, 0)
+	namespace := rr.DSCI.Spec.ApplicationsNamespace
+	if a.preserveNamespaces {
+		namespace = ""
+	}
 
 	for i := range rr.Manifests {
 		renderedResources, err := a.ke.Render(
 			rr.Manifests[i].String(),
-			kustomize.WithNamespace(rr.DSCI.Spec.ApplicationsNamespace),
+			kustomize.WithNamespace(namespace),
 		)
 
 		if err != nil {

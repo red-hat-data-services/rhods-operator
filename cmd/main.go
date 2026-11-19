@@ -267,6 +267,8 @@ func main() { //nolint:funlen,maintidx,gocyclo
 		os.Exit(1)
 	}
 
+	modelRegistryCache := withModelRegistryNamespaces(oDHCache)
+
 	cacheOptions := cache.Options{
 		Scheme: scheme,
 		ByObject: map[client.Object]cache.ByObject{
@@ -277,7 +279,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 			},
 			// it is hard to find a label can be used for both trustCAbundle configmap and inferenceservice-config and deletionCM
 			&corev1.ConfigMap{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			// For domain to get OpenshiftIngress and default cert
 			&operatorv1.IngressController{}: {
@@ -289,7 +291,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 			},
 			// for prometheus and black-box deployment and ones we owns
 			&appsv1.Deployment{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			// kueue + monitoring need prometheusrules
 			&promv1.PrometheusRule{}: {
@@ -305,10 +307,10 @@ func main() { //nolint:funlen,maintidx,gocyclo
 				Namespaces: oDHCache,
 			},
 			&rbacv1.Role{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			&rbacv1.RoleBinding{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 		},
 		DefaultTransform: func(in any) (any, error) {
