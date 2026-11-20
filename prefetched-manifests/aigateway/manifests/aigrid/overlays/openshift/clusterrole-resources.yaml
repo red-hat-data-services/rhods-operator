@@ -32,3 +32,8 @@ rules:
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["get", "create", "patch", "update"]
+  # delete is scoped: the operator only removes grid-operator-local-records during reconcile.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["grid-operator-local-records"]
+    verbs: ["delete"]

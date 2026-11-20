@@ -27,6 +27,10 @@ resources:
   - serviceaccount-metrics-scraper.yaml
   - serviceaccount.yaml
   - servicemonitor.yaml
+  - validatingadmissionpolicy-endpointslice-cleanup.yaml
+  - validatingadmissionpolicy-protect-config.yaml
+  - validatingadmissionpolicybinding-endpointslice-cleanup.yaml
+  - validatingadmissionpolicybinding-protect-config.yaml
 
 labels:
   - pairs:

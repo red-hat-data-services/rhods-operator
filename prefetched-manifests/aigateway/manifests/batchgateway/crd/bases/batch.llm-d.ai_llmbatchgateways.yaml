@@ -1187,6 +1187,18 @@ spec:
                           SendFairnessHeader controls whether the processor sends a fairness header
                           to the inference gateway for fair scheduling across tenants.
                         type: boolean
+                      tenantMetadataKey:
+                        description: |-
+                          TenantMetadataKey, when set, makes the processor store the job's tenant
+                          ID under this key in async request metadata, so quota gates
+                          (redis-quota, sql-quota) can tell tenants apart. Use "userid" to match
+                          their default attribute. Empty omits it.
+                        maxLength: 253
+                        type: string
+                        x-kubernetes-validations:
+                        - message: tenantMetadataKey must not be traceparent or tracestate
+                          rule: self.lowerAscii() != 'traceparent' && self.lowerAscii()
+                            != 'tracestate'
                     type: object
                   dispatchMode:
                     description: |-

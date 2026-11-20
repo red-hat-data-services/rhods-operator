@@ -56,8 +56,7 @@ spec:
               description: |-
                 Specification for a [`GridNetwork`].
 
-                Defines the grid's seed peers, gateway associations, SWIM
-                tuning, and TLS secret references.
+                Defines the grid's gateway associations, membership, and TLS secret references.
               properties:
                 admissionPolicy:
                   description: |-
@@ -466,8 +465,8 @@ spec:
                           sovereignty:
                             description: |-
                               The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
-                              may be served in, and whether it refuses or only audits. Under any other router the
-                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+                              may be served in, and whether it refuses or only audits. Admission rejects it under
+                              any other router.
 
                               Default: unset, no fence.
                             nullable: true
@@ -576,6 +575,8 @@ spec:
                             type: string
                         type: object
                         x-kubernetes-validations:
+                          - message: sovereignty is applied only by siteRouter gridSiteRoute
+                            rule: '!has(self.sovereignty) || (has(self.siteRouter) && self.siteRouter == ''gridSiteRoute'')'
                           - message: set only `enabled` or `generate`, not both
                             rule: '!(has(self.enabled) && has(self.generate))'
                           - message: set only `credentialMountBase` or `credentialMountPath`, not both
@@ -914,8 +915,8 @@ spec:
                           sovereignty:
                             description: |-
                               The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
-                              may be served in, and whether it refuses or only audits. Under any other router the
-                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+                              may be served in, and whether it refuses or only audits. Admission rejects it under
+                              any other router.
 
                               Default: unset, no fence.
                             nullable: true
@@ -1420,8 +1421,8 @@ spec:
                           sovereignty:
                             description: |-
                               The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
-                              may be served in, and whether it refuses or only audits. Under any other router the
-                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+                              may be served in, and whether it refuses or only audits. Admission rejects it under
+                              any other router.
 
                               Default: unset, no fence.
                             nullable: true
@@ -1530,6 +1531,8 @@ spec:
                             type: string
                         type: object
                         x-kubernetes-validations:
+                          - message: sovereignty is applied only by siteRouter gridSiteRoute
+                            rule: '!has(self.sovereignty) || (has(self.siteRouter) && self.siteRouter == ''gridSiteRoute'')'
                           - message: set only `enabled` or `generate`, not both
                             rule: '!(has(self.enabled) && has(self.generate))'
                           - message: set only `credentialMountBase` or `credentialMountPath`, not both
@@ -1852,8 +1855,8 @@ spec:
                           sovereignty:
                             description: |-
                               The sovereignty fence `gridSiteRoute` applies: the header naming the zones a request
-                              may be served in, and whether it refuses or only audits. Under any other router the
-                              config is not rendered, and the status names `SovereigntyWithoutGridSiteRoute`.
+                              may be served in, and whether it refuses or only audits. Admission rejects it under
+                              any other router.
 
                               Default: unset, no fence.
                             nullable: true
@@ -1962,6 +1965,8 @@ spec:
                             type: string
                         type: object
                         x-kubernetes-validations:
+                          - message: sovereignty is applied only by siteRouter gridSiteRoute
+                            rule: '!has(self.sovereignty) || (has(self.siteRouter) && self.siteRouter == ''gridSiteRoute'')'
                           - message: set only `enabled` or `generate`, not both
                             rule: '!(has(self.enabled) && has(self.generate))'
                           - message: set only `credentialMountBase` or `credentialMountPath`, not both
@@ -2083,6 +2088,19 @@ spec:
                         - Swim
                         - Local
                       type: string
+                    swim:
+                      description: SWIM seed peers used when `mode` is `Swim`.
+                      nullable: true
+                      properties:
+                        seeds:
+                          default: []
+                          description: |-
+                            SWIM peer endpoints in host:port form. Literal IPv4, bracketed IPv6,
+                            and DNS hostnames are accepted.
+                          items:
+                            type: string
+                          type: array
+                      type: object
                   required:
                     - mode
                   type: object
@@ -2173,14 +2191,6 @@ spec:
                   required:
                     - strategy
                   type: object
-                seeds:
-                  default: []
-                  description: |-
-                    Initial SWIM seed peer endpoints in host:port form. Literal IPv4, bracketed
-                    IPv6, and DNS hostnames are accepted.
-                  items:
-                    type: string
-                  type: array
                 selectionPolicy:
                   description: |-
                     Local request distribution policy for the active selection group.
@@ -2255,28 +2265,6 @@ spec:
                   minimum: 1.0
                   nullable: true
                   type: integer
-                swim:
-                  default:
-                    gossipNodes: 3
-                    probeInterval: 5s
-                    suspicionTimeout: 10s
-                  description: SWIM protocol configuration.
-                  properties:
-                    gossipNodes:
-                      default: 3
-                      description: Fanout for indirect probes.
-                      format: uint32
-                      minimum: 0.0
-                      type: integer
-                    probeInterval:
-                      default: 5s
-                      description: WAN probe interval (e.g. "5s").
-                      type: string
-                    suspicionTimeout:
-                      default: 10s
-                      description: Suspicion timeout before declaring dead (e.g. "10s").
-                      type: string
-                  type: object
                 tls:
                   default:
                     caSecretRef: null
@@ -2404,6 +2392,8 @@ spec:
                   rule: '!has(oldSelf.gridId) || oldSelf.gridId == '''' || (has(self.gridId) && self.gridId == oldSelf.gridId)'
                 - message: membership.mode Local requires signalTransport.mode poll
                   rule: '!has(self.membership) || self.membership.mode != ''Local'' || (has(self.signalTransport) && self.signalTransport.mode == ''poll'')'
+                - message: membership.swim is only valid when membership.mode is Swim
+                  rule: '!has(self.membership) || self.membership.mode == ''Swim'' || !has(self.membership.swim)'
                 - message: set only `gatewayRefs` or `consumerGateways`, not both
                   rule: '!(has(self.gatewayRefs) && has(self.consumerGateways))'
             status:
@@ -2529,7 +2519,7 @@ spec:
                         description: Original wire flag, retained to verify exact duplicates.
                         type: boolean
                       sequence:
-                        description: Last durably accepted sequence.
+                        description: Last durably recorded sequence; live sequence watermarks are process-local.
                         format: int64
                         minimum: 1.0
                         type: integer

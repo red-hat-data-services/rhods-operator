@@ -25,8 +25,9 @@ rules:
       - "grid-operator-signals"
       - "grid-operator-swim"
     verbs: ["get"]
-  # create, and list and delete for the slices the controller leaves when a Service loses its
-  # selector, whose names it generates. The holder deletes only those on its own Services.
+  # create and list to write the holder's EndpointSlice; delete for controller-managed
+  # slices left when a Service loses its selector. A ValidatingAdmissionPolicy enforces
+  # that the operator deletes only those on its own Services.
   - apiGroups: ["discovery.k8s.io"]
     resources: ["endpointslices"]
     verbs: ["create", "list", "delete"]
