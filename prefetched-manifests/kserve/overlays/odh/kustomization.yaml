@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
 - ../../default
-- ../../llmisvc
 - ../../monitoring/llmisvc
 - llm-svc-scc.yaml
 - network-policies.yaml
@@ -43,27 +42,6 @@ patches:
     - op: add
       path: /metadata/annotations/service.beta.openshift.io~1inject-cabundle
       value: "true"
-- target:
-    kind: LLMInferenceServiceConfig
-    name: kserve-config-llm-scheduler
-  patch: |-
-    - op: replace
-      path: /spec/router/scheduler/template/containers/0/image
-      value: "$(kserve-llm-d-inference-scheduler)"
-- target:
-    kind: LLMInferenceServiceConfig
-    name: kserve-config-llm-decode-template
-  patch: |-
-    - op: replace
-      path: /spec/template/initContainers/0/image
-      value: "$(kserve-llm-d-routing-sidecar)"
-- target:
-    kind: LLMInferenceServiceConfig
-    name: kserve-config-llm-decode-worker-data-parallel
-  patch: |-
-    - op: replace
-      path: /spec/template/initContainers/0/image
-      value: "$(kserve-llm-d-routing-sidecar)"
 
 replacements:
 - source:
@@ -76,44 +54,6 @@ replacements:
       name: kserve-controller-manager
     fieldPaths:
     - spec.template.spec.containers.[name=manager].image
-- source:
-    kind: ConfigMap
-    name: kserve-parameters
-    fieldPath: data.kserve-llm-d
-  targets:
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-decode-template
-      fieldPaths:
-        - spec.template.containers.[name=main].image
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-decode-worker-data-parallel
-      fieldPaths:
-        - spec.template.containers.[name=main].image
-        - spec.worker.containers.[name=main].image
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-prefill-template
-      fieldPaths:
-        - spec.prefill.template.containers.[name=main].image
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-prefill-worker-data-parallel
-      fieldPaths:
-        - spec.prefill.template.containers.[name=main].image
-        - spec.prefill.worker.containers.[name=main].image
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-template
-      fieldPaths:
-        - spec.template.containers.[name=main].image
-    - select:
-        kind: LLMInferenceServiceConfig
-        name: kserve-config-llm-worker-data-parallel
-      fieldPaths:
-        - spec.template.containers.[name=main].image
-        - spec.worker.containers.[name=main].image
 
 configMapGenerator:
 - envs:
@@ -155,20 +95,6 @@ vars:
 - fieldref:
     fieldpath: data.kube-rbac-proxy
   name: kube-rbac-proxy
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: kserve-parameters
-- fieldref:
-    fieldpath: data.kserve-llm-d-inference-scheduler
-  name: kserve-llm-d-inference-scheduler
-  objref:
-    apiVersion: v1
-    kind: ConfigMap
-    name: kserve-parameters
-- fieldref:
-    fieldpath: data.kserve-llm-d-routing-sidecar
-  name: kserve-llm-d-routing-sidecar
   objref:
     apiVersion: v1
     kind: ConfigMap
