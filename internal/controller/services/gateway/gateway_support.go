@@ -600,7 +600,7 @@ func getAuthProxySecretValues(
 		if hasClientSecret && hasCookieSecret {
 			switch authMode {
 			case cluster.AuthModeOIDC:
-				return oidcConfig.ClientID, string(clientSecretBytes), string(cookieSecretBytes), nil
+				// Read clientSecretRef on every reconcile. Reuse only the cookie secret.
 			case cluster.AuthModeIntegratedOAuth:
 				return AuthClientID, string(clientSecretBytes), string(cookieSecretBytes), nil
 			default:
@@ -656,7 +656,11 @@ func getAuthProxySecretValues(
 		return "", "", "", fmt.Errorf("auth mode: %s is not supported", authMode)
 	}
 
-	// Always generate new cookie secret on oauth or oidc mode.
+	// Keep the existing cookie secret across reconciles.
+	if secretErr == nil && len(existingSecret.Data[EnvCookieSecret]) > 0 {
+		return clientID, clientSecretValue, string(existingSecret.Data[EnvCookieSecret]), nil
+	}
+
 	cookieSecretGen, err := cluster.NewSecret("cookie-secret", "random", 32)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to generate cookie secret: %w", err)
