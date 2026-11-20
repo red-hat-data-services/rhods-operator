@@ -316,3 +316,39 @@ func TestDeploymentsAvailableActionNotReadyNotFound(t *testing.T) {
 		),
 	)
 }
+
+func TestDeploymentsAvailableAcrossNamespaces(t *testing.T) {
+	g := NewWithT(t)
+	cl, err := fakeclient.New(fakeclient.WithObjects(
+		&appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "model-registry-operator-controller-manager",
+				Namespace: "model-registry-operator-system",
+				Labels:    map[string]string{labels.PlatformPartOf: "modelregistry"},
+			},
+			Status: appsv1.DeploymentStatus{Replicas: 1, ReadyReplicas: 1},
+		},
+		&appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "unrelated-unavailable-deployment",
+				Namespace: "other-namespace",
+				Labels:    map[string]string{labels.PlatformPartOf: "dashboard"},
+			},
+			Status: appsv1.DeploymentStatus{Replicas: 1},
+		},
+	))
+	g.Expect(err).NotTo(HaveOccurred())
+	rr := types.ReconciliationRequest{
+		Client:   cl,
+		Instance: &componentApi.ModelRegistry{},
+		DSCI: &dsciv1.DSCInitialization{Spec: dsciv1.DSCInitializationSpec{
+			ApplicationsNamespace: "redhat-ods-applications",
+		}},
+	}
+	rr.Conditions = conditions.NewManager(rr.Instance, status.ConditionTypeReady)
+	g.Expect(deployments.NewAction(deployments.InNamespace(metav1.NamespaceAll))(t.Context(), &rr)).To(Succeed())
+	g.Expect(rr.Instance).To(WithTransform(
+		matchers.ExtractStatusCondition(status.ConditionDeploymentsAvailable),
+		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{"Status": Equal(metav1.ConditionTrue)}),
+	))
+}

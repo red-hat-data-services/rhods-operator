@@ -1,0 +1,109 @@
+# Minimal namespace contract from the Model Registry RHOAI overlay.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: model-registry-operator-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: model-registry-operator-controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-operator-controller-manager
+spec:
+  template:
+    spec:
+      serviceAccountName: model-registry-operator-controller-manager
+      containers:
+      - name: manager
+        image: example.invalid/model-registry-operator:test
+        env:
+        - name: REGISTRIES_NAMESPACE
+          value: rhoai-model-registries
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: model-registry-operator-manager-role
+rules:
+- apiGroups: [""]
+  resources: [secrets]
+  verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: model-registry-operator-registry-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: model-registry-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: model-registry-operator-controller-manager
+  namespace: model-registry-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: model-registry-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: model-registry-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: model-registry-operator-controller-manager
+  namespace: model-registry-operator-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-registry-operator-webhook-service
+spec:
+  ports:
+  - port: 443
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: model-registry-operator-mutating-webhook-configuration
+webhooks:
+- name: modelregistry.example.com
+  clientConfig:
+    service:
+      name: model-registry-operator-webhook-service
+      namespace: model-registry-operator-system
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: model-registry-operator-validating-webhook-configuration
+webhooks:
+- name: modelregistry.example.com
+  clientConfig:
+    service:
+      name: model-registry-operator-webhook-service
+      namespace: model-registry-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelregistries.modelregistry.opendatahub.io
+spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: model-registry-operator-webhook-service
+          namespace: model-registry-operator-system
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: model-registry-operator-jobs-async-upload-s3-to-oci-template
+objects: []

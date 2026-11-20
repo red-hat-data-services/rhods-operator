@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 
@@ -48,6 +49,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/fields"
+	klabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -267,6 +269,8 @@ func main() { //nolint:funlen,maintidx,gocyclo
 		os.Exit(1)
 	}
 
+	modelRegistryCache := withModelRegistryNamespaces(oDHCache)
+
 	cacheOptions := cache.Options{
 		Scheme: scheme,
 		ByObject: map[client.Object]cache.ByObject{
@@ -277,7 +281,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 			},
 			// it is hard to find a label can be used for both trustCAbundle configmap and inferenceservice-config and deletionCM
 			&corev1.ConfigMap{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			// For domain to get OpenshiftIngress and default cert
 			&operatorv1.IngressController{}: {
@@ -289,7 +293,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 			},
 			// for prometheus and black-box deployment and ones we owns
 			&appsv1.Deployment{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			// kueue + monitoring need prometheusrules
 			&promv1.PrometheusRule{}: {
@@ -305,10 +309,10 @@ func main() { //nolint:funlen,maintidx,gocyclo
 				Namespaces: oDHCache,
 			},
 			&rbacv1.Role{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 			&rbacv1.RoleBinding{}: {
-				Namespaces: oDHCache,
+				Namespaces: modelRegistryCache,
 			},
 		},
 		DefaultTransform: func(in any) (any, error) {
@@ -576,4 +580,17 @@ func CreateServiceReconcilers(ctx context.Context, mgr manager.Manager) error {
 		}
 		return nil
 	})
+}
+
+// withModelRegistryNamespaces retains existing namespace watches and includes
+// Model Registry resources in its isolated controller and custom workload namespaces.
+// The fallback watches only resources labeled by the Model Registry renderer.
+func withModelRegistryNamespaces(namespaces map[string]cache.Config) map[string]cache.Config {
+	result := maps.Clone(namespaces)
+	result[cache.AllNamespaces] = cache.Config{
+		LabelSelector: klabels.SelectorFromSet(map[string]string{
+			labels.ODH.Component(modelregistryctrl.LegacyComponentName): labels.True,
+		}),
+	}
+	return result
 }
