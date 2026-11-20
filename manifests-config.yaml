@@ -56,7 +56,7 @@ components:
       sourcePath: config
     rhoai:
       repo: red-hat-data-services/model-registry-operator
-      ref: rhoai-3.6@e6980166907a322279592fffb771b43130733767
+      ref: rhoai-3.6@d69f862b0e1bb04815f48b9355ecbcc29fc14376
       sourcePath: config
   datasciencepipelines:
     odh:
@@ -743,22 +743,35 @@ imageOverrides:
     rhoai:
       base: "quay.io/rhoai/odh-ml-pipelines-scheduledworkflow-v2-rhel9"
       digest: "sha256:9d9980a5116c31dc600a005469935676f39d61a27fd8e0031bcc0b62ac8fc980"
+  # Freeze the combined catalog release until an explicit digest update is approved.
+  # registry.redhat.io/rhai/ai-hub-catalog-rhel9@sha256:0e396f316c5da71164d97e36a2d950be1ba15fc3659b177797a7f0b8b74e5b96
+  RELATED_IMAGE_RHAI_AI_HUB_CATALOG_IMAGE:
+    component: "aihub"
+    source: "csv"
+    rhoai:
+      base: "registry.redhat.io/rhai/ai-hub-catalog-rhel9"
+      digest: "sha256:0e396f316c5da71164d97e36a2d950be1ba15fc3659b177797a7f0b8b74e5b96"
+      pinned: true
   RELATED_IMAGE_ODH_MODEL_METADATA_COLLECTION_IMAGE:
     source: "csv"
     odh:
       base: "quay.io/opendatahub/odh-model-metadata-collection"
       digest: "sha256:be0d7c55409574d8f7dda992f0c7e94721d18f2af96db229a10a3d099774de15"
     rhoai:
-      base: "quay.io/rhoai/odh-model-metadata-collection-rhel9"
-      digest: "sha256:3738d6c09a429f7ba8d74ca6c35f33e5a4c550cb783168f5a5292c5914766fc5"
+      # Same pinned release as RELATED_IMAGE_RHAI_AI_HUB_CATALOG_IMAGE.
+      base: "registry.redhat.io/rhai/ai-hub-catalog-rhel9"
+      digest: "sha256:0e396f316c5da71164d97e36a2d950be1ba15fc3659b177797a7f0b8b74e5b96"
+      pinned: true
   RELATED_IMAGE_ODH_MODEL_PERFORMANCE_DATA_IMAGE:
     source: "csv"
     odh:
       base: "quay.io/opendatahub/odh-model-metadata-collection"
       digest: "sha256:be0d7c55409574d8f7dda992f0c7e94721d18f2af96db229a10a3d099774de15"
     rhoai:
-      base: "quay.io/rhoai/odh-model-performance-data-rhel9"
-      digest: "sha256:c0c9d5607e5632aba2d285615490626d8fa03485545202073a52b13c32b799b1"
+      # Same pinned release as RELATED_IMAGE_RHAI_AI_HUB_CATALOG_IMAGE.
+      base: "registry.redhat.io/rhai/ai-hub-catalog-rhel9"
+      digest: "sha256:0e396f316c5da71164d97e36a2d950be1ba15fc3659b177797a7f0b8b74e5b96"
+      pinned: true
   RELATED_IMAGE_ODH_MODEL_REGISTRY_IMAGE:
     source: "csv"
     odh:
