@@ -2618,6 +2618,42 @@ spec:
                   ServiceAccountName is the name of the ServiceAccount to use for the MLflow pod.
                   If not specified, a default ServiceAccount will be "mlflow-sa"
                 type: string
+              startupProbe:
+                description: |-
+                  StartupProbe configures startup timing for the tracking and dedicated artifact
+                  servers. Defaults allow approximately 180 seconds for initialization before
+                  restarting the container. Liveness and readiness checks wait for startup to
+                  succeed. The operator manages the HTTPS server-info endpoint.
+                properties:
+                  failureThreshold:
+                    default: 18
+                    description: |-
+                      FailureThreshold is the number of consecutive failures before restarting.
+                      With the default period of 10 seconds, 18 failures allow approximately
+                      180 seconds for startup. Successful startup ends this probe immediately.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  initialDelaySeconds:
+                    default: 0
+                    description: InitialDelaySeconds is the delay before the first
+                      startup check.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  periodSeconds:
+                    default: 10
+                    description: PeriodSeconds is the interval between startup checks.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  timeoutSeconds:
+                    default: 1
+                    description: TimeoutSeconds is the timeout for each startup check.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                type: object
               storage:
                 description: |-
                   Storage specifies the persistent storage configuration using standard PVC spec.

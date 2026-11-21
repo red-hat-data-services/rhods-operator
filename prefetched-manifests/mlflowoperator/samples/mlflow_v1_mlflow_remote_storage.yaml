@@ -37,6 +37,11 @@ spec:
       cpu: "2"
       memory: "2Gi"
 
+  # Allow approximately 300 seconds for slow external-database initialization.
+  # When omitted, both tracking and artifact servers allow approximately 180 seconds.
+  startupProbe:
+    failureThreshold: 30
+
   # Remote database for metadata - using secret references (recommended for production)
   # This keeps credentials out of the CR and in a Kubernetes secret
   backendStoreUriFrom:
