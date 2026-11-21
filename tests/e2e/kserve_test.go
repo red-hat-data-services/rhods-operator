@@ -22,6 +22,7 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/modules/kserve"
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/annotations"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/metadata/labels"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/test/matchers/jq"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/utils/test/testf"
@@ -42,6 +43,9 @@ const (
 	// prefix the kserve module looks for, but nothing ever schedules pods
 	// against it: the module only lists RuntimeClasses to detect CoCo support.
 	fakeCoCoRuntimeClassName = "kata-e2e"
+
+	modelCacheNamespace = "model-serving-cache"
+	modelCachePSAMarker = "kserve-modelcache"
 )
 
 type KserveTestCtx struct {
@@ -76,6 +80,7 @@ func kserveTestSuite(t *testing.T) {
 		TestCase{"Validate component enabled", componentCtx.ValidateComponentEnabled},
 		TestCase{"Validate module enabled", componentCtx.ValidateModuleEnabled},
 		TestCase{"Validate component spec", componentCtx.ValidateSpec},
+		TestCase{"Validate strict NetworkPolicy toggle projection", componentCtx.ValidateStrictNetworkPolicyToggle},
 		TestCase{"Validate operands have OwnerReferences", componentCtx.ValidateOperandsOwnerReferences},
 		TestCase{"Validate Connection API VAPs created when kserve is enabled", componentCtx.ValidateConnectionAPIPoliciesExist},
 		TestCase{"Validate update operand resources", componentCtx.ValidateUpdateDeploymentsResources},
@@ -169,6 +174,77 @@ func (tc *KserveTestCtx) ValidateSpec(t *testing.T) {
 				}()),
 		),
 		),
+	)
+}
+
+// ValidateStrictNetworkPolicyToggle verifies that the optional DSC toggle for
+// the strict per-LLMInferenceService NetworkPolicies is projected onto the
+// Kserve module CR when set, and dropped again when unset so the operand keeps
+// its own default (allow-all policies). The DSC is left as it was found. The
+// v2 round-trip of the field is covered by the DSC conversion webhook suite.
+func (tc *KserveTestCtx) ValidateStrictNetworkPolicyToggle(t *testing.T) {
+	t.Helper()
+
+	skipUnless(t, Smoke)
+
+	tc.SkipIfXKSCluster(t)
+
+	const field = "enableLLMInferenceServiceStrictNetworkPolicy"
+	kserveNN := types.NamespacedName{Name: componentApi.KserveInstanceName}
+
+	// On a developer cluster the DSC is whatever was there before the run. The
+	// steps below need the field to start absent, so bail out rather than clear
+	// a value somebody else put on the shared object.
+	dsc := tc.FetchDataScienceCluster()
+	if dsc.Spec.Components.Kserve.EnableLLMInferenceServiceStrictNetworkPolicy != nil {
+		t.Skip("DSC already carries the toggle; the test needs it absent")
+	}
+
+	// The DSC is shared with every later test case. Restore it even when an
+	// assertion below fails, so a failure here cannot turn the field into a
+	// persistent reconcile error for the rest of the suite.
+	t.Cleanup(func() {
+		tc.EventuallyResourcePatched(
+			WithMinimalObject(gvk.DataScienceCluster, tc.DataScienceClusterNamespacedName),
+			WithMutateFunc(func(obj *unstructured.Unstructured) error {
+				unstructured.RemoveNestedField(obj.Object, "spec", "components", "kserve", field)
+				return nil
+			}),
+			WithCondition(jq.Match(`.spec.components.kserve | has("%s") | not`, field)),
+		)
+	})
+
+	// Not set on the DSC: the operand must not carry the field either.
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.Kserve, kserveNN),
+		WithCondition(jq.Match(`.spec | has("%s") | not`, field)),
+	)
+
+	// Set it on the DSC and expect the same value on the operand.
+	tc.EventuallyResourcePatched(
+		WithMinimalObject(gvk.DataScienceCluster, tc.DataScienceClusterNamespacedName),
+		WithMutateFunc(func(obj *unstructured.Unstructured) error {
+			return unstructured.SetNestedField(obj.Object, true, "spec", "components", "kserve", field)
+		}),
+		WithCondition(jq.Match(`.spec.components.kserve.%s == true`, field)),
+	)
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.Kserve, kserveNN),
+		WithCondition(jq.Match(`.spec.%s == true`, field)),
+	)
+
+	// Clear it again and expect the operand to drop it.
+	tc.EventuallyResourcePatched(
+		WithMinimalObject(gvk.DataScienceCluster, tc.DataScienceClusterNamespacedName),
+		WithMutateFunc(func(obj *unstructured.Unstructured) error {
+			unstructured.RemoveNestedField(obj.Object, "spec", "components", "kserve", field)
+			return nil
+		}),
+		WithCondition(jq.Match(`.spec.components.kserve | has("%s") | not`, field)),
+	)
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.Kserve, kserveNN),
+		WithCondition(jq.Match(`.spec | has("%s") | not`, field)),
 	)
 }
 
@@ -865,12 +941,12 @@ func (tc *KserveTestCtx) ValidateModelCacheEnabled(t *testing.T) {
 		WithMinimalObject(gvk.PersistentVolume, types.NamespacedName{Name: "kserve-localmodelnode-pv"}),
 	)
 
-	// Verify PVC exists in apps namespace
-	t.Log("Verifying PersistentVolumeClaim kserve-localmodelnode-pvc exists")
+	// Verify PVC exists in the ModelCache namespace
+	t.Logf("Verifying PersistentVolumeClaim kserve-localmodelnode-pvc exists in namespace %q", modelCacheNamespace)
 	tc.EnsureResourceExists(
 		WithMinimalObject(gvk.PersistentVolumeClaim, types.NamespacedName{
 			Name:      "kserve-localmodelnode-pvc",
-			Namespace: tc.AppsNamespace,
+			Namespace: modelCacheNamespace,
 		}),
 	)
 
@@ -889,24 +965,30 @@ func (tc *KserveTestCtx) ValidateModelCacheEnabled(t *testing.T) {
 		),
 	)
 
-	// Verify namespace PSA label is privileged
-	t.Logf("Verifying namespace %q has PSA enforce=privileged", tc.AppsNamespace)
+	// Verify only the dedicated ModelCache namespace is elevated for this feature.
+	t.Logf("Verifying namespace %q has PSA enforce=privileged", modelCacheNamespace)
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.Namespace, types.NamespacedName{Name: modelCacheNamespace}),
+		WithCondition(And(
+			jq.Match(`.metadata.labels["%s"] == "privileged"`, labels.SecurityEnforce),
+			jq.Match(`.metadata.annotations["%s"] == "%s"`, annotations.PSAElevatedBy, modelCachePSAMarker),
+		)),
+	)
 	tc.EnsureResourceExists(
 		WithMinimalObject(gvk.Namespace, types.NamespacedName{Name: tc.AppsNamespace}),
-		WithCondition(
-			jq.Match(`.metadata.labels["%s"] == "privileged"`, labels.SecurityEnforce),
-		),
+		WithCondition(jq.Match(`.metadata.annotations["%s"] != "%s"`, annotations.PSAElevatedBy, modelCachePSAMarker)),
+		WithCustomErrorMsg("Applications namespace %s must not carry the ModelCache PSA marker", tc.AppsNamespace),
 	)
 }
 
 // ValidateModelCacheConfigMap verifies the inferenceservice-config ConfigMap is correctly
-// configured for ModelCache: localModel.enabled=true and jobNamespace matches the apps namespace.
+// configured for ModelCache: localModel.enabled=true and jobNamespace is the ModelCache namespace.
 func (tc *KserveTestCtx) ValidateModelCacheConfigMap(t *testing.T) {
 	t.Helper()
 
 	skipUnless(t, Tier1)
 
-	t.Logf("Verifying inferenceservice-config ConfigMap has localModel.enabled=true and jobNamespace=%s", tc.AppsNamespace)
+	t.Logf("Verifying inferenceservice-config ConfigMap has localModel.enabled=true and jobNamespace=%s", modelCacheNamespace)
 	tc.EnsureResourceExists(
 		WithMinimalObject(gvk.ConfigMap, types.NamespacedName{
 			Name:      "inferenceservice-config",
@@ -915,15 +997,16 @@ func (tc *KserveTestCtx) ValidateModelCacheConfigMap(t *testing.T) {
 		WithCondition(
 			And(
 				jq.Match(`.data.localModel | fromjson | .enabled == true`),
-				jq.Match(`.data.localModel | fromjson | .jobNamespace == "%s"`, tc.AppsNamespace),
+				jq.Match(`.data.localModel | fromjson | .jobNamespace == "%s"`, modelCacheNamespace),
 			),
 		),
 	)
 }
 
 // ValidateModelCacheDisabled disables ModelCache and verifies full cleanup:
-// PSA label reverts to baseline, ConfigMap localModel.enabled=false,
-// PV/PVC/LocalModelNodeGroup are deleted, and node labels are removed.
+// cache workloads and PVC are deleted, localModel is disabled in the ConfigMap,
+// PSA elevation is removed from the ModelCache namespace, and the PV,
+// LocalModelNodeGroup, and node labels are cleaned up.
 func (tc *KserveTestCtx) ValidateModelCacheDisabled(t *testing.T) {
 	t.Helper()
 
@@ -946,13 +1029,19 @@ func (tc *KserveTestCtx) ValidateModelCacheDisabled(t *testing.T) {
 		),
 	)
 
-	// Verify namespace PSA label reverted to baseline
-	t.Logf("Verifying namespace %q has PSA enforce=baseline", tc.AppsNamespace)
+	// Verify namespace PSA label reverted to baseline and the ModelCache marker was removed.
+	t.Logf("Verifying namespace %q has PSA enforce=baseline", modelCacheNamespace)
+	tc.EnsureResourceExists(
+		WithMinimalObject(gvk.Namespace, types.NamespacedName{Name: modelCacheNamespace}),
+		WithCondition(And(
+			jq.Match(`.metadata.labels["%s"] == "baseline"`, labels.SecurityEnforce),
+			jq.Match(`(.metadata.annotations["%s"] // "") == ""`, annotations.PSAElevatedBy),
+		)),
+	)
 	tc.EnsureResourceExists(
 		WithMinimalObject(gvk.Namespace, types.NamespacedName{Name: tc.AppsNamespace}),
-		WithCondition(
-			jq.Match(`.metadata.labels["%s"] == "baseline"`, labels.SecurityEnforce),
-		),
+		WithCondition(jq.Match(`.metadata.annotations["%s"] != "%s"`, annotations.PSAElevatedBy, modelCachePSAMarker)),
+		WithCustomErrorMsg("Applications namespace %s must not retain the ModelCache PSA marker", tc.AppsNamespace),
 	)
 
 	// Verify ConfigMap localModel.enabled is false
@@ -976,7 +1065,7 @@ func (tc *KserveTestCtx) ValidateModelCacheDisabled(t *testing.T) {
 	tc.EnsureResourceGone(
 		WithMinimalObject(gvk.PersistentVolumeClaim, types.NamespacedName{
 			Name:      "kserve-localmodelnode-pvc",
-			Namespace: tc.AppsNamespace,
+			Namespace: modelCacheNamespace,
 		}),
 	)
 
