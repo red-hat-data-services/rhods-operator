@@ -5,9 +5,8 @@ metadata:
   namespace: opendatahub
 spec:
   # Empty fields use the release images supplied by the product operator.
-  # Set either field to stable to follow its ImageStream, or pin a sha256 digest.
-  # Failed imports or invalid selections stop serving until a successful
-  # import or valid manual selection restores it.
+  # Either field may pin a sha256 digest. Stable and other tags are rejected.
+  # Invalid selections make the Catalog unready and request deployment scale-down.
   catalogDataImageStream: ""
   benchmarkDataImageStream: ""
   resources:

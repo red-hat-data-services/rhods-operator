@@ -72,6 +72,16 @@
 - source:
     kind: ConfigMap
     name: aihub-controller-parameters
+    fieldPath: data.RELATED_IMAGE_RHAI_AI_HUB_CATALOG_IMAGE
+  targets:
+    - select:
+        kind: Deployment
+        name: aihub-controller-manager
+      fieldPaths:
+        - spec.template.spec.containers.[name=manager].env.[name=RELATED_IMAGE_RHAI_AI_HUB_CATALOG_IMAGE].value
+- source:
+    kind: ConfigMap
+    name: aihub-controller-parameters
     fieldPath: data.RELATED_IMAGE_ODH_MODEL_REGISTRY_JOB_ASYNC_UPLOAD_IMAGE
   targets:
     - select:
