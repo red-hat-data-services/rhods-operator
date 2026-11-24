@@ -9,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
     pipelinesascode.tekton.dev/on-cel-expression: |
-      konflux_cluster == "stone-prod-p02"
+      "non-existent-file.non-existent-ext".pathChanged() && konflux_cluster == "stone-prod-p02"
       && event == "push"
       && target_branch == "rhoai-3.7-ea.1"
       && ( files.all.exists(p, !(
