@@ -4,7 +4,7 @@ map:
     dest: workbenches
     type: chart
     git.url: https://github.com/red-hat-data-services/workbenches-operator
-    git.commit: a75b1ea065dba68d2a394f2b3797a109e647ea35
+    git.commit: 6fa3bce9f8834e69768f581e72c7a0465c479990
   odh-kserve-module-operator:
     src: kserve-module/config
     dest: kserve-module-operator
@@ -55,7 +55,7 @@ map:
     src: config
     dest: mcplifecycleoperator
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-module-operator
-    git.commit: eb6cb7f89e55489f4dc43806891f6f22422b7c7f
+    git.commit: 4efe6446c56cbe66022c8cfe8ff7edbf2d6ea604
   odh-feast-module-operator:
     src: config/chart
     dest: data
@@ -78,7 +78,7 @@ map:
     dest: databaseservice
     type: chart
     git.url: https://github.com/red-hat-data-services/rhai-db-operator
-    git.commit: 80b9ad595914e692a4bcce6a094a7581aae5ae17
+    git.commit: d0fff1dcd11b50aed09c577703931249dcaf3e11
   odh-trainer-operator:
     src: rhoai/operator/config
     dest: trainer
@@ -111,10 +111,10 @@ additional_meta:
     git.commit: e69fbeda6185032ca6e0dfc0cc64e3885707426e
   odh-data-connect-hub-flight:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: bf34a3bd019e9b42cdd622bb38c1b18bc2550688
+    git.commit: a3a206739358b261304077bf8d0211a13baff4d4
   odh-data-connect-hub-rest:
     git.url: https://github.com/red-hat-data-services/data-connect-hub
-    git.commit: ed360ef1e6d65801a11165d15177965abc2d6f49
+    git.commit: a3a206739358b261304077bf8d0211a13baff4d4
   odh-data-science-pipelines-argo-argoexec:
     git.url: https://github.com/red-hat-data-services/argo-workflows
     git.commit: b41cc4dd6a8977a4cb5b58fa50e62dcceb8d7ef5
@@ -195,7 +195,7 @@ additional_meta:
     git.commit: bca83bc5f5d5cb5059b4e021895b6c02f9e6781e
   odh-llm-d-kv-pvc-evictor:
     git.url: https://github.com/red-hat-data-services/llm-d-kv-cache
-    git.commit: 2dd71986c7ab3278dfe1b566946e67e79696ea11
+    git.commit: d1f19dc245fce647ccf073610013620b3f910431
   odh-llm-d-router-disagg-sidecar:
     git.url: https://github.com/red-hat-data-services/llm-d-router
     git.commit: 4a1f6c56660be0ca97c8fed0bf602ab85257de3c
@@ -213,7 +213,7 @@ additional_meta:
     git.commit: 60774fd83d1270242c5c20518b1caac266ffdf87
   odh-mcp-lifecycle-operator:
     git.url: https://github.com/red-hat-data-services/mcp-lifecycle-operator
-    git.commit: b453d3bebd3080455847d9fbe1460afd9bb07ad4
+    git.commit: c098e8911156d83a055fd7fe8ea155d5795b447d
   odh-mlflow:
     git.url: https://github.com/red-hat-data-services/mlflow
     git.commit: b314289b33641a14a25d38de746fae2a9bfed9d4
@@ -366,7 +366,7 @@ additional_meta:
     git.commit: 251deb9d5301c13456fda7bcfc5647ce202135a2
   odh-rhoai-mcp:
     git.url: https://github.com/red-hat-data-services/rhoai-mcp
-    git.commit: 68209913c743d1bce155bfcd311faaa5fc81a864
+    git.commit: 8d9de9a357767ec5f44849c08ae75ec109652693
   odh-spark-operator:
     git.url: https://github.com/red-hat-data-services/spark-operator
     git.commit: 6403f9d26647437dfbe46cd2b3385608fd8215d0
