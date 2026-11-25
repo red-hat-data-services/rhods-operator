@@ -1,0 +1,26 @@
+# Source: grid-operator/templates/vap-endpointslice-delete.yaml
+# Guards the EndpointSlice delete verb granted by the leader-election Role: the operator
+# may only remove slices that the built-in EndpointSlice controller placed on its own Services.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grid-operator-endpointslice-cleanup
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["discovery.k8s.io"]
+        apiVersions: ["v1"]
+        resources: ["endpointslices"]
+        operations: ["DELETE"]
+  matchConditions:
+    - name: is-operator-sa
+      expression: >-
+        request.userInfo.username == "system:serviceaccount:" + request.namespace + ":grid-operator"
+  validations:
+    - expression: >-
+        oldObject.?metadata.?labels[?"kubernetes.io/service-name"].orValue("") in ["grid-operator-signals", "grid-operator-swim"] && oldObject.?metadata.?labels[?"endpointslice.kubernetes.io/managed-by"].orValue("") == "endpointslice-controller.k8s.io"
+      message: "the operator may only delete controller-managed EndpointSlices on its own Services"

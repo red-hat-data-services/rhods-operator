@@ -1,0 +1,50 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "workbenches-operator.prefixed" (list . "allow-ports") }}
+  namespace: {{ .Values.operatorNamespace | quote }}
+  labels:
+    {{- include "workbenches-operator.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "workbenches-operator.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Permit metrics scraping only from the platform monitoring namespaces.
+  # Metrics (TCP 8443): restrict to cluster-monitoring namespaces.
+  - ports:
+    - port: 8443
+      protocol: TCP
+    from:
+    {{- range .Values.networkPolicy.metricsSourceNamespaces }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ . }}
+    {{- end }}
+  # Kubelet health probes may originate from the node network rather than a pod.
+  # Health/readiness probes (TCP 8081): port-scoped, no peer restriction.
+  # NetworkPolicy peer selectors cannot reliably match node-sourced traffic
+  # because it does not carry pod identity.
+  - ports:
+    - port: 8081
+      protocol: TCP
+  {{- if .Values.webhooks.enabled }}
+  # Webhook calls from the kube-apiserver may originate from the node network rather than a pod.
+  # Webhook server (TCP {{ .Values.webhooks.port }}): port-scoped, no peer restriction.
+  # The kube-apiserver sends admission review requests from the host network.
+  # Like kubelet probes, this traffic lacks pod identity and cannot be
+  # constrained by NetworkPolicy peer selectors.
+  - ports:
+    - port: {{ .Values.webhooks.port }}
+      protocol: TCP
+  {{- end }}
+  # Allow-all egress: the operator reaches the kube-apiserver (dynamic endpoint),
+  # DNS, and operand namespaces that cannot be reliably represented by stable
+  # NetworkPolicy peers.
+  egress:
+  - {}
+{{- end }}
