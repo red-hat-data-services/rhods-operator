@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../default
+
+patches:
+  - path: cert_metrics_manager_patch.yaml
+    target:
+      kind: Deployment
+  - target:
+      kind: Service
+      name: metrics-service
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: metrics-service
+        annotations:
+          service.beta.openshift.io/serving-cert-secret-name: opendatahub-ogx-metrics-server-cert

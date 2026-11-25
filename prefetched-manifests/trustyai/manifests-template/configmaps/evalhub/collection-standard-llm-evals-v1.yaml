@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evalhub-collection-standard-llm-evals-v1
+  labels:
+    trustyai.opendatahub.io/evalhub-collection-type: system
+    trustyai.opendatahub.io/evalhub-collection-name: standard-llm-evals-v1
+data:
+  standard-llm-evals-v1.yaml: |
+    id: standard-llm-evals-v1
+    name: Standard LLM Evaluation Suite v1
+    category: general
+    domains: [knowledge_and_reasoning, instruction_and_output_reliability, software]
+    tasks: [reasoning, instruction_following, code_generation]
+    modalities: [text]
+    evaluation_targets: [model]
+    curation_order: 0
+    description: >
+      Standard evaluation protocol for instruction-tuned chat LLMs covering instruction following,
+      reasoning, math, and coding tasks. Uses lm-eval (LM Evaluation Harness) for
+      generative and multiple-choice tasks, and lighteval for pass@k math and coding evaluations.
+      Follows the vLLM evaluation protocol: always apply chat template, use fewshot_as_multiturn
+      for 1+ fewshot examples, and match sampling parameters to the model provider recommendation.
+      Each benchmark is run with 3 repetitions (8 for AIME 25) using different seeds; the
+      repetition count is encoded in the pass@k n parameter (e.g. k=1,n=3 or k=1,n=8).
+    tags:
+      - instruction_following
+      - reasoning
+      - math
+      - coding
+      - lm_eval
+      - lighteval
+      - standard
+      - chat
+      - vllm
+    pass_criteria:
+      # Weighted average across all benchmarks. Weights reflect benchmark importance;
+      # AIME 25 carries lower weight because it is especially difficult.
+      threshold: 0.45
+    benchmarks:
+      # ── Instruction Following ──────────────────────────────────────────────────
+      - id: leaderboard_mmlu_pro
+        provider_id: lm_evaluation_harness
+        weight: 2
+        primary_score:
+          metric: acc_norm
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.45
+        parameters:
+          num_fewshot: 5
+          apply_chat_template: true
+          fewshot_as_multiturn: true
+
+      - id: ifeval
+        provider_id: lm_evaluation_harness
+        weight: 2
+        primary_score:
+          metric: inst_level_strict_acc
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.60
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+
+      # ── Math & Reasoning ───────────────────────────────────────────────────────
+      - id: math_500
+        provider_id: lighteval
+        weight: 2
+        primary_score:
+          metric: math_500.pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.30
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          # k=1, n=3: average over 3 seeds. Equivalent to 3 separate runs with different seeds.
+          pass_at_k: 1
+          num_samples: 3
+
+      - id: aime25
+        provider_id: lighteval
+        weight: 1   # Competition math — very hard, lower absolute scores expected
+        primary_score:
+          metric: aime25.pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.15
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          # k=1, n=8: average over 8 seeds per protocol (equivalent to 8 separate runs)
+          pass_at_k: 1
+          num_samples: 8
+
+      - id: gpqa:diamond
+        provider_id: lighteval
+        weight: 2
+        primary_score:
+          metric: gpqa:diamond.gpqa_pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.35
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          pass_at_k: 1
+          num_samples: 3
+
+      # ── Coding ─────────────────────────────────────────────────────────────────
+      - id: lcb:codegeneration_v6
+        provider_id: lighteval
+        weight: 2
+        primary_score:
+          metric: lcb:codegeneration_v6.codegen_pass@1
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.25
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true
+          pass_at_k: 1
+          num_samples: 3

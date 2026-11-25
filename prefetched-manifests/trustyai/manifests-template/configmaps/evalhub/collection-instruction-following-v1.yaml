@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evalhub-collection-instruction-following-v1
+  labels:
+    trustyai.opendatahub.io/evalhub-collection-type: system
+    trustyai.opendatahub.io/evalhub-collection-name: instruction-following-v1
+data:
+  instruction-following-v1.yaml: |
+    id: instruction-following-v1
+    name: Instruction Following v1
+    category: instruction_following
+    domains: [instruction_and_output_reliability]
+    tasks: [instruction_following]
+    modalities: [text]
+    evaluation_targets: [model]
+    curation_order: 0
+    description: >
+      Evaluates how well instruction-tuned chat LLMs follow explicit instructions using
+      IFEval's verifiable constraints for length, keywords, formatting, JSON structure,
+      and language. IFEval runs 0-shot and requires --apply_chat_template with a vLLM
+      OpenAI-compatible endpoint.
+      Part of the Standard LLM Evaluation Suite (standard-llm-evals-v1).
+    tags:
+      - instruction_following
+      - chat
+      - lm_eval
+      - vllm
+      - standard
+    pass_criteria:
+      # Match the only benchmark's row target.
+      threshold: 0.70
+    benchmarks:
+      - id: ifeval
+        provider_id: lm_evaluation_harness
+        weight: 1
+        primary_score:
+          metric: inst_level_strict_acc
+          lower_is_better: false
+        pass_criteria:
+          threshold: 0.70
+        parameters:
+          num_fewshot: 0
+          apply_chat_template: true

@@ -1,0 +1,11 @@
+# Source: grid-operator/templates/metrics-scraper.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grid-operator-metrics-scraper
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+rules:
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
