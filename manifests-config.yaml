@@ -466,22 +466,6 @@ imageOverrides:
     rhoai:
       base: "quay.io/rhoai/odh-core-bff-rhel9"
       digest: "sha256:022492a3ca2e2de44036fb8ad2fa2589f3c61260c8f6f38559464fc701337c3a"
-  RELATED_IMAGE_ODH_DATA_CONNECT_HUB_FLIGHT_IMAGE:
-    source: "csv"
-    odh:
-      base: "quay.io/opendatahub/odh-data-connect-hub-flight"
-      digest: "sha256:50098d1ac51fcdcb1f9587ca1bced2b2eee5bcfa554321c1a7b12774c2209b28"
-    rhoai:
-      base: "quay.io/rhoai/odh-data-connect-hub-flight-rhel9"
-      digest: "sha256:622d04a3489e0c4e7a618b73dac26f5dc727a40bf6f7297c4b906544ce7f9b28"
-  RELATED_IMAGE_ODH_DATA_CONNECT_HUB_REST_IMAGE:
-    source: "csv"
-    odh:
-      base: "quay.io/opendatahub/odh-data-connect-hub-rest"
-      digest: "sha256:645b388a776804cb808cce355a2d5fd5109732d6a909e2a3c263d19b1c41159f"
-    rhoai:
-      base: "quay.io/rhoai/odh-data-connect-hub-rest-rhel9"
-      digest: "sha256:2e7bce8bbf3eaceeb0d60284f81dc23698c323b731ca6eab1eaddce91391bbf3"
   RELATED_IMAGE_ODH_DATA_SCIENCE_PIPELINES_ARGO_ARGOEXEC_IMAGE:
     source: "csv"
     odh:
@@ -1366,11 +1350,6 @@ imageOverrides:
     rhoai:
       base: "quay.io/rhoai/odh-must-gather-rhel9"
       digest: "sha256:9cf7ba932e36ae190c9df56ce31c9d0784ec71cdb92915f02d313ecf9601b7f3"
-  RELATED_IMAGE_ODH_VLLM_CPU_IMAGE:
-    source: "csv"
-    rhoai:
-      base: "quay.io/rhoai/odh-vllm-cpu-rhel9"
-      digest: "sha256:d5a0acf592967aded878428f9c0c91e67a402a3a68c4baeb14b69305e4d7e71c"
   RELATED_IMAGE_ODH_MOD_ARCH_DATA_CONNECT_HUB_IMAGE:
     source: "csv"
     odh:
