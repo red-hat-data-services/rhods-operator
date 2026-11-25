@@ -1137,6 +1137,7 @@ spec:
                         description: |-
                           ProgressTTLSeconds is retained for API compatibility. The upstream
                           processor now writes progress to PostgreSQL and does not use this field.
+
                           Deprecated: use progressUpdateInterval.
                         format: int64
                         type: integer

@@ -1104,6 +1104,95 @@ spec:
                             - transport
                           type: object
                         type: array
+                      regionalPolicy:
+                        description: |-
+                          Regional eligibility and preference policy for this gateway's overlay.
+
+                          The policy applies to every capability rendered for this gateway. When
+                          absent, Grid preserves the existing unconstrained routing behavior.
+                          Per-route overrides are outside this contract.
+                        nullable: true
+                        properties:
+                          allowedRegions:
+                            description: |-
+                              Unordered hard region allowlist for locked mode.
+
+                              This Kubernetes set contains 1–64 non-empty values without whitespace,
+                              each at most 253 characters.
+                            items:
+                              maxLength: 253
+                              minLength: 1
+                              pattern: ^\S+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                          allowedSovereigntyZones:
+                            description: |-
+                              Independent hard sovereignty-zone allowlist for either mode.
+
+                              Values use the [`GridSite`] `sovereigntyZone` token format. Matching
+                              uses the shared canonical form and is case-insensitive.
+
+                              [`GridSite`]: crate::crd::grid_site::GridSite
+                            items:
+                              maxLength: 63
+                              minLength: 1
+                              pattern: ^[A-Za-z0-9._-]+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                          crossRegionFallback:
+                            description: Whether affinity routing may consider candidates outside preferred regions.
+                            enum:
+                              - allow
+                              - deny
+                            nullable: true
+                            type: string
+                          mode:
+                            description: Whether regions are preferred or form a hard eligibility boundary.
+                            enum:
+                              - affinity
+                              - locked
+                            type: string
+                          preferredRegions:
+                            description: |-
+                              Unordered preferred-region set for affinity mode.
+
+                              This Kubernetes set contains 1–64 non-empty values without whitespace,
+                              each at most 253 characters.
+
+                              When absent, the operator derives the preferred region from the trusted
+                              [`GridSite`] resolved through [`GatewayRef::site_name`].
+
+                              [`GridSite`]: crate::crd::grid_site::GridSite
+                            items:
+                              maxLength: 253
+                              minLength: 1
+                              pattern: ^\S+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                        required:
+                          - mode
+                        type: object
+                        x-kubernetes-validations:
+                          - message: allowedRegions is not valid in affinity mode
+                            rule: self.mode != 'affinity' || !has(self.allowedRegions)
+                          - message: allowedRegions is required in locked mode
+                            rule: self.mode != 'locked' || has(self.allowedRegions)
+                          - message: preferredRegions is not valid in locked mode
+                            rule: self.mode != 'locked' || !has(self.preferredRegions)
+                          - message: crossRegionFallback is not valid in locked mode
+                            rule: self.mode != 'locked' || !has(self.crossRegionFallback)
                       siteName:
                         description: |-
                           Local site name for the `intelligent_route` overlay generated for this gateway.
@@ -2039,6 +2128,95 @@ spec:
                             - transport
                           type: object
                         type: array
+                      regionalPolicy:
+                        description: |-
+                          Regional eligibility and preference policy for this gateway's overlay.
+
+                          The policy applies to every capability rendered for this gateway. When
+                          absent, Grid preserves the existing unconstrained routing behavior.
+                          Per-route overrides are outside this contract.
+                        nullable: true
+                        properties:
+                          allowedRegions:
+                            description: |-
+                              Unordered hard region allowlist for locked mode.
+
+                              This Kubernetes set contains 1–64 non-empty values without whitespace,
+                              each at most 253 characters.
+                            items:
+                              maxLength: 253
+                              minLength: 1
+                              pattern: ^\S+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                          allowedSovereigntyZones:
+                            description: |-
+                              Independent hard sovereignty-zone allowlist for either mode.
+
+                              Values use the [`GridSite`] `sovereigntyZone` token format. Matching
+                              uses the shared canonical form and is case-insensitive.
+
+                              [`GridSite`]: crate::crd::grid_site::GridSite
+                            items:
+                              maxLength: 63
+                              minLength: 1
+                              pattern: ^[A-Za-z0-9._-]+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                          crossRegionFallback:
+                            description: Whether affinity routing may consider candidates outside preferred regions.
+                            enum:
+                              - allow
+                              - deny
+                            nullable: true
+                            type: string
+                          mode:
+                            description: Whether regions are preferred or form a hard eligibility boundary.
+                            enum:
+                              - affinity
+                              - locked
+                            type: string
+                          preferredRegions:
+                            description: |-
+                              Unordered preferred-region set for affinity mode.
+
+                              This Kubernetes set contains 1–64 non-empty values without whitespace,
+                              each at most 253 characters.
+
+                              When absent, the operator derives the preferred region from the trusted
+                              [`GridSite`] resolved through [`GatewayRef::site_name`].
+
+                              [`GridSite`]: crate::crd::grid_site::GridSite
+                            items:
+                              maxLength: 253
+                              minLength: 1
+                              pattern: ^\S+$
+                              type: string
+                            maxItems: 64
+                            minItems: 1
+                            nullable: true
+                            type: array
+                            x-kubernetes-list-type: set
+                        required:
+                          - mode
+                        type: object
+                        x-kubernetes-validations:
+                          - message: allowedRegions is not valid in affinity mode
+                            rule: self.mode != 'affinity' || !has(self.allowedRegions)
+                          - message: allowedRegions is required in locked mode
+                            rule: self.mode != 'locked' || has(self.allowedRegions)
+                          - message: preferredRegions is not valid in locked mode
+                            rule: self.mode != 'locked' || !has(self.preferredRegions)
+                          - message: crossRegionFallback is not valid in locked mode
+                            rule: self.mode != 'locked' || !has(self.crossRegionFallback)
                       siteName:
                         description: |-
                           Local site name for the `intelligent_route` overlay generated for this gateway.
