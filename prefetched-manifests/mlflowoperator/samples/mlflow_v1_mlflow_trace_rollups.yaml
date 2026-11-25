@@ -1,0 +1,32 @@
+# Requires a runtime with run_sql_trace_rollup_scheduler and matching operator
+# version metadata. Configure that runtime as the operator's default image;
+# this example deliberately inherits it rather than pinning a development image.
+# Create mlflow-db-credentials with a backend-store-uri key in the operand
+# namespace, and replace the artifact bucket with your configured destination.
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+spec:
+  backendStoreUriFrom:
+    name: mlflow-db-credentials
+    key: backend-store-uri
+  defaultArtifactRoot: s3://my-mlflow-bucket/artifacts
+  traceRollups:
+    # Runtime use of SQL rollups. Use schedulingEnabled to stop maintenance.
+    enabled: true
+    schedulingEnabled: true
+    # Each field can be omitted independently to use the displayed default.
+    schedule: "0 2 * * *"
+    timeZone: Etc/UTC
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+  env:
+    - name: MLFLOW_TRACE_ROLLUPS_MAX_PARTITIONS_PER_RUN
+      value: "100"
+    - name: MLFLOW_TRACE_ROLLUPS_MAX_WORKERS
+      value: "2"
