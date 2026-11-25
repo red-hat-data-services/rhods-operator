@@ -61,6 +61,23 @@ odh_exceptions:
 - image: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_UNIVERSAL_CPU_PY312_IMAGE
   jira: https://redhat.atlassian.net/browse/RHAIENG-7732
   reason: RHOAI-only image, not applicable to ODH
+# Present in RHOAI-Build-Config rhoai-3.6 bundle-patch; missing from ODH-Build-Config main.
+# validate-related-images requires both platforms for os.Getenv RELATED_IMAGE refs.
+- image: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_PYTORCH_ROCM_PY312_IMAGE
+  jira: https://redhat.atlassian.net/browse/RHAI-59827
+  reason: In RHOAI-Build-Config only; not present in ODH-Build-Config
+- image: RELATED_IMAGE_ODH_PIPELINE_RUNTIME_TENSORFLOW_ROCM_PY312_IMAGE
+  jira: https://redhat.atlassian.net/browse/RHAI-59827
+  reason: In RHOAI-Build-Config only; not present in ODH-Build-Config
+- image: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_PYTORCH_ROCM_PY312_IMAGE
+  jira: https://redhat.atlassian.net/browse/RHAI-59827
+  reason: In RHOAI-Build-Config only; not present in ODH-Build-Config
+- image: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_TENSORFLOW_ROCM_PY312_IMAGE
+  jira: https://redhat.atlassian.net/browse/RHAI-59827
+  reason: In RHOAI-Build-Config only; not present in ODH-Build-Config
+- image: RELATED_IMAGE_ODH_WORKBENCH_JUPYTER_TRUSTYAI_CPU_PY312_IMAGE
+  jira: https://redhat.atlassian.net/browse/RHAI-59827
+  reason: In RHOAI-Build-Config only; not present in ODH-Build-Config
 
 rhoai_exceptions:
 - image: RELATED_IMAGE_ODH_PRAXIS_AI_GRID_OPERATOR_IMAGE
