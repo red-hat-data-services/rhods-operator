@@ -82,7 +82,7 @@ spec:
     - name: revision
       value: '{{ cel: pac.target_branch.matches("^rhoai-\\d+\\.\\d+(-ea\\.\\d+)?$") ? pac.target_branch : "main" }}'
     - name: pathInRepo
-      value: pipelines/multi-arch-container-build.yaml
+      value: pipelines/multi-arch-container-build-optional-roxctl.yaml
   taskRunTemplate:
     serviceAccountName: build-pipeline-rhods-operator-eg
   workspaces:
