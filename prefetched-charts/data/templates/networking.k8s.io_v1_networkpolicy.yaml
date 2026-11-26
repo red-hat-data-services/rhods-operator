@@ -3,8 +3,8 @@ kind: NetworkPolicy
 metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
-  name: opendatahub-feast-allow-egress
-  namespace: {{ .Values.namespace }}
+  name: allow-egress
+  namespace: {{ default .Release.Namespace .Values.namespace }}
 spec:
   egress:
   - {}
@@ -19,8 +19,8 @@ kind: NetworkPolicy
 metadata:
   labels:
     app.kubernetes.io/name: opendatahub-feast-operator
-  name: opendatahub-feast-allow-metrics-traffic
-  namespace: {{ .Values.namespace }}
+  name: allow-metrics-traffic
+  namespace: {{ default .Release.Namespace .Values.namespace }}
 spec:
   ingress:
   - from:
