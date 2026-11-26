@@ -1,0 +1,33 @@
+apiVersion: aihub.opendatahub.io/v1alpha1
+kind: Catalog
+metadata:
+  name: catalog
+  namespace: opendatahub
+spec:
+  # Empty fields use the release images supplied by the product operator.
+  # Either field may pin a sha256 digest. Stable and other tags are rejected.
+  # Invalid selections make the Catalog unready and request deployment scale-down.
+  catalogDataImageStream: ""
+  benchmarkDataImageStream: ""
+  resources:
+    catalog:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+    postgres:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  database:
+    volume:
+      sizeLimit: "10Gi"
+  # proxy:
+  #   httpProxy: "http://proxy.example.com:3128"
+  #   httpsProxy: "http://proxy.example.com:3128"
+  #   noProxy: ".svc,.cluster.local,localhost"
