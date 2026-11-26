@@ -111,10 +111,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: ${{ env.GITHUB_ORG }}/RHOAI-Konflux-Automation
-          # TEMPORARY (3.7 EA1 only): pinned to the early-gate snapshot-pinning
-          # branch so EG changes stay off main and cannot reach the 3.6 release.
-          # Revert to `main` once eg-snapshot-pinning merges to Konflux-Automation main.
-          ref: eg-snapshot-pinning
+          ref: main
           path: utils
           token: ${{ steps.app-token.outputs.token }}
           sparse-checkout: |
@@ -158,23 +155,28 @@ jobs:
           ODH_OPERATOR_COMPONENT_NAME=odh-operator-${COMPONENT_SUFFIX}
           PUSH_PIPELINE_PATH=rhods-operator/.tekton/${ODH_OPERATOR_COMPONENT_NAME}-push.yaml
           # main/stable carry the EG PipelineRun, not a release-versioned one.
-          #
-          # SNAPSHOT_ARG is empty outside EG, so the release path keeps the
-          # existing behaviour: no --snapshot-path, operand digests resolved by
-          # the Quay lookup against the rhoai-X.Y tag.  In EG mode the group
-          # snapshot is the authority for which build of each component the gate
-          # chose, so the processor pins operands from it and only falls back to
-          # Quay for entries the snapshot does not cover.
-          SNAPSHOT_ARG=""
           if [[ "${EG_MODE}" == "true" ]]; then
             PUSH_PIPELINE_PATH=rhods-operator/.tekton/rhods-operator-eg-push.yaml
-            SNAPSHOT_ARG="--snapshot-path rhods-operator/build/eg-snapshot.json"
           fi
-
+          
           PATCH_YAML_PATH=RBC/bundle/bundle-patch.yaml
           OPERANDS_MAP_PATH=rhods-operator/build/operands-map.yaml
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
+
+          # Early-gate: pin operand digests from the group snapshot committed
+          # by the gate to the ephemeral branch (build/eg-snapshot.json).
+          SNAPSHOT_ARG=""
+          if [[ "${EG_MODE}" == "true" ]]; then
+            EG_SNAPSHOT_PATH=rhods-operator/build/eg-snapshot.json
+            if [[ -f "${EG_SNAPSHOT_PATH}" ]]; then
+              SNAPSHOT_ARG="--snapshot-path ${EG_SNAPSHOT_PATH}"
+              echo "early-gate: pinning operands from ${EG_SNAPSHOT_PATH}"
+            else
+              echo "::error::eg-mode is true but ${EG_SNAPSHOT_PATH} is missing; the gate must commit the group snapshot before dispatch."
+              exit 1
+            fi
+          fi
 
           python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable ${SNAPSHOT_ARG}
           
