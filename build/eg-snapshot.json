@@ -1,0 +1,416 @@
+{
+  "odh-kf-notebook-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kf-notebook-controller-rhel9@sha256:b3814c73dc143abdf627b70498a2593a94bf30b8c2d3271b10ce63f8e4ab2dae",
+    "git.url": "https://github.com/red-hat-data-services/kubeflow",
+    "git.commit": "849815959083b80716d53b367ed17887d7df935c",
+    "image_tag": "on-pr-1993"
+  },
+  "odh-notebook-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-notebook-controller-rhel9@sha256:405f0bf787f0f33b78e1b07a1840f3aae8af22171a760f5622296318393a99d5",
+    "git.url": "https://github.com/red-hat-data-services/kubeflow",
+    "git.commit": "849815959083b80716d53b367ed17887d7df935c",
+    "image_tag": "on-pr-1993"
+  },
+  "odh-workbenches-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-workbenches-controller-rhel9@sha256:886e864fa4c5f3bfc45cc7c5606b6f1c618af9f3015f7c1038ee47d4d70c7140",
+    "git.url": "https://github.com/red-hat-data-services/workbenches",
+    "git.commit": "48a378422a04b989b2130fd3299fa7a701aa5aeb",
+    "image_tag": "on-pr-201"
+  },
+  "odh-workbenches-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-workbenches-operator-rhel9@sha256:d5322a4ba975ed64902ac0bb46aa4c74d23c67abe1338986b86374768b24f42b",
+    "git.url": "https://github.com/red-hat-data-services/workbenches-operator",
+    "git.commit": "b3c47e32b31164319883e11aecea4d89bfb1e342",
+    "image_tag": "on-pr-283"
+  },
+  "odh-model-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-controller-rhel9@sha256:b96de1521e2d9882d10e3267a06fdb68411f73601ac7af260d0636937e1bac0c",
+    "git.url": "https://github.com/red-hat-data-services/odh-model-controller",
+    "git.commit": "5ea9b19b7abecf3e9ec03e7395f8fc3aeb2fc559",
+    "image_tag": "on-pr-1784"
+  },
+  "odh-model-serving-api-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-serving-api-rhel9@sha256:c2b50de1efd89558dd2abeda0d40377d8c9131accc66e81bbe9f4fe6c32b124b",
+    "git.url": "https://github.com/red-hat-data-services/odh-model-controller",
+    "git.commit": "5ea9b19b7abecf3e9ec03e7395f8fc3aeb2fc559",
+    "image_tag": "on-pr-1784"
+  },
+  "odh-ml-pipelines-api-server-v2-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ml-pipelines-api-server-v2-rhel9@sha256:5fcb6f154386ba30f551e4e01df483968254873d47544e9acce1bbd2ab61fc1e",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines",
+    "git.commit": "3c870644f89493a24804d2763c3cde5bd357fa28",
+    "image_tag": "on-pr-2171"
+  },
+  "odh-ml-pipelines-driver-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ml-pipelines-driver-rhel9@sha256:80d3d8a281b677d578188592296887db445904ad7612fc7c00e6c68d7298eeac",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines",
+    "git.commit": "3c870644f89493a24804d2763c3cde5bd357fa28",
+    "image_tag": "on-pr-2171"
+  },
+  "odh-ml-pipelines-launcher-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ml-pipelines-launcher-rhel9@sha256:583c7177e2e575ee8b5e66c008eae7822859df32b52898d1d928d71e406d0ffe",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines",
+    "git.commit": "3c870644f89493a24804d2763c3cde5bd357fa28",
+    "image_tag": "on-pr-2171"
+  },
+  "odh-ml-pipelines-persistenceagent-v2-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ml-pipelines-persistenceagent-v2-rhel9@sha256:85afcb1a9ea40e6cf43fd2820674354e019f19507dfda1546fbb1acd61c43de5",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines",
+    "git.commit": "3c870644f89493a24804d2763c3cde5bd357fa28",
+    "image_tag": "on-pr-2171"
+  },
+  "odh-ml-pipelines-scheduledworkflow-v2-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ml-pipelines-scheduledworkflow-v2-rhel9@sha256:5d99c4f8ee0b9b14094c8f7b1930e28501a08d00742cfd75f222d49c3bf580ae",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines",
+    "git.commit": "3c870644f89493a24804d2763c3cde5bd357fa28",
+    "image_tag": "on-pr-2171"
+  },
+  "odh-ta-lmes-driver-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ta-lmes-driver-rhel9@sha256:680ebd40373f5491d8cc4704cd9af533feb354ca732a4137717353ffa8682590",
+    "git.url": "https://github.com/red-hat-data-services/trustyai-service-operator",
+    "git.commit": "136ae01feaa1c5edd794af980240064097432e93",
+    "image_tag": "on-pr-2109"
+  },
+  "odh-trustyai-service-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-trustyai-service-operator-rhel9@sha256:b0b6e56db251f98d010d378d988cfe2dcb33677e959031cd54d3440bfe491eed",
+    "git.url": "https://github.com/red-hat-data-services/trustyai-service-operator",
+    "git.commit": "136ae01feaa1c5edd794af980240064097432e93",
+    "image_tag": "on-pr-2109"
+  },
+  "odh-data-science-pipelines-operator-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-data-science-pipelines-operator-controller-rhel9@sha256:81a86f138fb90edff0d21f3c35583f44ba19969134f45b9a4aeea87b2bfd56e7",
+    "git.url": "https://github.com/red-hat-data-services/data-science-pipelines-operator",
+    "git.commit": "18ea33cf3b3ba58dbc92e80c673c55517144f36e",
+    "image_tag": "on-pr-1289"
+  },
+  "odh-kuberay-operator-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kuberay-operator-controller-rhel9@sha256:dd036e6418f8c2373913831bb7686a970e9e8e4b1dd0dac7d3ec7edc261f48da",
+    "git.url": "https://github.com/red-hat-data-services/kuberay",
+    "git.commit": "adf9810883b25558d7ddcf0b28bae56da879b0ab",
+    "image_tag": "on-pr-1729"
+  },
+  "odh-kserve-agent-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-agent-rhel9@sha256:ae2b09e2a07a061ea926646a9dd42e81c3a51701afe7b0216390e8d207c70b75",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-autogluon-server-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-autogluon-server-rhel9@sha256:a3bba903d44c6b2151d39f83272a4f4ea6396f13152cbdf955b9fbb0d2d504d9",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-controller-rhel9@sha256:4251ab52c12251ed8712854cc9305e7e54fb3e9ac6224c4c424cb8a4aab36f8c",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-llmisvc-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-llmisvc-controller-rhel9@sha256:0a8049da7b817a30075d423be7c9657639b6ce937003c0907f66cdc5f264ed87",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-localmodel-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-localmodel-controller-rhel9@sha256:b28880c1883657a8abd26983902a26dfafec7f14a412392f31f72da6b62b9a5c",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-localmodelnode-agent-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-localmodelnode-agent-rhel9@sha256:121185e740ad81d9be702b2f056351e8de408093a303621c9cd43061da56fdc9",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-module-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-module-operator-rhel9@sha256:1cf9f7bda13b7b757ca77193c8dcef9788a2ff57dd187d2b87088f146a9c0f5a",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-router-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-router-rhel9@sha256:827fd1ccded1a773049cf69b041d8cae5fbe1732810be2782ee7ec8b45e8671e",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-kserve-storage-initializer-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kserve-storage-initializer-rhel9@sha256:b98475ca9d7d427c7b017da3d9332577e7fd8b5e2c9a38b9f825249878f6782c",
+    "git.url": "https://github.com/red-hat-data-services/kserve",
+    "git.commit": "d0ff8ca1aa8a854d7e3be2a28d3023db2649626b",
+    "image_tag": "on-pr-4784"
+  },
+  "odh-data-science-pipelines-argo-argoexec-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-data-science-pipelines-argo-argoexec-rhel9@sha256:4284cfb2e1cfced36a9900d2a3e76026a849e023154acaa54ef886cd90e0b1d4",
+    "git.url": "https://github.com/red-hat-data-services/argo-workflows",
+    "git.commit": "4bddedab76df3559bd53f6d4f31d39e94a36b4b6",
+    "image_tag": "on-pr-960"
+  },
+  "odh-data-science-pipelines-argo-workflowcontroller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-data-science-pipelines-argo-workflowcontroller-rhel9@sha256:5fdc05a35816d258d5844dec24a681852fa65d1d693e26a8108b5044baf29110",
+    "git.url": "https://github.com/red-hat-data-services/argo-workflows",
+    "git.commit": "4bddedab76df3559bd53f6d4f31d39e94a36b4b6",
+    "image_tag": "on-pr-960"
+  },
+  "odh-mlmd-grpc-server-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-mlmd-grpc-server-rhel9@sha256:aa79457480535def9aceb60d6480963a5b6546566fbaee614554ff2bb7edfa47",
+    "git.url": "https://github.com/red-hat-data-services/ml-metadata",
+    "git.commit": "be1b012d2db12d48e0c9e9c040c5281a018297c4",
+    "image_tag": "on-pr-1331"
+  },
+  "odh-trainer-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-trainer-rhel9@sha256:547ca16db99a06c3bb4b169b81aedbba813304d3956b13f754e61908198212dd",
+    "git.url": "https://github.com/red-hat-data-services/trainer",
+    "git.commit": "2f3298cdf9a308731456dd30918a63aeff8fb5e8",
+    "image_tag": "on-pr-382"
+  },
+  "odh-must-gather-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-must-gather-rhel9@sha256:039a72fe6d6cb3fecba3d76a139ae80e95d01eeb5c5bc40a39d157258798da64",
+    "git.url": "https://github.com/red-hat-data-services/must-gather",
+    "git.commit": "6a5c1fae957529acc89f8174851d75f46d303747",
+    "image_tag": "on-pr-378"
+  },
+  "odh-model-registry-job-async-upload-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-registry-job-async-upload-rhel9@sha256:c7437c2ff58cda415042b5e7471fc254a97c940c77fc5def2a6c302bb49884ae",
+    "git.url": "https://github.com/red-hat-data-services/model-registry",
+    "git.commit": "b010d70f86348559e978ade4b434121a597fc89a",
+    "image_tag": "on-pr-2385"
+  },
+  "odh-model-registry-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-registry-rhel9@sha256:bc14a4511ab7363642a1dacbbe5ced85c8876ce2c2d752737f81195eac9b1e72",
+    "git.url": "https://github.com/red-hat-data-services/model-registry",
+    "git.commit": "b010d70f86348559e978ade4b434121a597fc89a",
+    "image_tag": "on-pr-2385"
+  },
+  "odh-model-registry-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-registry-operator-rhel9@sha256:140a1811f2d6530606ad8e8e51853826be39ac32efed55acc8da91b84768da4e",
+    "git.url": "https://github.com/red-hat-data-services/model-registry-operator",
+    "git.commit": "468fd20b2d93c5a504b3ce61b69acda5907392a6",
+    "image_tag": "on-pr-1299"
+  },
+  "odh-model-metadata-collection-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-model-metadata-collection-rhel9@sha256:cbff6d5c6acc82afe9c778067807783a25848f670df626cc4cd9e26032a79e39",
+    "git.url": "https://github.com/red-hat-data-services/model-metadata-collection",
+    "git.commit": "d7e387a41545c9205457a594aef51b627f50c0c8",
+    "image_tag": "on-pr-381"
+  },
+  "odh-ta-lmes-job-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ta-lmes-job-rhel9@sha256:a0ee83d423cd91bc549a09c61615b0be81010d12290bc1a22ab9b60d28a01128",
+    "git.url": "https://github.com/red-hat-data-services/lm-evaluation-harness",
+    "git.commit": "7fb7d6ddb855aa942e0f3cf826d853850d00849d",
+    "image_tag": "on-pr-773"
+  },
+  "odh-ogx-k8s-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ogx-k8s-operator-rhel9@sha256:47ced9010a8099f8a01d59373ae52f32b7485b2e9d6e40cbf553b8850853a827",
+    "git.url": "https://github.com/red-hat-data-services/ogx-k8s-operator",
+    "git.commit": "c20d5984b96822cfa23b6433f6920cb2b3cf6d24",
+    "image_tag": "on-pr-585"
+  },
+  "odh-ogx-module-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ogx-module-operator-rhel9@sha256:39717543e653aa516c51649a48067c65e162544a473f2d0e9e83fe7e37128e32",
+    "git.url": "https://github.com/red-hat-data-services/ogx-k8s-operator",
+    "git.commit": "c20d5984b96822cfa23b6433f6920cb2b3cf6d24",
+    "image_tag": "on-pr-585"
+  },
+  "odh-guardrails-detector-huggingface-runtime-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-guardrails-detector-huggingface-runtime-rhel9@sha256:64bc0b0a9c88f5b6d199b67da7d043f622d5b1f756b099973e42ea1c37384035",
+    "git.url": "https://github.com/red-hat-data-services/guardrails-detectors",
+    "git.commit": "3a07daff8b970f19725dd2a671a692b5abb64c79",
+    "image_tag": "on-pr-627"
+  },
+  "odh-openvino-model-server-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-openvino-model-server-rhel9@sha256:00bddc4003cb451cf257714906de30f96705ff7db9015c25e7f273ecece97645",
+    "git.url": "https://github.com/red-hat-data-services/openvino_model_server",
+    "git.commit": "257c7d39d2ba85e002d7755ee2a19acc5b185927",
+    "image_tag": "on-pr-777"
+  },
+  "odh-trustyai-garak-lls-provider-dsp-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-trustyai-garak-lls-provider-dsp-rhel9@sha256:69e33c9c57575a5dc26b5c63bc6f392c2fa4c6e5745fd7c1d0d6905befcd52fd",
+    "git.url": "https://github.com/red-hat-data-services/llama-stack-provider-trustyai-garak",
+    "git.commit": "649135d513692d8b95a8858c9120cb7218bb72f9",
+    "image_tag": "on-pr-775"
+  },
+  "odh-kube-auth-proxy-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:7fae9191b8ed786f96576b0651ace28e64a2d58c68c5d18b0ab6945c10108c3c",
+    "git.url": "https://github.com/red-hat-data-services/kube-auth-proxy",
+    "git.commit": "e57b0da4505e9d8c84a0e7dc23d31fd7b6e99866",
+    "image_tag": "on-pr-495"
+  },
+  "odh-maas-api-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-maas-api-rhel9@sha256:1ee7164e4bf50a4a55edffcbe577a77558d7409dea9a42076f239df6cff60b65",
+    "git.url": "https://github.com/red-hat-data-services/models-as-a-service",
+    "git.commit": "47df205d72a68342f51cc53e91ff67dbe3ea36fa",
+    "image_tag": "on-pr-943"
+  },
+  "odh-maas-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-maas-controller-rhel9@sha256:e985afd553f6e565c16f9efa8534a5d0bbb3d9d099832f7e15391b75300b3c0f",
+    "git.url": "https://github.com/red-hat-data-services/models-as-a-service",
+    "git.commit": "47df205d72a68342f51cc53e91ff67dbe3ea36fa",
+    "image_tag": "on-pr-943"
+  },
+  "odh-trustyai-nemo-guardrails-server-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-trustyai-nemo-guardrails-server-rhel9@sha256:0328b17f641de4b6dba1a2ad5a0133923b1b8d14f0e073839786d6e524343ce5",
+    "git.url": "https://github.com/red-hat-data-services/NeMo-Guardrails",
+    "git.commit": "90d9b473355e901c446384562d2bac6d74ca5076",
+    "image_tag": "on-pr-480"
+  },
+  "odh-mlflow-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-mlflow-operator-rhel9@sha256:5167152a7108968910f4e947d7accec43e84c415d7a0fa676bc91be1a13e6adf",
+    "git.url": "https://github.com/red-hat-data-services/mlflow-operator",
+    "git.commit": "b30d9ec278f706e65979b1a8c3cadb431db60136",
+    "image_tag": "on-pr-740"
+  },
+  "odh-mlflow-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-mlflow-rhel9@sha256:904c564d10a50248b10d346e9b25c0fac51df9dc036b242bb89ae76399f70a97",
+    "git.url": "https://github.com/red-hat-data-services/mlflow",
+    "git.commit": "d63cb10dadbe8f88224b5bd3ee60ce2e7f545cd8",
+    "image_tag": "on-pr-884"
+  },
+  "odh-llm-d-router-disagg-sidecar-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-router-disagg-sidecar-rhel9@sha256:4f85d9458ee906ea7abdcb169e3a5d3054004a8fcb8d180a835bb4e4cbfb81ef",
+    "git.url": "https://github.com/red-hat-data-services/llm-d-router",
+    "git.commit": "68648b9b09f1407a7ecaae68b6887e487d2ca577",
+    "image_tag": "on-pr-104"
+  },
+  "odh-llm-d-router-endpoint-picker-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-router-endpoint-picker-rhel9@sha256:79a7dc8b0c42ceb448dc0ae6a78f2ffbb892bb734cfd51f98dbf8d1d338ed731",
+    "git.url": "https://github.com/red-hat-data-services/llm-d-router",
+    "git.commit": "68648b9b09f1407a7ecaae68b6887e487d2ca577",
+    "image_tag": "on-pr-104"
+  },
+  "odh-llm-d-kv-pvc-evictor-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-kv-pvc-evictor-rhel9@sha256:0b619e772cc4c58e75749258910dc8a9d4a885633447127e73f9af7882696566",
+    "git.url": "https://github.com/red-hat-data-services/llm-d-kv-cache",
+    "git.commit": "d6085b1e6c74a5eb545e57deb1eab24921675145",
+    "image_tag": "on-pr-112"
+  },
+  "odh-llm-d-batch-gateway-apiserver-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-batch-gateway-apiserver-rhel9@sha256:fa85d3ef55f4a62905dba190f506f5f0371a359dfc5c9259db562322603876ad",
+    "git.url": "https://github.com/red-hat-data-services/batch-gateway",
+    "git.commit": "8d77a8329a4819cc2263551740428eb02d839494",
+    "image_tag": "on-pr-302"
+  },
+  "odh-llm-d-batch-gateway-gc-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-batch-gateway-gc-rhel9@sha256:203e9efeff9b9bdc19f1695fd1233d16e288781170b698dc6683e8f2c00f6b22",
+    "git.url": "https://github.com/red-hat-data-services/batch-gateway",
+    "git.commit": "8d77a8329a4819cc2263551740428eb02d839494",
+    "image_tag": "on-pr-302"
+  },
+  "odh-llm-d-batch-gateway-processor-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-llm-d-batch-gateway-processor-rhel9@sha256:d3f320cd7b61f70035ec9784109e679e44500148c9ea35ef989905e4b2085379",
+    "git.url": "https://github.com/red-hat-data-services/batch-gateway",
+    "git.commit": "8d77a8329a4819cc2263551740428eb02d839494",
+    "image_tag": "on-pr-302"
+  },
+  "odh-cli-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-cli-rhel9@sha256:b75908029f9da40dbec52754dc5f009ca33f0377b47fdf0e5fb639bccb2438eb",
+    "git.url": "https://github.com/red-hat-data-services/odh-cli",
+    "git.commit": "483d065cb26ac9eccce3c429b7c651b1b8ccd413",
+    "image_tag": "on-pr-595"
+  },
+  "odh-eval-hub-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-eval-hub-rhel9@sha256:58675657fb2525e06ac16c88b3895e2a7a4410e63a4d6b60b70ec324c76eee77",
+    "git.url": "https://github.com/red-hat-data-services/eval-hub",
+    "git.commit": "3e9ccc99182089813e6a1ee613e8042a878f01bb",
+    "image_tag": "on-pr-504"
+  },
+  "odh-automl-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-automl-rhel9@sha256:d5d9fda0fbc17d8d17d64b295a15777be2befea15dd6a7339b29d5b969f0aa72",
+    "git.url": "https://github.com/red-hat-data-services/pipelines-components",
+    "git.commit": "4d52bbe6860d9d8690fd0e7595ac7b22c978fee6",
+    "image_tag": "on-pr-308"
+  },
+  "odh-autorag-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-autorag-rhel9@sha256:a0636e0c4ac6f13592925f0e9a7d939c45f1c24935dbbb86b36b4635664b13e2",
+    "git.url": "https://github.com/red-hat-data-services/pipelines-components",
+    "git.commit": "4d52bbe6860d9d8690fd0e7595ac7b22c978fee6",
+    "image_tag": "on-pr-308"
+  },
+  "odh-pipelines-components-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-pipelines-components-rhel9@sha256:a7867179fdfeba7873a6da5567e869bb250e74b2fabd1286c62e6333e7ddf370",
+    "git.url": "https://github.com/red-hat-data-services/pipelines-components",
+    "git.commit": "4d52bbe6860d9d8690fd0e7595ac7b22c978fee6",
+    "image_tag": "on-pr-308"
+  },
+  "odh-rhaii-cluster-validator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-rhaii-cluster-validator-rhel9@sha256:6d964884dd6e2431346c175ff1540bead40ae8bf48ec3fb1be2761b99d564eb0",
+    "git.url": "https://github.com/red-hat-data-services/rhaii-cluster-validation",
+    "git.commit": "b451843152052f58ee7a4b36996abf508b140356",
+    "image_tag": "on-pr-396"
+  },
+  "odh-rhaii-validator-tools-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-rhaii-validator-tools-rhel9@sha256:149fe45b28baf04dfe00d7230177b886662d1a7a0ea17cf0fd13a308fafca907",
+    "git.url": "https://github.com/red-hat-data-services/rhaii-cluster-validation",
+    "git.commit": "b451843152052f58ee7a4b36996abf508b140356",
+    "image_tag": "on-pr-396"
+  },
+  "odh-kube-rbac-proxy-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-kube-rbac-proxy-rhel9@sha256:f7556d10ba21143aef82391ada58a7ac0e9e6cd74d1aee0f012c2302257f82e4",
+    "git.url": "https://github.com/red-hat-data-services/kube-rbac-proxy",
+    "git.commit": "c8a98fc1c54b8a91f1bede4d6d90b0c6ef717c0c",
+    "image_tag": "on-pr-209"
+  },
+  "odh-ogx-core-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ogx-core-rhel9@sha256:5649739ee267b5aea9e421bb2254c49bbe14ecdce440fcde9112b35a80d3d2e6",
+    "git.url": "https://github.com/red-hat-data-services/ogx-distribution",
+    "git.commit": "9fa7c78145ad9b6f24567287026f1099d92b05e9",
+    "image_tag": "on-pr-256"
+  },
+  "odh-ai-gateway-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ai-gateway-operator-rhel9@sha256:4d18342257b5bb3a1a3e8e627c8716453d8bd52bd94351b8456c5450c69b09f5",
+    "git.url": "https://github.com/red-hat-data-services/ai-gateway-operator",
+    "git.commit": "7674ad64d8084f24f436f2b0626501c3cca75406",
+    "image_tag": "on-pr-123"
+  },
+  "odh-trustyai-service-py-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-trustyai-service-py-rhel9@sha256:4b53af0295fe2455465c8b3731e0b24f0e44ab36b7223e239fae393c9c9f4e02",
+    "git.url": "https://github.com/red-hat-data-services/trustyai-service",
+    "git.commit": "a2105731d13e0b3b548c37d0e3cdc74c26dfdba8",
+    "image_tag": "on-pr-247"
+  },
+  "odh-ai-gateway-controller-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ai-gateway-controller-rhel9@sha256:d9219f1c62ff11dc2dd19eb003b720a5604a5a6324f415ed2b1ba663bbd216c4",
+    "git.url": "https://github.com/red-hat-data-services/ai-gateway-controller",
+    "git.commit": "68064c9c900d6dde4e361a855924f177163e504d",
+    "image_tag": "on-pr-65"
+  },
+  "odh-ray-module-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-ray-module-operator-rhel9@sha256:242d9ad5754c50c1d3faa805bb652a06f55c529a6a2923ead6402cc4aafb44ef",
+    "git.url": "https://github.com/red-hat-data-services/ray-module-operator",
+    "git.commit": "dcc6260bebe2731eb7dfdc8ac59705a62b15da61",
+    "image_tag": "on-pr-52"
+  },
+  "odh-modelexpress-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-modelexpress-rhel9@sha256:ae6e894a082966687c974c3af886960889c81cbce6cd60caf5f45dd792174f73",
+    "git.url": "https://github.com/red-hat-data-services/modelexpress",
+    "git.commit": "9bdc7b281c38a660b6f546d5d0f1445bbfb0f30f",
+    "image_tag": "on-pr-64"
+  },
+  "odh-modelexpress-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-modelexpress-operator-rhel9@sha256:b3a46c734705daaafbf3a715e9f960bae8af1574bbc3e9a4ee6599b1ab21d75f",
+    "git.url": "https://github.com/red-hat-data-services/modelexpress",
+    "git.commit": "9bdc7b281c38a660b6f546d5d0f1445bbfb0f30f",
+    "image_tag": "on-pr-64"
+  },
+  "odh-praxis-ai-grid-enrollment-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-praxis-ai-grid-enrollment-rhel9@sha256:5d57279e87a5f2047d4f2aecd30434302a9b72bed0013404120c3dac680eb0a2",
+    "git.url": "https://github.com/red-hat-data-services/praxis-ai-grid-operator",
+    "git.commit": "01f7942dc3d9298745c9cefe3513a71a342db51d",
+    "image_tag": "on-pr-24"
+  },
+  "odh-praxis-ai-grid-gateway-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-praxis-ai-grid-gateway-rhel9@sha256:6d73309084981e24e06de113c5044454148c82ba96aa0a7000a396a364e25f33",
+    "git.url": "https://github.com/red-hat-data-services/praxis-ai-grid-operator",
+    "git.commit": "01f7942dc3d9298745c9cefe3513a71a342db51d",
+    "image_tag": "on-pr-24"
+  },
+  "odh-praxis-ai-grid-operator-v3-7-ea-1": {
+    "image": "quay.io/rhoai/odh-praxis-ai-grid-operator-rhel9@sha256:8b177c1072f8d68a2cb3b8338770627faeb939e7acc701d1570f9ddb59370de7",
+    "git.url": "https://github.com/red-hat-data-services/praxis-ai-grid-operator",
+    "git.commit": "01f7942dc3d9298745c9cefe3513a71a342db51d",
+    "image_tag": "on-pr-24"
+  }
+}
