@@ -27,12 +27,14 @@ image:
 
 replicaCount: 1
 
-# The controller caches cluster-scoped informers for Secrets, ConfigMaps,
-# Namespaces, CRDs, EndpointSlices, Routes, Deployments, Jobs, Services,
-# ServiceAccounts and ClusterRole/Bindings, so its footprint scales with the
-# size of the cluster rather than with the number of Monitoring CRs. Measured
-# steady state on a small ROSA HCP cluster is ~1.7Gi, which OOMKilled the
-# container roughly ten seconds after start at the previous 512Mi limit.
+# The controller's informer caches are scoped by monitoringNamespace: workload,
+# service, route, ConfigMap, Secret, and NetworkPolicy informers are restricted
+# to the monitoring (and operator/logging) namespaces, while namespaced RBAC,
+# jobs, and service accounts are additionally label- and name-filtered. Only
+# small cluster-scoped types (Namespaces, CRDs watched metadata-only,
+# ClusterRole/Bindings, APIObjects) and per-namespace TargetAllocator secret
+# Roles/RoleBindings remain cluster-wide, so the footprint no longer scales
+# with the size of the cluster.
 resources:
   limits:
     cpu: 500m
