@@ -1,0 +1,47 @@
+{{- if or .Values.openshift.securityContextConstraints (.Capabilities.APIVersions.Has "security.openshift.io/v1") }}
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+apiVersion: security.openshift.io/v1
+defaultAddCapabilities: null
+fsGroup:
+  ranges:
+  - max: 26
+    min: 26
+  type: MustRunAs
+kind: SecurityContextConstraints
+metadata:
+  labels:
+    app.kubernetes.io/component: internal-postgres-scc
+    app.kubernetes.io/name: odh-db-internal-postgres
+    app.kubernetes.io/part-of: opendatahub-db-operator
+    db.infrastructure.opendatahub.io/internal-postgres-scc: owned
+  name: odh-db-internal-postgres
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- ALL
+runAsUser:
+  type: MustRunAs
+  uid: 26
+seLinuxContext:
+  type: MustRunAs
+seccompProfiles:
+- runtime/default
+supplementalGroups:
+  ranges:
+  - max: 26
+    min: 26
+  type: MustRunAs
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
+{{- end }}
