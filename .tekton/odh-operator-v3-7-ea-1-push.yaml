@@ -8,15 +8,16 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     build.appstudio.openshift.io/build-nudge-files: "bundle/bundle-patch.yaml"
+    # UBI10 migration test: fire on PR (not push) until -rhel10 quay is ready.
     pipelinesascode.tekton.dev/on-cel-expression: |
       konflux_cluster == "stone-prod-p02"
-      && event == "push"
+      && event == "pull_request"
       && target_branch == "rhoai-3.7-ea.1"
       && ( files.all.exists(p, !(
         p.matches('^bundle/') || p.matches('^build/') || p.matches('^\\.tekton/')
           || p.matches('^\\.github/workflows/')
           || p.matches('^Dockerfiles/bundle\\.Dockerfile$')
-      ) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v3-7-ea-1-push.yaml".pathChanged()) )
+      ) || "build/operands-map.yaml".pathChanged() || ".tekton/odh-operator-v3-7-ea-1-push.yaml".pathChanged() || "Dockerfiles/Dockerfile.konflux".pathChanged()) )
   labels:
     appstudio.openshift.io/application: rhoai-v3-7-ea-1
     appstudio.openshift.io/component: odh-operator-v3-7-ea-1
@@ -35,7 +36,7 @@ spec:
     value:
     - '{{target_branch}}-{{revision}}'
   - name: output-image
-    value: quay.io/rhoai/odh-rhel9-operator:{{target_branch}}
+    value: quay.io/rhoai/odh-rhel9-operator:ubi10
   - name: rhoai-version
     value: "3.7.0-ea.1"
   - name: dockerfile
@@ -66,6 +67,10 @@ spec:
     - linux/ppc64le
     - linux/s390x
     - linux-m2xlarge/arm64
+  - name: image-expires-after
+    value: 5d
+  - name: enable-slack-failure-notification
+    value: "false"
   pipelineRef:
     resolver: git
     params:
