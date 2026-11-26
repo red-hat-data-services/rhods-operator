@@ -1,0 +1,114 @@
+# Admin-run Kubernetes Job that backfills denormalized trace analytics
+# columns (`mlflow db prepopulate-trace-analytics`) on a live RHOAI MLflow
+# deployment with a Secret-backed PostgreSQL backend, ahead of the final
+# `mlflow db upgrade` (which would otherwise backfill them synchronously
+# inside the migration window). Full runbook:
+# docs/trace-analytics-prepopulation.md.
+#
+# - Run BEFORE the final operator-managed `mlflow db upgrade`, and NEVER
+#   concurrently with it or with a migration Job (labeled
+#   mlflow.opendatahub.io/migration-job=true); prefer a low-traffic window.
+# - Rerun-safe: a rerun skips rows whose values are already correct;
+#   recreate the Job to rerun after an interruption.
+# - Does NOT advance the Alembic revision or remove legacy data; the final
+#   `mlflow db upgrade` remains required. The command refuses to run unless
+#   the database is at the expected predecessor revision.
+#
+# Always take a database backup before changing the database schema or contents.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mlflow-trace-analytics-prepopulation
+  # RHOAI deployments live in redhat-ods-applications; use the opendatahub
+  # namespace on OpenDataHub installs.
+  namespace: redhat-ods-applications
+  labels:
+    app: mlflow
+    component: mlflow-trace-analytics-prepopulation
+    app.kubernetes.io/managed-by: mlflow-operator
+    app.kubernetes.io/part-of: mlflow
+spec:
+  # The command is rerun-safe, so failed pods gain nothing from in-Job retries;
+  # surface failures immediately and rerun the Job deliberately.
+  backoffLimit: 0
+  # Keep the finished Job around for a day so administrators can inspect
+  # progress logs after the run.
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: mlflow
+        component: mlflow-trace-analytics-prepopulation
+    spec:
+      # The Job talks only to the database; it never calls the Kubernetes
+      # API, so do not mount a service-account token into the pod.
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        # The container runs with a read-only root filesystem; /tmp stays
+        # writable for Python temporary files through a size-limited
+        # emptyDir, mirroring the operator's own Job rendering.
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+      containers:
+        - name: mlflow-prepopulate-trace-analytics
+          # Use the MLflow image for the RHOAI release you plan to upgrade to,
+          # not the image from the currently running Deployment.
+          image: registry.redhat.io/rhoai/odh-mlflow-rhel9@sha256:d8c8adb135bed9c595df32d6fce64fdfd67bc02eb34b4e373b7ee2185210e58b
+          imagePullPolicy: IfNotPresent
+          # The `mlflow` CLI reads the database URL from MLFLOW_TRACKING_URI,
+          # keeping credentials out of process arguments and shell history.
+          # No positional URL is passed on purpose.
+          command: ["mlflow"]
+          args:
+            - db
+            - prepopulate-trace-analytics
+            # Rows committed per transaction; bounded 1-250 to stay below
+            # supported-database parameter limits.
+            - --batch-size
+            - "250"
+          env:
+            # Primary backend store URI, sourced from the same Secret the live
+            # MLflow Deployment's effective MLFLOW_BACKEND_STORE_URI entry
+            # references (the last such env entry wins, so a spec.env override
+            # suppresses the generated spec.backendStoreUriFrom wiring — see
+            # docs/trace-analytics-prepopulation.md, prerequisite 1). NEVER
+            # point this at a read replica: prepopulation must write to the
+            # primary, exactly like the operator's own migration Job.
+            - name: MLFLOW_TRACKING_URI
+              valueFrom:
+                secretKeyRef:
+                  # Replace with the primary backend Secret of your deployment.
+                  name: mlflow-db-credentials
+                  key: backend-store-uri
+            # Explicitly neutralized, mirroring the operator's migration Job:
+            # schema work always targets the primary backend store. Do not
+            # forward the read-replica Secret into this container via envFrom.
+            - name: MLFLOW_READ_REPLICA_BACKEND_STORE_URI
+              value: ""
+          volumeMounts:
+            # Writable scratch despite the read-only root filesystem.
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            # A backfill is I/O-bound and short-lived; keep requests modest and
+            # cap CPU so the Job cannot starve the co-located MLflow server.
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault

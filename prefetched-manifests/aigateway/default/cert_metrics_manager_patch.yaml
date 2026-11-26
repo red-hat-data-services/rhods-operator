@@ -1,0 +1,18 @@
+# This patch adds the volume and volumeMount for the metrics serving certificate.
+
+# Add the volumeMount for the metrics-server certs
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts/-
+  value:
+    mountPath: /tmp/k8s-metrics-server/metrics-certs
+    name: metrics-certs
+    readOnly: true
+
+# Add the metrics-server certs volume configuration
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: metrics-certs
+    secret:
+      secretName: ai-gateway-operator-metrics-tls
+      optional: true
