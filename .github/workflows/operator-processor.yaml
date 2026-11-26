@@ -163,8 +163,22 @@ jobs:
           OPERANDS_MAP_PATH=rhods-operator/build/operands-map.yaml
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
-          
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable
+
+          # Early-gate: pin operand digests from the group snapshot committed
+          # by the gate to the ephemeral branch (build/eg-snapshot.json).
+          SNAPSHOT_ARG=""
+          if [[ "${EG_MODE}" == "true" ]]; then
+            EG_SNAPSHOT_PATH=rhods-operator/build/eg-snapshot.json
+            if [[ -f "${EG_SNAPSHOT_PATH}" ]]; then
+              SNAPSHOT_ARG="--snapshot-path ${EG_SNAPSHOT_PATH}"
+              echo "early-gate: pinning operands from ${EG_SNAPSHOT_PATH}"
+            else
+              echo "::error::eg-mode is true but ${EG_SNAPSHOT_PATH} is missing; the gate must commit the group snapshot before dispatch."
+              exit 1
+            fi
+          fi
+
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation enable ${SNAPSHOT_ARG}
           
       - name: Print debug logs
         if: always()

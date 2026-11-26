@@ -91,8 +91,17 @@ jobs:
           OPERANDS_MAP_PATH=rhods-operator/build/operands-map.yaml
           NUDGING_YAML_PATH=rhods-operator/build/operator-nudging.yaml
           MANIFEST_CONFIG_PATH=rhods-operator/build/manifests-config.yaml
-          
-          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation disable
+
+          # Early-gate: if the group snapshot is present on this branch,
+          # pin operand digests from it instead of querying Quay.
+          SNAPSHOT_ARG=""
+          EG_SNAPSHOT_PATH=rhods-operator/build/eg-snapshot.json
+          if [[ -f "${EG_SNAPSHOT_PATH}" ]]; then
+            SNAPSHOT_ARG="--snapshot-path ${EG_SNAPSHOT_PATH}"
+            echo "early-gate: pinning operands from ${EG_SNAPSHOT_PATH}"
+          fi
+
+          python3 utils/utils/processors/operator-processor.py  -op process-operator-yamls --patch-yaml-path ${PATCH_YAML_PATH} --operands-map-path ${OPERANDS_MAP_PATH} --nudging-yaml-path ${NUDGING_YAML_PATH} --manifest-config-path ${MANIFEST_CONFIG_PATH} --rhoai-version ${BRANCH} --push-pipeline-yaml-path ${PUSH_PIPELINE_PATH} --push-pipeline-operation disable ${SNAPSHOT_ARG}
           
       - name: Print debug logs
         if: always()
