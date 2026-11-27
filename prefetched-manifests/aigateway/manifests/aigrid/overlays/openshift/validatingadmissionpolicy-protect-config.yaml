@@ -1,0 +1,28 @@
+# Source: grid-operator/templates/vap-configmap-protect.yaml
+# Prevents the operator ServiceAccount from modifying its own configuration ConfigMap.
+# create is left open: the ClusterRole grants unscoped create on configmaps.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: grid-operator-protect-config
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["configmaps"]
+        operations: ["UPDATE"]
+  matchConditions:
+    - name: is-operator-sa
+      expression: >-
+        request.userInfo.username == "system:serviceaccount:" + request.namespace + ":grid-operator"
+    - name: is-protected-configmap
+      expression: >-
+        request.name == "grid-operator-config"
+  validations:
+    - expression: "false"
+      message: "the operator ServiceAccount may not update grid-operator-config"
