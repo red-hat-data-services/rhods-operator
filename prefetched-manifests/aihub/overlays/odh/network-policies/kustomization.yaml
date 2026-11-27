@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# NetworkPolicies for the model-registry and catalog operator pods. They are part
+# of the AIHub-rendered bundle, so the AIHub operator applies, owns, and recreates
+# them like any other resource in this overlay (ODH-ADR-Operator-0016).
+namespace: opendatahub
+
+resources:
+- model-registry-operator-network-policy.yaml
+- catalog-operator-network-policy.yaml

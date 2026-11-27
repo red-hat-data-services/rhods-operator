@@ -1,0 +1,38 @@
+---
+# Source: grid-operator/templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grid-operator
+  labels:
+    app.kubernetes.io/name: grid-operator
+    app.kubernetes.io/instance: grid-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: grid-operator
+      app.kubernetes.io/instance: grid-operator
+  policyTypes:
+    - Ingress
+  ingress:
+    # Peer sites reach SWIM and signals as without the policy.
+    - ports:
+        - port: swim-udp
+          protocol: UDP
+        - port: signals
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-user-workload-monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-monitoring
+        # This release's helm test checks /readyz.
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: grid-operator
+              app.kubernetes.io/component: helm-test
+      ports:
+        - port: metrics
+          protocol: TCP
