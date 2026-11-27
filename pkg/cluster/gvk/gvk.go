@@ -79,6 +79,13 @@ const (
 
 	// Components CRDs.
 	DashboardComponentCRDName = "dashboards.components.platform.opendatahub.io"
+
+	// ServiceMonitorCRDName is the RHOBS ServiceMonitor CRD (monitoring.rhobs),
+	// not servicemonitors.monitoring.coreos.com used by cloudmanager charts.
+	ServiceMonitorCRDName = "servicemonitors.monitoring.rhobs"
+
+	// GPUOperatorClusterPolicyCRDName is the NVIDIA GPU Operator ClusterPolicy CRD.
+	GPUOperatorClusterPolicyCRDName = "clusterpolicies.nvidia.com"
 )
 
 var (
@@ -1092,5 +1099,11 @@ var (
 		Group:   "sparkoperator.k8s.io",
 		Version: "v1beta2",
 		Kind:    "ScheduledSparkApplication",
+	}
+
+	GPUOperatorClusterPolicy = schema.GroupVersionKind{
+		Group:   "nvidia.com",
+		Version: "v1",
+		Kind:    "ClusterPolicy",
 	}
 )

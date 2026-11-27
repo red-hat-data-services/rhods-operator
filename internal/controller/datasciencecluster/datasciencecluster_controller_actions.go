@@ -41,11 +41,11 @@ func isNilInterface(v any) bool {
 
 func checkPreConditions(ctx context.Context, rr *odhtype.ReconciliationRequest) error {
 	if _, err := cluster.GetDSCI(ctx, rr.Client); err != nil {
-		return fmt.Errorf("failed to get a valid DataScienceCluster instance, %w", err)
+		return fmt.Errorf("failed to get a valid DSCInitialization instance, %w", err)
 	}
 
 	if _, err := cluster.GetDSC(ctx, rr.Client); err != nil {
-		return fmt.Errorf("failed to get a valid DSCInitialization instance, %w", err)
+		return fmt.Errorf("failed to get a valid DataScienceCluster instance, %w", err)
 	}
 
 	instance, ok := rr.Instance.(*dscApi.DataScienceCluster)
@@ -64,6 +64,33 @@ func checkPreConditions(ctx context.Context, rr *odhtype.ReconciliationRequest) 
 			WithRequeueAfter(30 * time.Second)
 	}
 
+	return nil
+}
+
+// checkGPUOperatorPrerequisite surfaces whether the NVIDIA GPU Operator
+// prerequisite is present on the cluster, so administrators can tell whether GPU
+// attribution recording rules will produce data (RHAI-49218).
+//
+// Detection reads the ClusterPolicy CRD from the cached client and never
+// queries Prometheus, consistent with the operator egress constraint (port 6443
+// only). Both controllers watch the CRD, so the reconcile that follows an
+// informer event sees the new object. A missing CRD is event-driven. A
+// transient read failure is informational: the action chain continues, and the
+// framework requeues only that case.
+func checkGPUOperatorPrerequisite(ctx context.Context, rr *odhtype.ReconciliationRequest) error {
+	condStatus, reason, message := status.GPUOperatorPrerequisite(ctx, rr.Client)
+	opts := []conditions.Option{
+		conditions.WithReason(reason),
+		conditions.WithMessage(message),
+	}
+	if condStatus != metav1.ConditionTrue {
+		opts = append(opts, conditions.WithSeverity(common.ConditionSeverityInfo))
+	}
+
+	rr.Conditions.Mark(status.ConditionGPUOperatorPrerequisiteAvailable, condStatus, opts...)
+	if condStatus == metav1.ConditionUnknown {
+		return odherrors.NewRequeueAfterError(status.GPUOperatorPrerequisiteRequeueAfter)
+	}
 	return nil
 }
 

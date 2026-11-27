@@ -20,6 +20,7 @@ import (
 	cr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/components/registry"
 	"github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/status"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/deploy"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/gc"
@@ -32,6 +33,13 @@ import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/reconciler"
 	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/types"
 )
+
+// legacyDSCFieldOwner is the SSA field owner used by the 3.5.x DSC
+// controller to apply module operand resources. The platform modules
+// controller must migrate ownership from it on upgrade: server-side apply
+// otherwise retains the previous owner's associative-list entries forever,
+// permanently rejecting applies whose merge keys changed (RHAI-21655).
+const legacyDSCFieldOwner = "datasciencecluster"
 
 // commonActions returns the shared action chain for both DSC and Platform modes.
 //
@@ -55,6 +63,7 @@ func commonActions() []actions.Fn {
 			deploy.WithCache(),
 			deploy.WithApplyOrder(),
 			deploy.WithContinueOnError(),
+			deploy.WithPreviousFieldOwners(legacyDSCFieldOwner),
 		),
 		updateModuleStatus,
 		gc.NewAction(
@@ -121,6 +130,17 @@ func NewModuleReconciler(ctx context.Context, mgr ctrl.Manager) error {
 	b = b.Watches(&admissionregistrationv1.ValidatingWebhookConfiguration{},
 		reconciler.WithEventMapper(otelCollectorWebhookPlatformRequests),
 		reconciler.WithPredicates(otelCollectorWebhookPredicate()),
+	)
+
+	// COO may install the RHOBS ServiceMonitor CRD after Monitoring is already
+	// Managed. Re-render the odh-observability chart so metrics.serviceMonitor
+	// can be enabled once the CRD exists.
+	b = b.Watches(
+		&apiextensionsv1.CustomResourceDefinition{},
+		reconciler.WithEventMapper(func(_ context.Context, _ client.Object) []reconcile.Request {
+			return platformRequest
+		}),
+		reconciler.WithPredicates(resources.CreatedOrUpdatedOrDeletedNamed(gvk.ServiceMonitorCRDName)),
 	)
 
 	b = addModuleCRWatches(b)

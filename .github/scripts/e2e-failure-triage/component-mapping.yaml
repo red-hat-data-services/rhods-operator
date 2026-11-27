@@ -7,7 +7,7 @@
 # api/components/v1alpha1/*_types.go and the Components TestGroup in
 # tests/e2e/controller_test.go.
 #
-# jira_component: The "Component" field value in the RHOAIENG Jira project.
+# jira_component: The "Components" field value in the RHAI Jira project.
 #                 Must match exactly.
 
 components:
@@ -15,6 +15,8 @@ components:
     jira_component: "Model as a Service"
   dashboard:
     jira_component: "AI Core Dashboard"
+  databaseservice:
+    jira_component: "AI Core Platform"
   datasciencepipelines:
     jira_component: "AI Pipelines"
   data:
