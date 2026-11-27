@@ -1,0 +1,27 @@
+# Applied with the Deployment (config/base and config/default both include this
+# directory). OpenShift service-ca watches this annotation and writes
+# llm-d-batch-gateway-operator-metrics-tls before or during pod start.
+# MetricsController still server-side applies the same Service after start
+# so drift is repaired; creating it only then is too late for
+# controller-runtime v0.23.3, which falls back to a self-signed cert if
+# tls.crt/tls.key are missing when the metrics listener is created.
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-d-batch-gateway-operator-metrics
+  namespace: system
+  labels:
+    control-plane: llm-d-batch-gateway-controller-manager
+    app.kubernetes.io/name: llm-d-batch-gateway-operator
+    app.kubernetes.io/managed-by: llmbatchgateway-controller
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: llm-d-batch-gateway-operator-metrics-tls
+spec:
+  ports:
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+  selector:
+    control-plane: llm-d-batch-gateway-controller-manager
+    app.kubernetes.io/name: llm-d-batch-gateway-operator
