@@ -69,6 +69,16 @@ spec:
                   config:
                     description: Config holds fine-grained API server configuration.
                     properties:
+                      allowAnonymousTenant:
+                        description: |-
+                          AllowAnonymousTenant serves requests without the tenant header as the
+                          default tenant and turns off the API server's auth proxy token check.
+                          Unset means true, matching the API server's behavior before those checks
+                          existed, so existing deployments keep starting after an upgrade. Set it to
+                          false to require the Secret in spec.secretRef to contain an
+                          apiserver-proxy-token key and the auth proxy to send that token in
+                          X-Gateway-Token and set the tenant header from the authenticated identity.
+                        type: boolean
                       batchAPI:
                         description: BatchAPI configures the batch job submission
                           endpoint behaviour.
@@ -175,6 +185,318 @@ spec:
                     - Never
                     - IfNotPresent
                     type: string
+                  networkPolicy:
+                    description: |-
+                      NetworkPolicy configures ingress access to the API server and its
+                      observability port. It is disabled by default.
+                    properties:
+                      api:
+                        description: API lists the peers allowed to reach the API
+                          port.
+                        properties:
+                          from:
+                            description: From contains namespaceSelector, podSelector,
+                              or ipBlock peers.
+                            items:
+                              description: |-
+                                NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of
+                                fields are allowed
+                              properties:
+                                ipBlock:
+                                  description: |-
+                                    ipBlock defines policy on a particular IPBlock. If this field is set then
+                                    neither of the other fields can be.
+                                  properties:
+                                    cidr:
+                                      description: |-
+                                        cidr is a string representing the IPBlock
+                                        Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                      type: string
+                                    except:
+                                      description: |-
+                                        except is a slice of CIDRs that should not be included within an IPBlock
+                                        Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                        Except values will be rejected if they are outside the cidr range
+                                      items:
+                                        type: string
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                  required:
+                                  - cidr
+                                  type: object
+                                namespaceSelector:
+                                  description: |-
+                                    namespaceSelector selects namespaces using cluster-scoped labels. This field follows
+                                    standard label selector semantics; if present but empty, it selects all namespaces.
+
+                                    If podSelector is also set, then the NetworkPolicyPeer as a whole selects
+                                    the pods matching podSelector in the namespaces selected by namespaceSelector.
+                                    Otherwise it selects all pods in the namespaces selected by namespaceSelector.
+                                  properties:
+                                    matchExpressions:
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
+                                      items:
+                                        description: |-
+                                          A label selector requirement is a selector that contains values, a key, and an operator that
+                                          relates the key and values.
+                                        properties:
+                                          key:
+                                            description: key is the label key that
+                                              the selector applies to.
+                                            type: string
+                                          operator:
+                                            description: |-
+                                              operator represents a key's relationship to a set of values.
+                                              Valid operators are In, NotIn, Exists and DoesNotExist.
+                                            type: string
+                                          values:
+                                            description: |-
+                                              values is an array of string values. If the operator is In or NotIn,
+                                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                              the values array must be empty. This array is replaced during a strategic
+                                              merge patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      description: |-
+                                        matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                        map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                        operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                podSelector:
+                                  description: |-
+                                    podSelector is a label selector which selects pods. This field follows standard label
+                                    selector semantics; if present but empty, it selects all pods.
+
+                                    If namespaceSelector is also set, then the NetworkPolicyPeer as a whole selects
+                                    the pods matching podSelector in the Namespaces selected by NamespaceSelector.
+                                    Otherwise it selects the pods matching podSelector in the policy's own namespace.
+                                  properties:
+                                    matchExpressions:
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
+                                      items:
+                                        description: |-
+                                          A label selector requirement is a selector that contains values, a key, and an operator that
+                                          relates the key and values.
+                                        properties:
+                                          key:
+                                            description: key is the label key that
+                                              the selector applies to.
+                                            type: string
+                                          operator:
+                                            description: |-
+                                              operator represents a key's relationship to a set of values.
+                                              Valid operators are In, NotIn, Exists and DoesNotExist.
+                                            type: string
+                                          values:
+                                            description: |-
+                                              values is an array of string values. If the operator is In or NotIn,
+                                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                              the values array must be empty. This array is replaced during a strategic
+                                              merge patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      description: |-
+                                        matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                        map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                        operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                              type: object
+                            type: array
+                        type: object
+                        x-kubernetes-validations:
+                        - message: each peer must set ipBlock alone or at least one
+                            of podSelector and namespaceSelector
+                          rule: '!has(self.from) || self.from.all(peer, has(peer.ipBlock)
+                            != (has(peer.podSelector) || has(peer.namespaceSelector)))'
+                      enabled:
+                        default: false
+                        description: Enabled creates an ingress-only NetworkPolicy
+                          for the API server pods.
+                        type: boolean
+                      observability:
+                        description: Observability lists the peers allowed to reach
+                          the observability port.
+                        properties:
+                          from:
+                            description: From contains namespaceSelector, podSelector,
+                              or ipBlock peers.
+                            items:
+                              description: |-
+                                NetworkPolicyPeer describes a peer to allow traffic to/from. Only certain combinations of
+                                fields are allowed
+                              properties:
+                                ipBlock:
+                                  description: |-
+                                    ipBlock defines policy on a particular IPBlock. If this field is set then
+                                    neither of the other fields can be.
+                                  properties:
+                                    cidr:
+                                      description: |-
+                                        cidr is a string representing the IPBlock
+                                        Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                      type: string
+                                    except:
+                                      description: |-
+                                        except is a slice of CIDRs that should not be included within an IPBlock
+                                        Valid examples are "192.168.1.0/24" or "2001:db8::/64"
+                                        Except values will be rejected if they are outside the cidr range
+                                      items:
+                                        type: string
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                  required:
+                                  - cidr
+                                  type: object
+                                namespaceSelector:
+                                  description: |-
+                                    namespaceSelector selects namespaces using cluster-scoped labels. This field follows
+                                    standard label selector semantics; if present but empty, it selects all namespaces.
+
+                                    If podSelector is also set, then the NetworkPolicyPeer as a whole selects
+                                    the pods matching podSelector in the namespaces selected by namespaceSelector.
+                                    Otherwise it selects all pods in the namespaces selected by namespaceSelector.
+                                  properties:
+                                    matchExpressions:
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
+                                      items:
+                                        description: |-
+                                          A label selector requirement is a selector that contains values, a key, and an operator that
+                                          relates the key and values.
+                                        properties:
+                                          key:
+                                            description: key is the label key that
+                                              the selector applies to.
+                                            type: string
+                                          operator:
+                                            description: |-
+                                              operator represents a key's relationship to a set of values.
+                                              Valid operators are In, NotIn, Exists and DoesNotExist.
+                                            type: string
+                                          values:
+                                            description: |-
+                                              values is an array of string values. If the operator is In or NotIn,
+                                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                              the values array must be empty. This array is replaced during a strategic
+                                              merge patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      description: |-
+                                        matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                        map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                        operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                                podSelector:
+                                  description: |-
+                                    podSelector is a label selector which selects pods. This field follows standard label
+                                    selector semantics; if present but empty, it selects all pods.
+
+                                    If namespaceSelector is also set, then the NetworkPolicyPeer as a whole selects
+                                    the pods matching podSelector in the Namespaces selected by NamespaceSelector.
+                                    Otherwise it selects the pods matching podSelector in the policy's own namespace.
+                                  properties:
+                                    matchExpressions:
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
+                                      items:
+                                        description: |-
+                                          A label selector requirement is a selector that contains values, a key, and an operator that
+                                          relates the key and values.
+                                        properties:
+                                          key:
+                                            description: key is the label key that
+                                              the selector applies to.
+                                            type: string
+                                          operator:
+                                            description: |-
+                                              operator represents a key's relationship to a set of values.
+                                              Valid operators are In, NotIn, Exists and DoesNotExist.
+                                            type: string
+                                          values:
+                                            description: |-
+                                              values is an array of string values. If the operator is In or NotIn,
+                                              the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                                              the values array must be empty. This array is replaced during a strategic
+                                              merge patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                      x-kubernetes-list-type: atomic
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      description: |-
+                                        matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                                        map is equivalent to an element of matchExpressions, whose key field is "key", the
+                                        operator is "In", and the values array contains only "value". The requirements are ANDed.
+                                      type: object
+                                  type: object
+                                  x-kubernetes-map-type: atomic
+                              type: object
+                            type: array
+                        type: object
+                        x-kubernetes-validations:
+                        - message: each peer must set ipBlock alone or at least one
+                            of podSelector and namespaceSelector
+                          rule: '!has(self.from) || self.from.all(peer, has(peer.ipBlock)
+                            != (has(peer.podSelector) || has(peer.namespaceSelector)))'
+                    type: object
+                    x-kubernetes-validations:
+                    - message: networkPolicy.api.from must not be empty when networkPolicy
+                        is enabled
+                      rule: '!self.enabled || (has(self.api) && has(self.api.from)
+                        && size(self.api.from) > 0)'
                   replicas:
                     default: 1
                     description: |-
@@ -255,6 +577,28 @@ spec:
                 enum:
                 - postgresql
                 type: string
+              dbClient:
+                description: DBClient configures the shared Batch Gateway database
+                  client.
+                properties:
+                  postgresql:
+                    description: PostgreSQL configures the PostgreSQL database client.
+                    properties:
+                      pool:
+                        description: Pool configures the PostgreSQL connection pools.
+                        properties:
+                          maxConnections:
+                            description: |-
+                              MaxConnections caps each Batch Gateway PostgreSQL pool. Zero retains
+                              pool_max_conns from the PostgreSQL URL when set; otherwise it uses the pgx
+                              default. Runtime pools have a minimum size of two. This is separate from
+                              the async processor SQL transport pool under spec.processor.asyncConfig.sql.
+                            format: int32
+                            minimum: 0
+                            type: integer
+                        type: object
+                    type: object
+                type: object
               extraEndpoints:
                 description: |-
                   ExtraEndpoints adds deployment-specific inference paths to the standard
@@ -268,11 +612,11 @@ spec:
               fileStorage:
                 description: |-
                   FileStorage configures the file storage backend used to persist batch
-                  input/output files. Exactly one of s3 or fs must be configured.
+                  input/output files. Exactly one of s3, gcs, or fs must be configured.
                 properties:
                   fs:
                     description: FS configures PVC-backed filesystem storage. Mutually
-                      exclusive with s3.
+                      exclusive with s3 and gcs.
                     properties:
                       basePath:
                         description: BasePath is the root directory inside the PVC
@@ -290,6 +634,48 @@ spec:
                     x-kubernetes-validations:
                     - message: fs.claimName is required
                       rule: size(self.claimName) > 0
+                  gcs:
+                    description: GCS configures Google Cloud Storage. Mutually exclusive
+                      with s3 and fs.
+                    properties:
+                      autoCreateBucket:
+                        default: false
+                        description: AutoCreateBucket lets the Batch Gateway create
+                          the bucket when it does not exist.
+                        type: boolean
+                      bucket:
+                        description: Bucket is the GCS bucket name used for all file
+                          storage.
+                        maxLength: 222
+                        minLength: 1
+                        type: string
+                      prefix:
+                        description: Prefix is an optional object prefix applied to
+                          all stored objects.
+                        maxLength: 1024
+                        type: string
+                      projectId:
+                        description: |-
+                          ProjectID is the Google Cloud project used to create the bucket. It is
+                          required only when autoCreateBucket is true.
+                        maxLength: 253
+                        type: string
+                      verifyBucketOnStart:
+                        default: true
+                        description: VerifyBucketOnStart checks that the bucket exists
+                          when each component starts.
+                        type: boolean
+                    required:
+                    - bucket
+                    type: object
+                    x-kubernetes-validations:
+                    - message: gcs.projectId is required when autoCreateBucket is
+                        true
+                      rule: '!self.autoCreateBucket || (has(self.projectId) && size(self.projectId)
+                        > 0)'
+                    - message: gcs.verifyBucketOnStart must be true when autoCreateBucket
+                        is true
+                      rule: '!self.autoCreateBucket || self.verifyBucketOnStart'
                   retry:
                     description: Retry configures retry behaviour for transient file
                       storage errors.
@@ -316,7 +702,7 @@ spec:
                     type: object
                   s3:
                     description: S3 configures S3-compatible object storage. Mutually
-                      exclusive with fs.
+                      exclusive with gcs and fs.
                     properties:
                       accessKeyId:
                         description: |-
@@ -359,9 +745,10 @@ spec:
                     type: object
                 type: object
                 x-kubernetes-validations:
-                - message: exactly one of fileStorage.s3 or fileStorage.fs must be
-                    set
-                  rule: has(self.s3) != has(self.fs)
+                - message: exactly one of fileStorage.s3, fileStorage.gcs, or fileStorage.fs
+                    must be set
+                  rule: '(has(self.s3) ? 1 : 0) + (has(self.gcs) ? 1 : 0) + (has(self.fs)
+                    ? 1 : 0) == 1'
               gc:
                 description: GC configures the garbage-collector component that expires
                   old jobs and files.
@@ -1547,7 +1934,8 @@ spec:
               conditions:
                 description: |-
                   Conditions represent the latest available observations of the LLMBatchGateway's state.
-                  Known condition types: Ready, APIServerAvailable, ProcessorAvailable, GCAvailable.
+                  Known condition types: Ready, APIServerAvailable, ProcessorAvailable,
+                  GCAvailable, AsyncProcessorAvailable, and APIServerNetworkPolicyManaged.
                 items:
                   description: Condition contains details for one aspect of the current
                     state of this API Resource.

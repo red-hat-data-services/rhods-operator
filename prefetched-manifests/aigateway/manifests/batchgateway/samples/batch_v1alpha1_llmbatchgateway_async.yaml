@@ -11,6 +11,11 @@ spec:
   #   name: batch-gateway-secrets
   #   namespace: credentials-ns
   dbBackend: postgresql
+  # Optional per-pool cap for the shared PostgreSQL client:
+  # dbClient:
+  #   postgresql:
+  #     pool:
+  #       maxConnections: 8
   extraEndpoints:
   - /v1/classify
   fileStorage:
@@ -20,6 +25,23 @@ spec:
       endpoint: https://s3.example.com
   apiServer:
     replicas: 1
+    # Requires a Batch Gateway chart with API server NetworkPolicy support.
+    # No policy is created unless enabled is true. When enabled, api.from must
+    # list peers allowed to reach the API port. Empty or omitted
+    # observability.from blocks peers from the observability port. Each peer
+    # follows native Kubernetes NetworkPolicyPeer rules.
+    # networkPolicy:
+    #   enabled: true
+    #   api:
+    #     from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: gateway-system
+    #   observability:
+    #     from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: monitoring
     config:
       batchAPI:
         # Component-level override of spec.extraEndpoints.

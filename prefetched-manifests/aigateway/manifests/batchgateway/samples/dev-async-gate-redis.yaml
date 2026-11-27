@@ -18,6 +18,9 @@ spec:
   apiServer:
     replicas: 1
     imagePullPolicy: IfNotPresent
+    config:
+      # Local development runs without an auth proxy.
+      allowAnonymousTenant: true
   gc:
     interval: 30m
     imagePullPolicy: IfNotPresent
@@ -41,7 +44,7 @@ spec:
           igwBaseURL: http://vllm-sim.default.svc.cluster.local:8000
           gateType: redis
           gateParams:
-            address: "redis-master.default.svc.cluster.local:6379"
+            address: "redis.default.svc.cluster.local:6379"
           workerPoolID: sim-workers
       workerPools:
       - name: sim-workers

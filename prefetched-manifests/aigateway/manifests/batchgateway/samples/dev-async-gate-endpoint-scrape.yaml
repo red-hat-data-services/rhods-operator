@@ -18,6 +18,9 @@ spec:
   apiServer:
     replicas: 1
     imagePullPolicy: IfNotPresent
+    config:
+      # Local development runs without an auth proxy.
+      allowAnonymousTenant: true
   gc:
     interval: 30m
     imagePullPolicy: IfNotPresent
